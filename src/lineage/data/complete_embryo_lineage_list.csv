@@ -1,0 +1,1342 @@
+tree_order,cell_name,parent,founder_lineage,generation_from_founder,depth_from_P0,is_terminal,x_position,birth_time_min,end_time_min,branch_duration_min,apop_fate,ignore_apoptosis_fate
+1,P0,,P0,0,0,False,424.3916015625,0.0,40.0,40.0,Unspecified,Not annotated
+2,AB,P0,AB,0,1,False,245.2783203125,40.0,57.0,17.0,Unspecified,Not annotated
+3,ABa,AB,AB,1,2,False,130.279296875,57.0,75.0,18.0,Unspecified,Not annotated
+4,ABal,ABa,AB,2,3,False,64.85546875,75.0,93.0,18.0,Unspecified,Unspecified
+5,ABala,ABal,AB,3,4,False,31.328125,93.0,112.0,19.0,Unspecified,Neuron
+6,ABalaa,ABala,AB,4,5,False,14.984375,112.0,132.0,20.0,Unspecified,Neuron
+7,ABalaaa,ABalaa,AB,5,6,False,7.5,132.0,154.0,22.0,Unspecified,Neuron
+8,ABalaaaa,ABalaaa,AB,6,7,False,3.5,154.0,178.0,24.0,Unspecified,Neuron
+9,ABalaaaal,ABalaaaa,AB,7,8,False,1.5,178.0,205.0,27.0,Unspecified,Neuron
+10,ABalaaaala,ABalaaaal,AB,8,9,False,0.5,205.0,235.0,30.0,Unspecified,Neuron
+11,ABalaaaalal,ABalaaaala,AB,9,10,True,0.0,235.0,263.0,28.0,Neuron,Neuron
+12,ABalaaaalar,ABalaaaala,AB,9,10,True,1.0,235.0,263.0,28.0,Death,Not annotated
+13,ABalaaaalp,ABalaaaal,AB,8,9,False,2.5,205.0,235.0,30.0,Unspecified,Neuron
+14,ABalaaaalpa,ABalaaaalp,AB,9,10,True,2.0,235.0,263.0,28.0,Death,Not annotated
+15,ABalaaaalpp,ABalaaaalp,AB,9,10,True,3.0,235.0,263.0,28.0,Neuron,Neuron
+16,ABalaaaar,ABalaaaa,AB,7,8,False,5.5,178.0,205.0,27.0,Unspecified,Neuron
+17,ABalaaaarl,ABalaaaar,AB,8,9,False,4.5,205.0,235.0,30.0,Unspecified,Neuron
+18,ABalaaaarla,ABalaaaarl,AB,9,10,True,4.0,235.0,263.0,28.0,Death,Not annotated
+19,ABalaaaarlp,ABalaaaarl,AB,9,10,True,5.0,235.0,263.0,28.0,Neuron,Neuron
+20,ABalaaaarr,ABalaaaar,AB,8,9,False,6.5,205.0,235.0,30.0,Unspecified,Neuron
+21,ABalaaaarra,ABalaaaarr,AB,9,10,True,6.0,235.0,263.0,28.0,Death,Not annotated
+22,ABalaaaarrp,ABalaaaarr,AB,9,10,True,7.0,235.0,263.0,28.0,Neuron,Neuron
+23,ABalaaap,ABalaaa,AB,6,7,False,11.5,154.0,178.0,24.0,Unspecified,Neuron
+24,ABalaaapa,ABalaaap,AB,7,8,False,9.5,178.0,205.0,27.0,Unspecified,Neuron
+25,ABalaaapal,ABalaaapa,AB,8,9,False,8.5,205.0,235.0,30.0,Neuron,Neuron
+26,ABalaaapall,ABalaaapal,AB,9,10,True,8.0,235.0,263.0,28.0,Neuron,Neuron
+27,ABalaaapalr,ABalaaapal,AB,9,10,True,9.0,235.0,263.0,28.0,Neuron,Neuron
+28,ABalaaapar,ABalaaapa,AB,8,9,False,10.5,205.0,235.0,30.0,Unspecified,Neuron
+29,ABalaaaparl,ABalaaapar,AB,9,10,True,10.0,235.0,263.0,28.0,Death,Not annotated
+30,ABalaaaparr,ABalaaapar,AB,9,10,True,11.0,235.0,263.0,28.0,Neuron,Neuron
+31,ABalaaapp,ABalaaap,AB,7,8,False,13.5,178.0,205.0,27.0,Unspecified,Neuron
+32,ABalaaappl,ABalaaapp,AB,8,9,False,12.5,205.0,235.0,30.0,Unspecified,Neuron
+33,ABalaaappll,ABalaaappl,AB,9,10,True,12.0,235.0,263.0,28.0,Neuron,Neuron
+34,ABalaaapplr,ABalaaappl,AB,9,10,True,13.0,235.0,263.0,28.0,Death,Not annotated
+35,ABalaaappr,ABalaaapp,AB,8,9,False,14.5,205.0,235.0,30.0,Neuron,Neuron
+36,ABalaaapprl,ABalaaappr,AB,9,10,True,14.0,235.0,263.0,28.0,Neuron,Neuron
+37,ABalaaapprr,ABalaaappr,AB,9,10,True,15.0,235.0,263.0,28.0,Neuron,Neuron
+38,ABalaap,ABalaa,AB,5,6,False,22.46875,132.0,154.0,22.0,Unspecified,Neuron
+39,ABalaapa,ABalaap,AB,6,7,False,19.125,154.0,178.0,24.0,Unspecified,Neuron
+40,ABalaapaa,ABalaapa,AB,7,8,False,17.5,178.0,205.0,27.0,Unspecified,Neuron
+41,ABalaapaaa,ABalaapaa,AB,8,9,False,16.5,205.0,235.0,30.0,Unspecified,Neuron
+42,ABalaapaaal,ABalaapaaa,AB,9,10,True,16.0,235.0,263.0,28.0,Death,Not annotated
+43,ABalaapaaar,ABalaapaaa,AB,9,10,True,17.0,235.0,263.0,28.0,Neuron,Neuron
+44,ABalaapaap,ABalaapaa,AB,8,9,False,18.5,205.0,235.0,30.0,Unspecified,Neuron
+45,ABalaapaapa,ABalaapaap,AB,9,10,True,18.0,235.0,263.0,28.0,Death,Not annotated
+46,ABalaapaapp,ABalaapaap,AB,9,10,True,19.0,235.0,263.0,28.0,Neuron,Neuron
+47,ABalaapap,ABalaapa,AB,7,8,False,20.75,178.0,205.0,27.0,Unspecified,Neuron
+48,ABalaapapa,ABalaapap,AB,8,9,True,20.0,205.0,233.0,28.0,Death,Not annotated
+49,ABalaapapp,ABalaapap,AB,8,9,False,21.5,205.0,235.0,30.0,Unspecified,Neuron
+50,ABalaapappa,ABalaapapp,AB,9,10,True,21.0,235.0,263.0,28.0,Death,Not annotated
+51,ABalaapappp,ABalaapapp,AB,9,10,True,22.0,235.0,263.0,28.0,Neuron,Neuron
+52,ABalaapp,ABalaap,AB,6,7,False,25.8125,154.0,178.0,24.0,Unspecified,Neuron
+53,ABalaappa,ABalaapp,AB,7,8,False,23.75,178.0,205.0,27.0,Unspecified,Neuron
+54,ABalaappaa,ABalaappa,AB,8,9,True,23.0,205.0,233.0,28.0,Death,Not annotated
+55,ABalaappap,ABalaappa,AB,8,9,False,24.5,205.0,235.0,30.0,Neuron,Neuron
+56,ABalaappapa,ABalaappap,AB,9,10,True,24.0,235.0,263.0,28.0,Neuron,Neuron
+57,ABalaappapp,ABalaappap,AB,9,10,True,25.0,235.0,263.0,28.0,Neuron,Neuron
+58,ABalaappp,ABalaapp,AB,7,8,False,27.875,178.0,205.0,27.0,Unspecified,Neuron
+59,ABalaapppa,ABalaappp,AB,8,9,False,26.5,205.0,235.0,30.0,Unspecified,Neuron
+60,ABalaapppaa,ABalaapppa,AB,9,10,True,26.0,235.0,263.0,28.0,Neuron,Neuron
+61,ABalaapppap,ABalaapppa,AB,9,10,True,27.0,235.0,263.0,28.0,Death,Not annotated
+62,ABalaapppp,ABalaappp,AB,8,9,False,29.25,205.0,235.0,30.0,Unspecified,Neuron
+63,ABalaappppa,ABalaapppp,AB,9,10,False,28.5,235.0,269.0,34.0,Unspecified,Neuron
+64,ABalaappppaa,ABalaappppa,AB,10,11,True,28.0,269.0,297.0,28.0,Neuron,Neuron
+65,ABalaappppap,ABalaappppa,AB,10,11,True,29.0,269.0,297.0,28.0,Death,Not annotated
+66,ABalaappppp,ABalaapppp,AB,9,10,True,30.0,235.0,263.0,28.0,Neuron,Neuron
+67,ABalap,ABala,AB,4,5,False,47.671875,112.0,132.0,20.0,Unspecified,Neuron
+68,ABalapa,ABalap,AB,5,6,False,39.21875,132.0,154.0,22.0,Unspecified,Neuron
+69,ABalapaa,ABalapa,AB,6,7,False,34.6875,154.0,178.0,24.0,Unspecified,Neuron
+70,ABalapaaa,ABalapaa,AB,7,8,False,32.5,178.0,205.0,27.0,Unspecified,Neuron
+71,ABalapaaaa,ABalapaaa,AB,8,9,False,31.5,205.0,235.0,30.0,Unspecified,Neuron
+72,ABalapaaaaa,ABalapaaaa,AB,9,10,True,31.0,235.0,263.0,28.0,Neuron,Neuron
+73,ABalapaaaap,ABalapaaaa,AB,9,10,True,32.0,235.0,263.0,28.0,Death,Not annotated
+74,ABalapaaap,ABalapaaa,AB,8,9,False,33.5,205.0,235.0,30.0,Neuron,Neuron
+75,ABalapaaapa,ABalapaaap,AB,9,10,True,33.0,235.0,263.0,28.0,Neuron,Neuron
+76,ABalapaaapp,ABalapaaap,AB,9,10,True,34.0,235.0,263.0,28.0,Neuron,Neuron
+77,ABalapaap,ABalapaa,AB,7,8,False,36.875,178.0,205.0,27.0,Unspecified,Neuron
+78,ABalapaapa,ABalapaap,AB,8,9,False,35.5,205.0,235.0,30.0,Unspecified,Neuron
+79,ABalapaapaa,ABalapaapa,AB,9,10,True,35.0,235.0,263.0,28.0,Neuron,Neuron
+80,ABalapaapap,ABalapaapa,AB,9,10,True,36.0,235.0,263.0,28.0,Death,Not annotated
+81,ABalapaapp,ABalapaap,AB,8,9,False,38.25,205.0,235.0,30.0,Unspecified,Neuron
+82,ABalapaappa,ABalapaapp,AB,9,10,False,37.5,235.0,269.0,34.0,Unspecified,Neuron
+83,ABalapaappaa,ABalapaappa,AB,10,11,True,37.0,269.0,297.0,28.0,Neuron,Neuron
+84,ABalapaappap,ABalapaappa,AB,10,11,True,38.0,269.0,297.0,28.0,Death,Not annotated
+85,ABalapaappp,ABalapaapp,AB,9,10,True,39.0,235.0,263.0,28.0,Neuron,Neuron
+86,ABalapap,ABalapa,AB,6,7,False,43.75,154.0,178.0,24.0,Unspecified,Neuron
+87,ABalapapa,ABalapap,AB,7,8,False,41.125,178.0,205.0,27.0,Unspecified,Neuron
+88,ABalapapaa,ABalapapa,AB,8,9,True,40.0,205.0,233.0,28.0,Death,Not annotated
+89,ABalapapap,ABalapapa,AB,8,9,False,42.25,205.0,235.0,30.0,Unspecified,Neuron
+90,ABalapapapa,ABalapapap,AB,9,10,False,41.5,235.0,269.0,34.0,Unspecified,Neuron
+91,ABalapapapaa,ABalapapapa,AB,10,11,True,41.0,269.0,297.0,28.0,Neuron,Neuron
+92,ABalapapapap,ABalapapapa,AB,10,11,True,42.0,269.0,297.0,28.0,Death,Not annotated
+93,ABalapapapp,ABalapapap,AB,9,10,True,43.0,235.0,263.0,28.0,Neuron,Neuron
+94,ABalapapp,ABalapap,AB,7,8,False,46.375,178.0,205.0,27.0,Unspecified,Neuron
+95,ABalapappa,ABalapapp,AB,8,9,False,45.25,205.0,235.0,30.0,Unspecified,Neuron
+96,ABalapappaa,ABalapappa,AB,9,10,False,44.5,235.0,269.0,34.0,Unspecified,Neuron
+97,ABalapappaaa,ABalapappaa,AB,10,11,True,44.0,269.0,297.0,28.0,Neuron,Neuron
+98,ABalapappaap,ABalapappaa,AB,10,11,True,45.0,269.0,297.0,28.0,Death,Not annotated
+99,ABalapappap,ABalapappa,AB,9,10,True,46.0,235.0,263.0,28.0,Neuron,Neuron
+100,ABalapappp,ABalapapp,AB,8,9,False,47.5,205.0,235.0,30.0,Neuron,Neuron
+101,ABalapapppa,ABalapappp,AB,9,10,True,47.0,235.0,263.0,28.0,Neuron,Neuron
+102,ABalapapppp,ABalapappp,AB,9,10,True,48.0,235.0,263.0,28.0,Neuron,Neuron
+103,ABalapp,ABalap,AB,5,6,False,56.125,132.0,154.0,22.0,Unspecified,Neuron
+104,ABalappa,ABalapp,AB,6,7,False,51.625,154.0,178.0,24.0,Unspecified,Neuron
+105,ABalappaa,ABalappa,AB,7,8,False,49.75,178.0,205.0,27.0,Unspecified,Neuron
+106,ABalappaaa,ABalappaa,AB,8,9,True,49.0,205.0,233.0,28.0,Death,Not annotated
+107,ABalappaap,ABalappaa,AB,8,9,False,50.5,205.0,235.0,30.0,Unspecified,Neuron
+108,ABalappaapa,ABalappaap,AB,9,10,True,50.0,235.0,263.0,28.0,Neuron,Neuron
+109,ABalappaapp,ABalappaap,AB,9,10,True,51.0,235.0,263.0,28.0,Death,Not annotated
+110,ABalappap,ABalappa,AB,7,8,False,53.5,178.0,205.0,27.0,Unspecified,Neuron
+111,ABalappapa,ABalappap,AB,8,9,False,52.5,205.0,235.0,30.0,Unspecified,Neuron
+112,ABalappapaa,ABalappapa,AB,9,10,True,52.0,235.0,263.0,28.0,Neuron,Neuron
+113,ABalappapap,ABalappapa,AB,9,10,True,53.0,235.0,263.0,28.0,Death,Not annotated
+114,ABalappapp,ABalappap,AB,8,9,False,54.5,205.0,235.0,30.0,Neuron,Neuron
+115,ABalappappa,ABalappapp,AB,9,10,True,54.0,235.0,263.0,28.0,Neuron,Neuron
+116,ABalappappp,ABalappapp,AB,9,10,True,55.0,235.0,263.0,28.0,Neuron,Neuron
+117,ABalappp,ABalapp,AB,6,7,False,60.625,154.0,178.0,24.0,Unspecified,Neuron
+118,ABalapppa,ABalappp,AB,7,8,False,57.875,178.0,205.0,27.0,Unspecified,Neuron
+119,ABalapppaa,ABalapppa,AB,8,9,False,56.5,205.0,235.0,30.0,Neuron,Neuron
+120,ABalapppaaa,ABalapppaa,AB,9,10,True,56.0,235.0,263.0,28.0,Neuron,Neuron
+121,ABalapppaap,ABalapppaa,AB,9,10,True,57.0,235.0,263.0,28.0,Neuron,Neuron
+122,ABalapppap,ABalapppa,AB,8,9,False,59.25,205.0,235.0,30.0,Unspecified,Neuron
+123,ABalapppapa,ABalapppap,AB,9,10,False,58.5,235.0,269.0,34.0,Unspecified,Neuron
+124,ABalapppapaa,ABalapppapa,AB,10,11,True,58.0,269.0,297.0,28.0,Neuron,Neuron
+125,ABalapppapap,ABalapppapa,AB,10,11,True,59.0,269.0,297.0,28.0,Death,Not annotated
+126,ABalapppapp,ABalapppap,AB,9,10,True,60.0,235.0,263.0,28.0,Neuron,Neuron
+127,ABalapppp,ABalappp,AB,7,8,False,63.375,178.0,205.0,27.0,Unspecified,Neuron
+128,ABalappppa,ABalapppp,AB,8,9,False,62.25,205.0,235.0,30.0,Unspecified,Neuron
+129,ABalappppaa,ABalappppa,AB,9,10,False,61.5,235.0,269.0,34.0,Unspecified,Neuron
+130,ABalappppaaa,ABalappppaa,AB,10,11,True,61.0,269.0,297.0,28.0,Neuron,Neuron
+131,ABalappppaap,ABalappppaa,AB,10,11,True,62.0,269.0,297.0,28.0,Death,Not annotated
+132,ABalappppap,ABalappppa,AB,9,10,True,63.0,235.0,263.0,28.0,Neuron,Neuron
+133,ABalappppp,ABalapppp,AB,8,9,False,64.5,205.0,235.0,30.0,Neuron,Neuron
+134,ABalapppppa,ABalappppp,AB,9,10,True,64.0,235.0,263.0,28.0,Neuron,Neuron
+135,ABalapppppp,ABalappppp,AB,9,10,True,65.0,235.0,263.0,28.0,Neuron,Neuron
+136,ABalp,ABal,AB,3,4,False,98.3828125,93.0,112.0,19.0,Unspecified,Unspecified
+137,ABalpa,ABalp,AB,4,5,False,82.03125,112.0,132.0,20.0,Unspecified,Unspecified
+138,ABalpaa,ABalpa,AB,5,6,False,73.5,132.0,154.0,22.0,Unspecified,Unspecified
+139,ABalpaaa,ABalpaa,AB,6,7,False,69.5,154.0,178.0,24.0,Unspecified,Pharynx
+140,ABalpaaaa,ABalpaaa,AB,7,8,False,67.5,178.0,205.0,27.0,Unspecified,Pharynx
+141,ABalpaaaaa,ABalpaaaa,AB,8,9,False,66.5,205.0,235.0,30.0,Pharynx,Pharynx
+142,ABalpaaaaaa,ABalpaaaaa,AB,9,10,True,66.0,235.0,263.0,28.0,Pharynx,Pharynx
+143,ABalpaaaaap,ABalpaaaaa,AB,9,10,True,67.0,235.0,263.0,28.0,Pharynx,Pharynx
+144,ABalpaaaap,ABalpaaaa,AB,8,9,False,68.5,205.0,235.0,30.0,Unspecified,Pharynx
+145,ABalpaaaapa,ABalpaaaap,AB,9,10,True,68.0,235.0,263.0,28.0,Pharynx,Pharynx
+146,ABalpaaaapp,ABalpaaaap,AB,9,10,True,69.0,235.0,263.0,28.0,Death,Not annotated
+147,ABalpaaap,ABalpaaa,AB,7,8,False,71.5,178.0,205.0,27.0,Unspecified,Pharynx
+148,ABalpaaapa,ABalpaaap,AB,8,9,False,70.5,205.0,235.0,30.0,Unspecified,Pharynx
+149,ABalpaaapaa,ABalpaaapa,AB,9,10,True,70.0,235.0,263.0,28.0,Pharynx,Pharynx
+150,ABalpaaapap,ABalpaaapa,AB,9,10,True,71.0,235.0,263.0,28.0,Death,Not annotated
+151,ABalpaaapp,ABalpaaap,AB,8,9,False,72.5,205.0,235.0,30.0,Unspecified,Pharynx
+152,ABalpaaappa,ABalpaaapp,AB,9,10,True,72.0,235.0,263.0,28.0,Death,Not annotated
+153,ABalpaaappp,ABalpaaapp,AB,9,10,True,73.0,235.0,263.0,28.0,Pharynx,Pharynx
+154,ABalpaap,ABalpaa,AB,6,7,False,77.5,154.0,178.0,24.0,Unspecified,Unspecified
+155,ABalpaapa,ABalpaap,AB,7,8,False,75.5,178.0,205.0,27.0,Unspecified,Unspecified
+156,ABalpaapaa,ABalpaapa,AB,8,9,False,74.5,205.0,235.0,30.0,Unspecified,Not annotated
+157,ABalpaapaaa,ABalpaapaa,AB,9,10,True,74.0,235.0,263.0,28.0,Skin,Skin
+158,ABalpaapaap,ABalpaapaa,AB,9,10,True,75.0,235.0,263.0,28.0,Pharynx,Pharynx
+159,ABalpaapap,ABalpaapa,AB,8,9,False,76.5,205.0,235.0,30.0,Pharynx,Pharynx
+160,ABalpaapapa,ABalpaapap,AB,9,10,True,76.0,235.0,263.0,28.0,Pharynx,Pharynx
+161,ABalpaapapp,ABalpaapap,AB,9,10,True,77.0,235.0,263.0,28.0,Pharynx,Pharynx
+162,ABalpaapp,ABalpaap,AB,7,8,False,79.5,178.0,205.0,27.0,Skin,Skin
+163,ABalpaappa,ABalpaapp,AB,8,9,False,78.5,205.0,235.0,30.0,Skin,Skin
+164,ABalpaappaa,ABalpaappa,AB,9,10,True,78.0,235.0,263.0,28.0,Skin,Skin
+165,ABalpaappap,ABalpaappa,AB,9,10,True,79.0,235.0,263.0,28.0,Skin,Skin
+166,ABalpaappp,ABalpaapp,AB,8,9,False,80.5,205.0,235.0,30.0,Skin,Skin
+167,ABalpaapppa,ABalpaappp,AB,9,10,True,80.0,235.0,263.0,28.0,Skin,Skin
+168,ABalpaapppp,ABalpaappp,AB,9,10,True,81.0,235.0,263.0,28.0,Skin,Skin
+169,ABalpap,ABalpa,AB,5,6,False,90.5625,132.0,154.0,22.0,Unspecified,Unspecified
+170,ABalpapa,ABalpap,AB,6,7,False,85.8125,154.0,178.0,24.0,Unspecified,Unspecified
+171,ABalpapaa,ABalpapa,AB,7,8,False,83.5,178.0,205.0,27.0,Unspecified,Unspecified
+172,ABalpapaaa,ABalpapaa,AB,8,9,False,82.5,205.0,235.0,30.0,Unspecified,Not annotated
+173,ABalpapaaaa,ABalpapaaa,AB,9,10,True,82.0,235.0,263.0,28.0,Neuron,Neuron
+174,ABalpapaaap,ABalpapaaa,AB,9,10,True,83.0,235.0,263.0,28.0,Skin,Skin
+175,ABalpapaap,ABalpapaa,AB,8,9,False,84.5,205.0,235.0,30.0,Unspecified,Skin
+176,ABalpapaapa,ABalpapaap,AB,9,10,True,84.0,235.0,263.0,28.0,Skin,Skin
+177,ABalpapaapp,ABalpapaap,AB,9,10,True,85.0,235.0,263.0,28.0,Death,Not annotated
+178,ABalpapap,ABalpapa,AB,7,8,False,88.125,178.0,205.0,27.0,Unspecified,Neuron
+179,ABalpapapa,ABalpapap,AB,8,9,False,86.75,205.0,235.0,30.0,Unspecified,Neuron
+180,ABalpapapaa,ABalpapapa,AB,9,10,True,86.0,235.0,263.0,28.0,Neuron,Neuron
+181,ABalpapapap,ABalpapapa,AB,9,10,False,87.5,235.0,269.0,34.0,Unspecified,Neuron
+182,ABalpapapapa,ABalpapapap,AB,10,11,True,87.0,269.0,297.0,28.0,Death,Not annotated
+183,ABalpapapapp,ABalpapapap,AB,10,11,True,88.0,269.0,297.0,28.0,Neuron,Neuron
+184,ABalpapapp,ABalpapap,AB,8,9,False,89.5,205.0,235.0,30.0,Unspecified,Neuron
+185,ABalpapappa,ABalpapapp,AB,9,10,True,89.0,235.0,263.0,28.0,Death,Not annotated
+186,ABalpapappp,ABalpapapp,AB,9,10,True,90.0,235.0,263.0,28.0,Neuron,Neuron
+187,ABalpapp,ABalpap,AB,6,7,False,95.3125,154.0,178.0,24.0,Unspecified,Pharynx
+188,ABalpappa,ABalpapp,AB,7,8,False,93.125,178.0,205.0,27.0,Unspecified,Pharynx
+189,ABalpappaa,ABalpappa,AB,8,9,False,91.75,205.0,235.0,30.0,Unspecified,Pharynx
+190,ABalpappaaa,ABalpappaa,AB,9,10,True,91.0,235.0,263.0,28.0,Death,Not annotated
+191,ABalpappaap,ABalpappaa,AB,9,10,False,92.5,235.0,269.0,34.0,Unspecified,Pharynx
+192,ABalpappaapa,ABalpappaap,AB,10,11,True,92.0,269.0,297.0,28.0,Pharynx,Pharynx
+193,ABalpappaapp,ABalpappaap,AB,10,11,True,93.0,269.0,297.0,28.0,Death,Not annotated
+194,ABalpappap,ABalpappa,AB,8,9,False,94.5,205.0,235.0,30.0,Pharynx,Pharynx
+195,ABalpappapa,ABalpappap,AB,9,10,True,94.0,235.0,263.0,28.0,Pharynx,Pharynx
+196,ABalpappapp,ABalpappap,AB,9,10,True,95.0,235.0,263.0,28.0,Pharynx,Pharynx
+197,ABalpappp,ABalpapp,AB,7,8,False,97.5,178.0,205.0,27.0,Unspecified,Pharynx
+198,ABalpapppa,ABalpappp,AB,8,9,False,96.5,205.0,235.0,30.0,Unspecified,Pharynx
+199,ABalpapppaa,ABalpapppa,AB,9,10,True,96.0,235.0,263.0,28.0,Pharynx,Pharynx
+200,ABalpapppap,ABalpapppa,AB,9,10,True,97.0,235.0,263.0,28.0,Death,Not annotated
+201,ABalpapppp,ABalpappp,AB,8,9,False,98.5,205.0,235.0,30.0,Pharynx,Pharynx
+202,ABalpappppa,ABalpapppp,AB,9,10,True,98.0,235.0,263.0,28.0,Pharynx,Pharynx
+203,ABalpappppp,ABalpapppp,AB,9,10,True,99.0,235.0,263.0,28.0,Pharynx,Pharynx
+204,ABalpp,ABalp,AB,4,5,False,114.734375,112.0,132.0,20.0,Unspecified,Neuron
+205,ABalppa,ABalpp,AB,5,6,False,105.96875,132.0,154.0,22.0,Unspecified,Neuron
+206,ABalppaa,ABalppa,AB,6,7,False,102.25,154.0,178.0,24.0,Unspecified,Neuron
+207,ABalppaaa,ABalppaa,AB,7,8,False,100.75,178.0,205.0,27.0,Unspecified,Neuron
+208,ABalppaaaa,ABalppaaa,AB,8,9,True,100.0,205.0,233.0,28.0,Death,Not annotated
+209,ABalppaaap,ABalppaaa,AB,8,9,False,101.5,205.0,235.0,30.0,Neuron,Neuron
+210,ABalppaaapa,ABalppaaap,AB,9,10,True,101.0,235.0,263.0,28.0,Neuron,Neuron
+211,ABalppaaapp,ABalppaaap,AB,9,10,True,102.0,235.0,263.0,28.0,Neuron,Neuron
+212,ABalppaap,ABalppaa,AB,7,8,False,103.75,178.0,205.0,27.0,Unspecified,Neuron
+213,ABalppaapa,ABalppaap,AB,8,9,True,103.0,205.0,233.0,28.0,Death,Not annotated
+214,ABalppaapp,ABalppaap,AB,8,9,False,104.5,205.0,235.0,30.0,Unspecified,Neuron
+215,ABalppaappa,ABalppaapp,AB,9,10,True,104.0,235.0,263.0,28.0,Death,Not annotated
+216,ABalppaappp,ABalppaapp,AB,9,10,True,105.0,235.0,263.0,28.0,Neuron,Neuron
+217,ABalppap,ABalppa,AB,6,7,False,109.6875,154.0,178.0,24.0,Unspecified,Neuron
+218,ABalppapa,ABalppap,AB,7,8,False,107.5,178.0,205.0,27.0,Neuron,Neuron
+219,ABalppapaa,ABalppapa,AB,8,9,False,106.5,205.0,235.0,30.0,Neuron,Neuron
+220,ABalppapaaa,ABalppapaa,AB,9,10,True,106.0,235.0,263.0,28.0,Neuron,Neuron
+221,ABalppapaap,ABalppapaa,AB,9,10,True,107.0,235.0,263.0,28.0,Neuron,Neuron
+222,ABalppapap,ABalppapa,AB,8,9,False,108.5,205.0,235.0,30.0,Neuron,Neuron
+223,ABalppapapa,ABalppapap,AB,9,10,True,108.0,235.0,263.0,28.0,Neuron,Neuron
+224,ABalppapapp,ABalppapap,AB,9,10,True,109.0,235.0,263.0,28.0,Neuron,Neuron
+225,ABalppapp,ABalppap,AB,7,8,False,111.875,178.0,205.0,27.0,Unspecified,Neuron
+226,ABalppappa,ABalppapp,AB,8,9,False,110.5,205.0,235.0,30.0,Neuron,Neuron
+227,ABalppappaa,ABalppappa,AB,9,10,True,110.0,235.0,263.0,28.0,Neuron,Neuron
+228,ABalppappap,ABalppappa,AB,9,10,True,111.0,235.0,263.0,28.0,Neuron,Neuron
+229,ABalppappp,ABalppapp,AB,8,9,False,113.25,205.0,235.0,30.0,Unspecified,Neuron
+230,ABalppapppa,ABalppappp,AB,9,10,False,112.5,235.0,269.0,34.0,Unspecified,Neuron
+231,ABalppapppaa,ABalppapppa,AB,10,11,True,112.0,269.0,297.0,28.0,Neuron,Neuron
+232,ABalppapppap,ABalppapppa,AB,10,11,True,113.0,269.0,297.0,28.0,Death,Not annotated
+233,ABalppapppp,ABalppappp,AB,9,10,True,114.0,235.0,263.0,28.0,Neuron,Neuron
+234,ABalppp,ABalpp,AB,5,6,False,123.5,132.0,154.0,22.0,Unspecified,Neuron
+235,ABalpppa,ABalppp,AB,6,7,False,118.5625,154.0,178.0,24.0,Unspecified,Neuron
+236,ABalpppaa,ABalpppa,AB,7,8,False,116.5,178.0,205.0,27.0,Unspecified,Neuron
+237,ABalpppaaa,ABalpppaa,AB,8,9,False,115.5,205.0,235.0,30.0,Neuron,Neuron
+238,ABalpppaaaa,ABalpppaaa,AB,9,10,True,115.0,235.0,263.0,28.0,Neuron,Neuron
+239,ABalpppaaap,ABalpppaaa,AB,9,10,True,116.0,235.0,263.0,28.0,Neuron,Neuron
+240,ABalpppaap,ABalpppaa,AB,8,9,False,117.5,205.0,235.0,30.0,Unspecified,Neuron
+241,ABalpppaapd,ABalpppaap,AB,9,10,True,117.0,235.0,263.0,28.0,Neuron,Neuron
+242,ABalpppaapv,ABalpppaap,AB,9,10,True,118.0,235.0,263.0,28.0,Death,Not annotated
+243,ABalpppap,ABalpppa,AB,7,8,False,120.625,178.0,205.0,27.0,Unspecified,Neuron
+244,ABalpppapa,ABalpppap,AB,8,9,False,119.5,205.0,235.0,30.0,Neuron,Neuron
+245,ABalpppapad,ABalpppapa,AB,9,10,True,119.0,235.0,263.0,28.0,Neuron,Neuron
+246,ABalpppapav,ABalpppapa,AB,9,10,True,120.0,235.0,263.0,28.0,Neuron,Neuron
+247,ABalpppapp,ABalpppap,AB,8,9,False,121.75,205.0,235.0,30.0,Unspecified,Neuron
+248,ABalpppappa,ABalpppapp,AB,9,10,True,121.0,235.0,263.0,28.0,Death,Not annotated
+249,ABalpppappp,ABalpppapp,AB,9,10,False,122.5,235.0,269.0,34.0,Unspecified,Neuron
+250,ABalpppapppa,ABalpppappp,AB,10,11,True,122.0,269.0,297.0,28.0,Neuron,Neuron
+251,ABalpppapppp,ABalpppappp,AB,10,11,True,123.0,269.0,297.0,28.0,Death,Not annotated
+252,ABalpppp,ABalppp,AB,6,7,False,128.4375,154.0,178.0,24.0,Unspecified,Neuron
+253,ABalppppa,ABalpppp,AB,7,8,False,125.875,178.0,205.0,27.0,Unspecified,Neuron
+254,ABalppppaa,ABalppppa,AB,8,9,False,124.5,205.0,235.0,30.0,Unspecified,Neuron
+255,ABalppppaad,ABalppppaa,AB,9,10,True,124.0,235.0,263.0,28.0,Neuron,Neuron
+256,ABalppppaav,ABalppppaa,AB,9,10,True,125.0,235.0,263.0,28.0,Death,Not annotated
+257,ABalppppap,ABalppppa,AB,8,9,False,127.25,205.0,235.0,30.0,Unspecified,Neuron
+258,ABalppppapa,ABalppppap,AB,9,10,False,126.5,235.0,269.0,34.0,Unspecified,Neuron
+259,ABalppppapaa,ABalppppapa,AB,10,11,True,126.0,269.0,297.0,28.0,Neuron,Neuron
+260,ABalppppapap,ABalppppapa,AB,10,11,True,127.0,269.0,297.0,28.0,Death,Not annotated
+261,ABalppppapp,ABalppppap,AB,9,10,True,128.0,235.0,263.0,28.0,Death,Not annotated
+262,ABalppppp,ABalpppp,AB,7,8,False,131.0,178.0,205.0,27.0,Unspecified,Neuron
+263,ABalpppppa,ABalppppp,AB,8,9,False,129.5,205.0,235.0,30.0,Neuron,Neuron
+264,ABalpppppaa,ABalpppppa,AB,9,10,True,129.0,235.0,263.0,28.0,Neuron,Neuron
+265,ABalpppppap,ABalpppppa,AB,9,10,True,130.0,235.0,263.0,28.0,Neuron,Neuron
+266,ABalpppppp,ABalppppp,AB,8,9,False,132.5,205.0,235.0,30.0,Unspecified,Neuron
+267,ABalppppppa,ABalpppppp,AB,9,10,False,131.5,235.0,269.0,34.0,Unspecified,Neuron
+268,ABalppppppaa,ABalppppppa,AB,10,11,True,131.0,269.0,297.0,28.0,Neuron,Neuron
+269,ABalppppppap,ABalppppppa,AB,10,11,True,132.0,269.0,297.0,28.0,Death,Not annotated
+270,ABalppppppp,ABalpppppp,AB,9,10,False,133.5,235.0,269.0,34.0,Neuron,Neuron
+271,ABalpppppppa,ABalppppppp,AB,10,11,True,133.0,269.0,297.0,28.0,Neuron,Neuron
+272,ABalpppppppp,ABalppppppp,AB,10,11,True,134.0,269.0,297.0,28.0,Neuron,Neuron
+273,ABar,ABa,AB,2,3,False,195.703125,75.0,93.0,18.0,Unspecified,Unspecified
+274,ABara,ABar,AB,3,4,False,167.3828125,93.0,112.0,19.0,Unspecified,Unspecified
+275,ABaraa,ABara,AB,4,5,False,150.1875,112.0,132.0,20.0,Unspecified,Unspecified
+276,ABaraaa,ABaraa,AB,5,6,False,141.9375,132.0,154.0,22.0,Unspecified,Unspecified
+277,ABaraaaa,ABaraaa,AB,6,7,False,138.375,154.0,178.0,24.0,Unspecified,Pharynx
+278,ABaraaaaa,ABaraaaa,AB,7,8,False,136.5,178.0,205.0,27.0,Pharynx,Pharynx
+279,ABaraaaaaa,ABaraaaaa,AB,8,9,False,135.5,205.0,235.0,30.0,Pharynx,Pharynx
+280,ABaraaaaaaa,ABaraaaaaa,AB,9,10,True,135.0,235.0,263.0,28.0,Pharynx,Pharynx
+281,ABaraaaaaap,ABaraaaaaa,AB,9,10,True,136.0,235.0,263.0,28.0,Pharynx,Pharynx
+282,ABaraaaaap,ABaraaaaa,AB,8,9,False,137.5,205.0,235.0,30.0,Pharynx,Pharynx
+283,ABaraaaaapa,ABaraaaaap,AB,9,10,True,137.0,235.0,263.0,28.0,Pharynx,Pharynx
+284,ABaraaaaapp,ABaraaaaap,AB,9,10,True,138.0,235.0,263.0,28.0,Pharynx,Pharynx
+285,ABaraaaap,ABaraaaa,AB,7,8,False,140.25,178.0,205.0,27.0,Unspecified,Pharynx
+286,ABaraaaapa,ABaraaaap,AB,8,9,False,139.5,205.0,235.0,30.0,Unspecified,Pharynx
+287,ABaraaaapaa,ABaraaaapa,AB,9,10,True,139.0,235.0,263.0,28.0,Death,Not annotated
+288,ABaraaaapap,ABaraaaapa,AB,9,10,True,140.0,235.0,263.0,28.0,Pharynx,Pharynx
+289,ABaraaaapp,ABaraaaap,AB,8,9,True,141.0,205.0,233.0,28.0,Death,Not annotated
+290,ABaraaap,ABaraaa,AB,6,7,False,145.5,154.0,178.0,24.0,Unspecified,Unspecified
+291,ABaraaapa,ABaraaap,AB,7,8,False,143.5,178.0,205.0,27.0,Unspecified,Unspecified
+292,ABaraaapaa,ABaraaapa,AB,8,9,False,142.5,205.0,235.0,30.0,Unspecified,Not annotated
+293,ABaraaapaaa,ABaraaapaa,AB,9,10,True,142.0,235.0,263.0,28.0,Skin,Skin
+294,ABaraaapaap,ABaraaapaa,AB,9,10,True,143.0,235.0,263.0,28.0,Pharynx,Pharynx
+295,ABaraaapap,ABaraaapa,AB,8,9,False,144.5,205.0,235.0,30.0,Pharynx,Pharynx
+296,ABaraaapapa,ABaraaapap,AB,9,10,True,144.0,235.0,263.0,28.0,Pharynx,Pharynx
+297,ABaraaapapp,ABaraaapap,AB,9,10,True,145.0,235.0,263.0,28.0,Pharynx,Pharynx
+298,ABaraaapp,ABaraaap,AB,7,8,False,147.5,178.0,205.0,27.0,Skin,Skin
+299,ABaraaappa,ABaraaapp,AB,8,9,False,146.5,205.0,235.0,30.0,Skin,Skin
+300,ABaraaappaa,ABaraaappa,AB,9,10,True,146.0,235.0,263.0,28.0,Skin,Skin
+301,ABaraaappap,ABaraaappa,AB,9,10,True,147.0,235.0,263.0,28.0,Skin,Skin
+302,ABaraaappp,ABaraaapp,AB,8,9,False,148.5,205.0,235.0,30.0,Skin,Skin
+303,ABaraaapppa,ABaraaappp,AB,9,10,True,148.0,235.0,263.0,28.0,Skin,Skin
+304,ABaraaapppp,ABaraaappp,AB,9,10,True,149.0,235.0,263.0,28.0,Skin,Skin
+305,ABaraap,ABaraa,AB,5,6,False,158.4375,132.0,154.0,22.0,Unspecified,Pharynx
+306,ABaraapa,ABaraap,AB,6,7,False,153.9375,154.0,178.0,24.0,Unspecified,Pharynx
+307,ABaraapaa,ABaraapa,AB,7,8,False,151.5,178.0,205.0,27.0,Pharynx,Pharynx
+308,ABaraapaaa,ABaraapaa,AB,8,9,False,150.5,205.0,235.0,30.0,Pharynx,Pharynx
+309,ABaraapaaaa,ABaraapaaa,AB,9,10,True,150.0,235.0,263.0,28.0,Pharynx,Pharynx
+310,ABaraapaaap,ABaraapaaa,AB,9,10,True,151.0,235.0,263.0,28.0,Pharynx,Pharynx
+311,ABaraapaap,ABaraapaa,AB,8,9,False,152.5,205.0,235.0,30.0,Pharynx,Pharynx
+312,ABaraapaapa,ABaraapaap,AB,9,10,True,152.0,235.0,263.0,28.0,Pharynx,Pharynx
+313,ABaraapaapp,ABaraapaap,AB,9,10,True,153.0,235.0,263.0,28.0,Pharynx,Pharynx
+314,ABaraapap,ABaraapa,AB,7,8,False,156.375,178.0,205.0,27.0,Unspecified,Pharynx
+315,ABaraapapa,ABaraapap,AB,8,9,False,155.25,205.0,235.0,30.0,Unspecified,Pharynx
+316,ABaraapapaa,ABaraapapa,AB,9,10,False,154.5,235.0,269.0,34.0,Unspecified,Pharynx
+317,ABaraapapaad,ABaraapapaa,AB,10,11,True,154.0,269.0,297.0,28.0,Death,Not annotated
+318,ABaraapapaav,ABaraapapaa,AB,10,11,True,155.0,269.0,297.0,28.0,Pharynx,Pharynx
+319,ABaraapapap,ABaraapapa,AB,9,10,True,156.0,235.0,263.0,28.0,Pharynx,Pharynx
+320,ABaraapapp,ABaraapap,AB,8,9,False,157.5,205.0,235.0,30.0,Pharynx,Pharynx
+321,ABaraapappa,ABaraapapp,AB,9,10,True,157.0,235.0,263.0,28.0,Pharynx,Pharynx
+322,ABaraapappp,ABaraapapp,AB,9,10,True,158.0,235.0,263.0,28.0,Pharynx,Pharynx
+323,ABaraapp,ABaraap,AB,6,7,False,162.9375,154.0,178.0,24.0,Unspecified,Pharynx
+324,ABaraappa,ABaraapp,AB,7,8,False,160.5,178.0,205.0,27.0,Pharynx,Pharynx
+325,ABaraappaa,ABaraappa,AB,8,9,False,159.5,205.0,235.0,30.0,Pharynx,Pharynx
+326,ABaraappaaa,ABaraappaa,AB,9,10,True,159.0,235.0,263.0,28.0,Pharynx,Pharynx
+327,ABaraappaap,ABaraappaa,AB,9,10,True,160.0,235.0,263.0,28.0,Pharynx,Pharynx
+328,ABaraappap,ABaraappa,AB,8,9,False,161.5,205.0,235.0,30.0,Pharynx,Pharynx
+329,ABaraappapa,ABaraappap,AB,9,10,True,161.0,235.0,263.0,28.0,Pharynx,Pharynx
+330,ABaraappapp,ABaraappap,AB,9,10,True,162.0,235.0,263.0,28.0,Pharynx,Pharynx
+331,ABaraappp,ABaraapp,AB,7,8,False,165.375,178.0,205.0,27.0,Unspecified,Pharynx
+332,ABaraapppa,ABaraappp,AB,8,9,False,164.25,205.0,235.0,30.0,Unspecified,Pharynx
+333,ABaraapppaa,ABaraapppa,AB,9,10,False,163.5,235.0,269.0,34.0,Unspecified,Pharynx
+334,ABaraapppaad,ABaraapppaa,AB,10,11,True,163.0,269.0,297.0,28.0,Death,Not annotated
+335,ABaraapppaav,ABaraapppaa,AB,10,11,True,164.0,269.0,297.0,28.0,Pharynx,Pharynx
+336,ABaraapppap,ABaraapppa,AB,9,10,True,165.0,235.0,263.0,28.0,Pharynx,Pharynx
+337,ABaraapppp,ABaraappp,AB,8,9,False,166.5,205.0,235.0,30.0,Pharynx,Pharynx
+338,ABaraappppa,ABaraapppp,AB,9,10,True,166.0,235.0,263.0,28.0,Pharynx,Pharynx
+339,ABaraappppp,ABaraapppp,AB,9,10,True,167.0,235.0,263.0,28.0,Pharynx,Pharynx
+340,ABarap,ABara,AB,4,5,False,184.578125,112.0,132.0,20.0,Unspecified,Unspecified
+341,ABarapa,ABarap,AB,5,6,False,175.90625,132.0,154.0,22.0,Unspecified,Unspecified
+342,ABarapaa,ABarapa,AB,6,7,False,171.5,154.0,178.0,24.0,Unspecified,Pharynx
+343,ABarapaaa,ABarapaa,AB,7,8,False,169.5,178.0,205.0,27.0,Unspecified,Pharynx
+344,ABarapaaaa,ABarapaaa,AB,8,9,False,168.5,205.0,235.0,30.0,Pharynx,Pharynx
+345,ABarapaaaaa,ABarapaaaa,AB,9,10,True,168.0,235.0,263.0,28.0,Pharynx,Pharynx
+346,ABarapaaaap,ABarapaaaa,AB,9,10,True,169.0,235.0,263.0,28.0,Pharynx,Pharynx
+347,ABarapaaap,ABarapaaa,AB,8,9,False,170.5,205.0,235.0,30.0,Unspecified,Pharynx
+348,ABarapaaapa,ABarapaaap,AB,9,10,True,170.0,235.0,263.0,28.0,Pharynx,Pharynx
+349,ABarapaaapp,ABarapaaap,AB,9,10,True,171.0,235.0,263.0,28.0,Death,Not annotated
+350,ABarapaap,ABarapaa,AB,7,8,False,173.5,178.0,205.0,27.0,Unspecified,Pharynx
+351,ABarapaapa,ABarapaap,AB,8,9,False,172.5,205.0,235.0,30.0,Unspecified,Pharynx
+352,ABarapaapaa,ABarapaapa,AB,9,10,True,172.0,235.0,263.0,28.0,Pharynx,Pharynx
+353,ABarapaapap,ABarapaapa,AB,9,10,True,173.0,235.0,263.0,28.0,Death,Not annotated
+354,ABarapaapp,ABarapaap,AB,8,9,False,174.5,205.0,235.0,30.0,Pharynx,Pharynx
+355,ABarapaappa,ABarapaapp,AB,9,10,True,174.0,235.0,263.0,28.0,Pharynx,Pharynx
+356,ABarapaappp,ABarapaapp,AB,9,10,True,175.0,235.0,263.0,28.0,Pharynx,Pharynx
+357,ABarapap,ABarapa,AB,6,7,False,180.3125,154.0,178.0,24.0,Unspecified,Unspecified
+358,ABarapapa,ABarapap,AB,7,8,False,178.125,178.0,205.0,27.0,Unspecified,Unspecified
+359,ABarapapaa,ABarapapa,AB,8,9,False,176.75,205.0,235.0,30.0,Unspecified,Pharynx
+360,ABarapapaaa,ABarapapaa,AB,9,10,True,176.0,235.0,263.0,28.0,Death,Not annotated
+361,ABarapapaap,ABarapapaa,AB,9,10,False,177.5,235.0,269.0,34.0,Unspecified,Pharynx
+362,ABarapapaapa,ABarapapaap,AB,10,11,True,177.0,269.0,297.0,28.0,Pharynx,Pharynx
+363,ABarapapaapp,ABarapapaap,AB,10,11,True,178.0,269.0,297.0,28.0,Death,Not annotated
+364,ABarapapap,ABarapapa,AB,8,9,False,179.5,205.0,235.0,30.0,Unspecified,Not annotated
+365,ABarapapapa,ABarapapap,AB,9,10,True,179.0,235.0,263.0,28.0,Skin,Skin
+366,ABarapapapp,ABarapapap,AB,9,10,True,180.0,235.0,263.0,28.0,Pharynx,Pharynx
+367,ABarapapp,ABarapap,AB,7,8,False,182.5,178.0,205.0,27.0,Unspecified,Pharynx
+368,ABarapappa,ABarapapp,AB,8,9,False,181.5,205.0,235.0,30.0,Unspecified,Pharynx
+369,ABarapappaa,ABarapappa,AB,9,10,True,181.0,235.0,263.0,28.0,Pharynx,Pharynx
+370,ABarapappap,ABarapappa,AB,9,10,True,182.0,235.0,263.0,28.0,Death,Not annotated
+371,ABarapappp,ABarapapp,AB,8,9,False,183.5,205.0,235.0,30.0,Pharynx,Pharynx
+372,ABarapapppa,ABarapappp,AB,9,10,True,183.0,235.0,263.0,28.0,Pharynx,Pharynx
+373,ABarapapppp,ABarapappp,AB,9,10,True,184.0,235.0,263.0,28.0,Pharynx,Pharynx
+374,ABarapp,ABarap,AB,5,6,False,193.25,132.0,154.0,22.0,Unspecified,Unspecified
+375,ABarappa,ABarapp,AB,6,7,False,188.8125,154.0,178.0,24.0,Unspecified,Unspecified
+376,ABarappaa,ABarappa,AB,7,8,False,186.5,178.0,205.0,27.0,Unspecified,Unspecified
+377,ABarappaaa,ABarappaa,AB,8,9,False,185.5,205.0,235.0,30.0,Unspecified,Neuron
+378,ABarappaaaa,ABarappaaa,AB,9,10,True,185.0,235.0,263.0,28.0,Neuron,Neuron
+379,ABarappaaap,ABarappaaa,AB,9,10,True,186.0,235.0,263.0,28.0,Death,Not annotated
+380,ABarappaap,ABarappaa,AB,8,9,False,187.5,205.0,235.0,30.0,Unspecified,Skin
+381,ABarappaapa,ABarappaap,AB,9,10,True,187.0,235.0,263.0,28.0,Skin,Skin
+382,ABarappaapp,ABarappaap,AB,9,10,True,188.0,235.0,263.0,28.0,Death,Not annotated
+383,ABarappap,ABarappa,AB,7,8,False,191.125,178.0,205.0,27.0,Unspecified,Neuron
+384,ABarappapa,ABarappap,AB,8,9,False,189.75,205.0,235.0,30.0,Unspecified,Neuron
+385,ABarappapaa,ABarappapa,AB,9,10,True,189.0,235.0,263.0,28.0,Neuron,Neuron
+386,ABarappapap,ABarappapa,AB,9,10,False,190.5,235.0,269.0,34.0,Unspecified,Neuron
+387,ABarappapapa,ABarappapap,AB,10,11,True,190.0,269.0,297.0,28.0,Death,Not annotated
+388,ABarappapapp,ABarappapap,AB,10,11,True,191.0,269.0,297.0,28.0,Neuron,Neuron
+389,ABarappapp,ABarappap,AB,8,9,False,192.5,205.0,235.0,30.0,Neuron,Neuron
+390,ABarappappa,ABarappapp,AB,9,10,True,192.0,235.0,263.0,28.0,Neuron,Neuron
+391,ABarappappp,ABarappapp,AB,9,10,True,193.0,235.0,263.0,28.0,Neuron,Neuron
+392,ABarappp,ABarapp,AB,6,7,False,197.6875,154.0,178.0,24.0,Unspecified,Neuron
+393,ABarapppa,ABarappp,AB,7,8,False,195.5,178.0,205.0,27.0,Neuron,Neuron
+394,ABarapppaa,ABarapppa,AB,8,9,False,194.5,205.0,235.0,30.0,Neuron,Neuron
+395,ABarapppaaa,ABarapppaa,AB,9,10,True,194.0,235.0,263.0,28.0,Neuron,Neuron
+396,ABarapppaap,ABarapppaa,AB,9,10,True,195.0,235.0,263.0,28.0,Neuron,Neuron
+397,ABarapppap,ABarapppa,AB,8,9,False,196.5,205.0,235.0,30.0,Neuron,Neuron
+398,ABarapppapa,ABarapppap,AB,9,10,True,196.0,235.0,263.0,28.0,Neuron,Neuron
+399,ABarapppapp,ABarapppap,AB,9,10,True,197.0,235.0,263.0,28.0,Neuron,Neuron
+400,ABarapppp,ABarappp,AB,7,8,False,199.875,178.0,205.0,27.0,Unspecified,Neuron
+401,ABarappppa,ABarapppp,AB,8,9,False,198.5,205.0,235.0,30.0,Neuron,Neuron
+402,ABarappppaa,ABarappppa,AB,9,10,True,198.0,235.0,263.0,28.0,Neuron,Neuron
+403,ABarappppap,ABarappppa,AB,9,10,True,199.0,235.0,263.0,28.0,Neuron,Neuron
+404,ABarappppp,ABarapppp,AB,8,9,False,201.25,205.0,235.0,30.0,Unspecified,Neuron
+405,ABarapppppa,ABarappppp,AB,9,10,False,200.5,235.0,269.0,34.0,Unspecified,Neuron
+406,ABarapppppaa,ABarapppppa,AB,10,11,True,200.0,269.0,297.0,28.0,Neuron,Neuron
+407,ABarapppppap,ABarapppppa,AB,10,11,True,201.0,269.0,297.0,28.0,Death,Not annotated
+408,ABarapppppp,ABarappppp,AB,9,10,True,202.0,235.0,263.0,28.0,Neuron,Neuron
+409,ABarp,ABar,AB,3,4,False,224.0234375,93.0,112.0,19.0,Unspecified,Unspecified
+410,ABarpa,ABarp,AB,4,5,False,214.484375,112.0,132.0,20.0,Unspecified,Unspecified
+411,ABarpaa,ABarpa,AB,5,6,False,208.9375,132.0,154.0,22.0,Unspecified,Unspecified
+412,ABarpaaa,ABarpaa,AB,6,7,False,206.375,154.0,178.0,24.0,Unspecified,Neuron
+413,ABarpaaaa,ABarpaaa,AB,7,8,False,204.5,178.0,205.0,27.0,Neuron,Neuron
+414,ABarpaaaaa,ABarpaaaa,AB,8,9,False,203.5,205.0,235.0,30.0,Neuron,Neuron
+415,ABarpaaaaal,ABarpaaaaa,AB,9,10,True,203.0,235.0,263.0,28.0,Neuron,Neuron
+416,ABarpaaaaar,ABarpaaaaa,AB,9,10,True,204.0,235.0,263.0,28.0,Neuron,Neuron
+417,ABarpaaaap,ABarpaaaa,AB,8,9,False,205.5,205.0,235.0,30.0,Neuron,Neuron
+418,ABarpaaaapa,ABarpaaaap,AB,9,10,True,205.0,235.0,263.0,28.0,Neuron,Neuron
+419,ABarpaaaapp,ABarpaaaap,AB,9,10,True,206.0,235.0,263.0,28.0,Neuron,Neuron
+420,ABarpaaap,ABarpaaa,AB,7,8,False,208.25,178.0,205.0,27.0,Unspecified,Neuron
+421,ABarpaaapa,ABarpaaap,AB,8,9,False,207.5,205.0,235.0,30.0,Neuron,Neuron
+422,ABarpaaapaa,ABarpaaapa,AB,9,10,True,207.0,235.0,263.0,28.0,Neuron,Neuron
+423,ABarpaaapap,ABarpaaapa,AB,9,10,True,208.0,235.0,263.0,28.0,Neuron,Neuron
+424,ABarpaaapp,ABarpaaap,AB,8,9,True,209.0,205.0,233.0,28.0,Death,Not annotated
+425,ABarpaap,ABarpaa,AB,6,7,False,211.5,154.0,178.0,24.0,Skin,Skin
+426,ABarpaapa,ABarpaap,AB,7,8,False,210.5,178.0,205.0,27.0,Skin,Skin
+427,ABarpaapaa,ABarpaapa,AB,8,9,True,210.0,205.0,233.0,28.0,Skin,Skin
+428,ABarpaapap,ABarpaapa,AB,8,9,True,211.0,205.0,233.0,28.0,Skin,Skin
+429,ABarpaapp,ABarpaap,AB,7,8,False,212.5,178.0,205.0,27.0,Skin,Skin
+430,ABarpaappa,ABarpaapp,AB,8,9,True,212.0,205.0,233.0,28.0,Skin,Skin
+431,ABarpaappp,ABarpaapp,AB,8,9,True,213.0,205.0,233.0,28.0,Skin,Skin
+432,ABarpap,ABarpa,AB,5,6,False,220.03125,132.0,154.0,22.0,Unspecified,Unspecified
+433,ABarpapa,ABarpap,AB,6,7,False,217.5625,154.0,178.0,24.0,Unspecified,Unspecified
+434,ABarpapaa,ABarpapa,AB,7,8,False,215.625,178.0,205.0,27.0,Unspecified,Neuron
+435,ABarpapaaa,ABarpapaa,AB,8,9,False,214.5,205.0,235.0,30.0,Unspecified,Neuron
+436,ABarpapaaaa,ABarpapaaa,AB,9,10,True,214.0,235.0,263.0,28.0,Neuron,Neuron
+437,ABarpapaaap,ABarpapaaa,AB,9,10,True,215.0,235.0,263.0,28.0,Death,Not annotated
+438,ABarpapaap,ABarpapaa,AB,8,9,False,216.75,205.0,235.0,30.0,Unspecified,Neuron
+439,ABarpapaapa,ABarpapaap,AB,9,10,True,216.0,235.0,263.0,28.0,Death,Not annotated
+440,ABarpapaapp,ABarpapaap,AB,9,10,False,217.5,235.0,269.0,34.0,Neuron,Neuron
+441,ABarpapaappa,ABarpapaapp,AB,10,11,True,217.0,269.0,297.0,28.0,Neuron,Neuron
+442,ABarpapaappp,ABarpapaapp,AB,10,11,True,218.0,269.0,297.0,28.0,Neuron,Neuron
+443,ABarpapap,ABarpapa,AB,7,8,False,219.5,178.0,205.0,27.0,Skin,Skin
+444,ABarpapapa,ABarpapap,AB,8,9,True,219.0,205.0,233.0,28.0,Skin,Skin
+445,ABarpapapp,ABarpapap,AB,8,9,True,220.0,205.0,233.0,28.0,Skin,Skin
+446,ABarpapp,ABarpap,AB,6,7,False,222.5,154.0,178.0,24.0,Skin,Skin
+447,ABarpappa,ABarpapp,AB,7,8,False,221.5,178.0,205.0,27.0,Skin,Skin
+448,ABarpappaa,ABarpappa,AB,8,9,True,221.0,205.0,233.0,28.0,Skin,Skin
+449,ABarpappap,ABarpappa,AB,8,9,True,222.0,205.0,233.0,28.0,Skin,Skin
+450,ABarpappp,ABarpapp,AB,7,8,False,223.5,178.0,205.0,27.0,Skin,Skin
+451,ABarpapppa,ABarpappp,AB,8,9,True,223.0,205.0,233.0,28.0,Skin,Skin
+452,ABarpapppp,ABarpappp,AB,8,9,True,224.0,205.0,233.0,28.0,Skin,Skin
+453,ABarpp,ABarp,AB,4,5,False,233.5625,112.0,132.0,20.0,Unspecified,Unspecified
+454,ABarppa,ABarpp,AB,5,6,False,229.0625,132.0,154.0,22.0,Unspecified,Unspecified
+455,ABarppaa,ABarppa,AB,6,7,False,226.625,154.0,178.0,24.0,Unspecified,Unspecified
+456,ABarppaaa,ABarppaa,AB,7,8,False,225.5,178.0,205.0,27.0,Unspecified,Unspecified
+457,ABarppaaaa,ABarppaaa,AB,8,9,True,225.0,205.0,233.0,28.0,Neuron,Neuron
+458,ABarppaaap,ABarppaaa,AB,8,9,True,226.0,205.0,233.0,28.0,Skin,Skin
+459,ABarppaap,ABarppaa,AB,7,8,False,227.75,178.0,205.0,27.0,Unspecified,Unspecified
+460,ABarppaapa,ABarppaap,AB,8,9,True,227.0,205.0,233.0,28.0,Skin,Skin
+461,ABarppaapp,ABarppaap,AB,8,9,False,228.5,205.0,235.0,30.0,Neuron,Neuron
+462,ABarppaappa,ABarppaapp,AB,9,10,True,228.0,235.0,263.0,28.0,Neuron,Neuron
+463,ABarppaappp,ABarppaapp,AB,9,10,True,229.0,235.0,263.0,28.0,Neuron,Neuron
+464,ABarppap,ABarppa,AB,6,7,False,231.5,154.0,178.0,24.0,Skin,Skin
+465,ABarppapa,ABarppap,AB,7,8,False,230.5,178.0,205.0,27.0,Skin,Skin
+466,ABarppapaa,ABarppapa,AB,8,9,True,230.0,205.0,233.0,28.0,Skin,Skin
+467,ABarppapap,ABarppapa,AB,8,9,True,231.0,205.0,233.0,28.0,Skin,Skin
+468,ABarppapp,ABarppap,AB,7,8,False,232.5,178.0,205.0,27.0,Skin,Skin
+469,ABarppappa,ABarppapp,AB,8,9,True,232.0,205.0,233.0,28.0,Skin,Skin
+470,ABarppappp,ABarppapp,AB,8,9,True,233.0,205.0,233.0,28.0,Skin,Skin
+471,ABarppp,ABarpp,AB,5,6,False,238.0625,132.0,154.0,22.0,Unspecified,Unspecified
+472,ABarpppa,ABarppp,AB,6,7,False,235.625,154.0,178.0,24.0,Unspecified,Unspecified
+473,ABarpppaa,ABarpppa,AB,7,8,False,234.5,178.0,205.0,27.0,Unspecified,Unspecified
+474,ABarpppaaa,ABarpppaa,AB,8,9,True,234.0,205.0,233.0,28.0,Neuron,Neuron
+475,ABarpppaap,ABarpppaa,AB,8,9,True,235.0,205.0,233.0,28.0,Skin,Skin
+476,ABarpppap,ABarpppa,AB,7,8,False,236.75,178.0,205.0,27.0,Unspecified,Unspecified
+477,ABarpppapa,ABarpppap,AB,8,9,True,236.0,205.0,233.0,28.0,Skin,Skin
+478,ABarpppapp,ABarpppap,AB,8,9,False,237.5,205.0,235.0,30.0,Neuron,Neuron
+479,ABarpppappa,ABarpppapp,AB,9,10,True,237.0,235.0,263.0,28.0,Neuron,Neuron
+480,ABarpppappp,ABarpppapp,AB,9,10,True,238.0,235.0,263.0,28.0,Neuron,Neuron
+481,ABarpppp,ABarppp,AB,6,7,False,240.5,154.0,178.0,24.0,Skin,Skin
+482,ABarppppa,ABarpppp,AB,7,8,False,239.5,178.0,205.0,27.0,Skin,Skin
+483,ABarppppaa,ABarppppa,AB,8,9,True,239.0,205.0,233.0,28.0,Skin,Skin
+484,ABarppppap,ABarppppa,AB,8,9,True,240.0,205.0,233.0,28.0,Skin,Skin
+485,ABarppppp,ABarpppp,AB,7,8,False,241.5,178.0,205.0,27.0,Skin,Skin
+486,ABarpppppa,ABarppppp,AB,8,9,True,241.0,205.0,233.0,28.0,Skin,Skin
+487,ABarpppppp,ABarppppp,AB,8,9,True,242.0,205.0,233.0,28.0,Skin,Skin
+488,ABp,AB,AB,1,2,False,360.27734375,57.0,75.0,18.0,Unspecified,Not annotated
+489,ABpl,ABp,AB,2,3,False,297.541015625,75.0,93.0,18.0,Unspecified,Unspecified
+490,ABpla,ABpl,AB,3,4,False,268.04296875,93.0,112.0,19.0,Unspecified,Unspecified
+491,ABplaa,ABpla,AB,4,5,False,255.03125,112.0,132.0,20.0,Unspecified,Unspecified
+492,ABplaaa,ABplaa,AB,5,6,False,249.03125,132.0,154.0,22.0,Unspecified,Unspecified
+493,ABplaaaa,ABplaaa,AB,6,7,False,246.5625,154.0,178.0,24.0,Unspecified,Unspecified
+494,ABplaaaaa,ABplaaaa,AB,7,8,False,244.625,178.0,205.0,27.0,Unspecified,Neuron
+495,ABplaaaaaa,ABplaaaaa,AB,8,9,False,243.5,205.0,235.0,30.0,Unspecified,Neuron
+496,ABplaaaaaaa,ABplaaaaaa,AB,9,10,True,243.0,235.0,263.0,28.0,Neuron,Neuron
+497,ABplaaaaaap,ABplaaaaaa,AB,9,10,True,244.0,235.0,263.0,28.0,Death,Not annotated
+498,ABplaaaaap,ABplaaaaa,AB,8,9,False,245.75,205.0,235.0,30.0,Unspecified,Neuron
+499,ABplaaaaapa,ABplaaaaap,AB,9,10,True,245.0,235.0,263.0,28.0,Death,Not annotated
+500,ABplaaaaapp,ABplaaaaap,AB,9,10,False,246.5,235.0,269.0,34.0,Neuron,Neuron
+501,ABplaaaaappa,ABplaaaaapp,AB,10,11,True,246.0,269.0,297.0,28.0,Neuron,Neuron
+502,ABplaaaaappp,ABplaaaaapp,AB,10,11,True,247.0,269.0,297.0,28.0,Neuron,Neuron
+503,ABplaaaap,ABplaaaa,AB,7,8,False,248.5,178.0,205.0,27.0,Skin,Skin
+504,ABplaaaapa,ABplaaaap,AB,8,9,True,248.0,205.0,233.0,28.0,Skin,Skin
+505,ABplaaaapp,ABplaaaap,AB,8,9,True,249.0,205.0,233.0,28.0,Skin,Skin
+506,ABplaaap,ABplaaa,AB,6,7,False,251.5,154.0,178.0,24.0,Skin,Skin
+507,ABplaaapa,ABplaaap,AB,7,8,False,250.5,178.0,205.0,27.0,Skin,Skin
+508,ABplaaapaa,ABplaaapa,AB,8,9,True,250.0,205.0,233.0,28.0,Skin,Skin
+509,ABplaaapap,ABplaaapa,AB,8,9,True,251.0,205.0,233.0,28.0,Skin,Skin
+510,ABplaaapp,ABplaaap,AB,7,8,False,252.5,178.0,205.0,27.0,Skin,Skin
+511,ABplaaappa,ABplaaapp,AB,8,9,True,252.0,205.0,233.0,28.0,Skin,Skin
+512,ABplaaappp,ABplaaapp,AB,8,9,True,253.0,205.0,233.0,28.0,Skin,Skin
+513,ABplaap,ABplaa,AB,5,6,False,261.03125,132.0,154.0,22.0,Unspecified,Unspecified
+514,ABplaapa,ABplaap,AB,6,7,False,257.5625,154.0,178.0,24.0,Unspecified,Unspecified
+515,ABplaapaa,ABplaapa,AB,7,8,False,255.5,178.0,205.0,27.0,Unspecified,Unspecified
+516,ABplaapaaa,ABplaapaa,AB,8,9,False,254.5,205.0,235.0,30.0,Unspecified,Not annotated
+517,ABplaapaaaa,ABplaapaaa,AB,9,10,True,254.0,235.0,263.0,28.0,Skin,Skin
+518,ABplaapaaap,ABplaapaaa,AB,9,10,True,255.0,235.0,263.0,28.0,Neuron,Neuron
+519,ABplaapaap,ABplaapaa,AB,8,9,False,256.5,205.0,235.0,30.0,Neuron,Neuron
+520,ABplaapaapa,ABplaapaap,AB,9,10,True,256.0,235.0,263.0,28.0,Neuron,Neuron
+521,ABplaapaapp,ABplaapaap,AB,9,10,True,257.0,235.0,263.0,28.0,Neuron,Neuron
+522,ABplaapap,ABplaapa,AB,7,8,False,259.625,178.0,205.0,27.0,Unspecified,Neuron
+523,ABplaapapa,ABplaapap,AB,8,9,False,258.5,205.0,235.0,30.0,Neuron,Neuron
+524,ABplaapapaa,ABplaapapa,AB,9,10,True,258.0,235.0,263.0,28.0,Neuron,Neuron
+525,ABplaapapap,ABplaapapa,AB,9,10,True,259.0,235.0,263.0,28.0,Neuron,Neuron
+526,ABplaapapp,ABplaapap,AB,8,9,False,260.75,205.0,235.0,30.0,Unspecified,Neuron
+527,ABplaapappa,ABplaapapp,AB,9,10,True,260.0,235.0,263.0,28.0,Neuron,Neuron
+528,ABplaapappp,ABplaapapp,AB,9,10,False,261.5,235.0,269.0,34.0,Unspecified,Neuron
+529,ABplaapapppa,ABplaapappp,AB,10,11,True,261.0,269.0,297.0,28.0,Neuron,Neuron
+530,ABplaapapppp,ABplaapappp,AB,10,11,True,262.0,269.0,297.0,28.0,Death,Not annotated
+531,ABplaapp,ABplaap,AB,6,7,False,264.5,154.0,178.0,24.0,Skin,Skin
+532,ABplaappa,ABplaapp,AB,7,8,False,263.5,178.0,205.0,27.0,Skin,Skin
+533,ABplaappaa,ABplaappa,AB,8,9,True,263.0,205.0,233.0,28.0,Skin,Skin
+534,ABplaappap,ABplaappa,AB,8,9,True,264.0,205.0,233.0,28.0,Skin,Skin
+535,ABplaappp,ABplaapp,AB,7,8,False,265.5,178.0,205.0,27.0,Skin,Skin
+536,ABplaapppa,ABplaappp,AB,8,9,True,265.0,205.0,233.0,28.0,Skin,Skin
+537,ABplaapppp,ABplaappp,AB,8,9,True,266.0,205.0,233.0,28.0,Skin,Skin
+538,ABplap,ABpla,AB,4,5,False,281.0546875,112.0,132.0,20.0,Unspecified,Unspecified
+539,ABplapa,ABplap,AB,5,6,False,274.578125,132.0,154.0,22.0,Unspecified,Unspecified
+540,ABplapaa,ABplapa,AB,6,7,False,271.5,154.0,178.0,24.0,Unspecified,Unspecified
+541,ABplapaaa,ABplapaa,AB,7,8,False,269.5,178.0,205.0,27.0,Unspecified,Neuron
+542,ABplapaaaa,ABplapaaa,AB,8,9,False,267.75,205.0,235.0,30.0,Unspecified,Neuron
+543,ABplapaaaaa,ABplapaaaa,AB,9,10,True,267.0,235.0,263.0,28.0,Death,Not annotated
+544,ABplapaaaap,ABplapaaaa,AB,9,10,False,268.5,235.0,269.0,34.0,Neuron,Neuron
+545,ABplapaaaapa,ABplapaaaap,AB,10,11,True,268.0,269.0,297.0,28.0,Neuron,Neuron
+546,ABplapaaaapp,ABplapaaaap,AB,10,11,True,269.0,269.0,297.0,28.0,Neuron,Neuron
+547,ABplapaaap,ABplapaaa,AB,8,9,False,271.25,205.0,235.0,30.0,Neuron,Neuron
+548,ABplapaaapa,ABplapaaap,AB,9,10,False,270.5,235.0,269.0,34.0,Neuron,Neuron
+549,ABplapaaapad,ABplapaaapa,AB,10,11,True,270.0,269.0,297.0,28.0,Neuron,Neuron
+550,ABplapaaapav,ABplapaaapa,AB,10,11,True,271.0,269.0,297.0,28.0,Neuron,Neuron
+551,ABplapaaapp,ABplapaaap,AB,9,10,True,272.0,235.0,263.0,28.0,Neuron,Neuron
+552,ABplapaap,ABplapaa,AB,7,8,False,273.5,178.0,205.0,27.0,Unspecified,Unspecified
+553,ABplapaapa,ABplapaap,AB,8,9,True,273.0,205.0,233.0,28.0,Other,Not annotated
+554,ABplapaapp,ABplapaap,AB,8,9,True,274.0,205.0,233.0,28.0,Skin,Skin
+555,ABplapap,ABplapa,AB,6,7,False,277.65625,154.0,178.0,24.0,Unspecified,Unspecified
+556,ABplapapa,ABplapap,AB,7,8,False,276.25,178.0,205.0,27.0,Unspecified,Unspecified
+557,ABplapapaa,ABplapapa,AB,8,9,False,275.5,205.0,235.0,30.0,Unspecified,Not annotated
+558,ABplapapaaa,ABplapapaa,AB,9,10,True,275.0,235.0,263.0,28.0,Other,Not annotated
+559,ABplapapaap,ABplapapaa,AB,9,10,True,276.0,235.0,263.0,28.0,Skin,Skin
+560,ABplapapap,ABplapapa,AB,8,9,True,277.0,205.0,233.0,28.0,Skin,Skin
+561,ABplapapp,ABplapap,AB,7,8,False,279.0625,178.0,205.0,27.0,Unspecified,Unspecified
+562,ABplapappa,ABplapapp,AB,8,9,True,278.0,205.0,233.0,28.0,Skin,Skin
+563,ABplapappp,ABplapapp,AB,8,9,False,280.125,205.0,235.0,30.0,Unspecified,Neuron
+564,ABplapapppa,ABplapappp,AB,9,10,True,279.0,235.0,263.0,28.0,Death,Not annotated
+565,ABplapapppp,ABplapappp,AB,9,10,False,281.25,235.0,269.0,34.0,Unspecified,Neuron
+566,ABplapappppa,ABplapapppp,AB,10,11,False,280.5,269.0,307.0,38.0,Neuron,Neuron
+567,ABplapappppaa,ABplapappppa,AB,11,12,True,280.0,307.0,335.0,28.0,Neuron,Neuron
+568,ABplapappppap,ABplapappppa,AB,11,12,True,281.0,307.0,335.0,28.0,Neuron,Neuron
+569,ABplapappppp,ABplapapppp,AB,10,11,True,282.0,269.0,297.0,28.0,Death,Not annotated
+570,ABplapp,ABplap,AB,5,6,False,287.53125,132.0,154.0,22.0,Unspecified,Unspecified
+571,ABplappa,ABplapp,AB,6,7,False,284.5,154.0,178.0,24.0,Skin,Skin
+572,ABplappaa,ABplappa,AB,7,8,False,283.5,178.0,205.0,27.0,Skin,Skin
+573,ABplappaaa,ABplappaa,AB,8,9,True,283.0,205.0,233.0,28.0,Skin,Skin
+574,ABplappaap,ABplappaa,AB,8,9,True,284.0,205.0,233.0,28.0,Skin,Skin
+575,ABplappap,ABplappa,AB,7,8,False,285.5,178.0,205.0,27.0,Skin,Skin
+576,ABplappapa,ABplappap,AB,8,9,True,285.0,205.0,233.0,28.0,Skin,Skin
+577,ABplappapp,ABplappap,AB,8,9,True,286.0,205.0,233.0,28.0,Skin,Skin
+578,ABplappp,ABplapp,AB,6,7,False,290.5625,154.0,178.0,24.0,Unspecified,Unspecified
+579,ABplapppa,ABplappp,AB,7,8,False,288.625,178.0,205.0,27.0,Unspecified,Neuron
+580,ABplapppaa,ABplapppa,AB,8,9,False,287.5,205.0,235.0,30.0,Unspecified,Neuron
+581,ABplapppaaa,ABplapppaa,AB,9,10,True,287.0,235.0,263.0,28.0,Neuron,Neuron
+582,ABplapppaap,ABplapppaa,AB,9,10,True,288.0,235.0,263.0,28.0,Death,Not annotated
+583,ABplapppap,ABplapppa,AB,8,9,False,289.75,205.0,235.0,30.0,Unspecified,Neuron
+584,ABplapppapa,ABplapppap,AB,9,10,True,289.0,235.0,263.0,28.0,Death,Not annotated
+585,ABplapppapp,ABplapppap,AB,9,10,False,290.5,235.0,269.0,34.0,Neuron,Neuron
+586,ABplapppappa,ABplapppapp,AB,10,11,True,290.0,269.0,297.0,28.0,Neuron,Neuron
+587,ABplapppappp,ABplapppapp,AB,10,11,True,291.0,269.0,297.0,28.0,Neuron,Neuron
+588,ABplapppp,ABplappp,AB,7,8,False,292.5,178.0,205.0,27.0,Skin,Skin
+589,ABplappppa,ABplapppp,AB,8,9,True,292.0,205.0,233.0,28.0,Skin,Skin
+590,ABplappppp,ABplapppp,AB,8,9,True,293.0,205.0,233.0,28.0,Skin,Skin
+591,ABplp,ABpl,AB,3,4,False,327.0390625,93.0,112.0,19.0,Unspecified,Unspecified
+592,ABplpa,ABplp,AB,4,5,False,310.65625,112.0,132.0,20.0,Unspecified,Unspecified
+593,ABplpaa,ABplpa,AB,5,6,False,302.125,132.0,154.0,22.0,Unspecified,Unspecified
+594,ABplpaaa,ABplpaa,AB,6,7,False,297.6875,154.0,178.0,24.0,Unspecified,Unspecified
+595,ABplpaaaa,ABplpaaa,AB,7,8,False,295.5,178.0,205.0,27.0,Unspecified,Unspecified
+596,ABplpaaaaa,ABplpaaaa,AB,8,9,False,294.5,205.0,235.0,30.0,Neuron,Neuron
+597,ABplpaaaaaa,ABplpaaaaa,AB,9,10,True,294.0,235.0,263.0,28.0,Neuron,Neuron
+598,ABplpaaaaap,ABplpaaaaa,AB,9,10,True,295.0,235.0,263.0,28.0,Neuron,Neuron
+599,ABplpaaaap,ABplpaaaa,AB,8,9,False,296.5,205.0,235.0,30.0,Unspecified,Not annotated
+600,ABplpaaaapa,ABplpaaaap,AB,9,10,True,296.0,235.0,263.0,28.0,Other,Not annotated
+601,ABplpaaaapp,ABplpaaaap,AB,9,10,True,297.0,235.0,263.0,28.0,Neuron,Neuron
+602,ABplpaaap,ABplpaaa,AB,7,8,False,299.875,178.0,205.0,27.0,Unspecified,Neuron
+603,ABplpaaapa,ABplpaaap,AB,8,9,False,298.5,205.0,235.0,30.0,Neuron,Neuron
+604,ABplpaaapaa,ABplpaaapa,AB,9,10,True,298.0,235.0,263.0,28.0,Neuron,Neuron
+605,ABplpaaapap,ABplpaaapa,AB,9,10,True,299.0,235.0,263.0,28.0,Neuron,Neuron
+606,ABplpaaapp,ABplpaaap,AB,8,9,False,301.25,205.0,235.0,30.0,Unspecified,Neuron
+607,ABplpaaappa,ABplpaaapp,AB,9,10,False,300.5,235.0,269.0,34.0,Unspecified,Neuron
+608,ABplpaaappaa,ABplpaaappa,AB,10,11,True,300.0,269.0,297.0,28.0,Neuron,Neuron
+609,ABplpaaappap,ABplpaaappa,AB,10,11,True,301.0,269.0,297.0,28.0,Death,Not annotated
+610,ABplpaaappp,ABplpaaapp,AB,9,10,True,302.0,235.0,263.0,28.0,Neuron,Neuron
+611,ABplpaap,ABplpaa,AB,6,7,False,306.5625,154.0,178.0,24.0,Unspecified,Neuron
+612,ABplpaapa,ABplpaap,AB,7,8,False,304.5,178.0,205.0,27.0,Unspecified,Neuron
+613,ABplpaapaa,ABplpaapa,AB,8,9,False,303.5,205.0,235.0,30.0,Neuron,Neuron
+614,ABplpaapaaa,ABplpaapaa,AB,9,10,True,303.0,235.0,263.0,28.0,Neuron,Neuron
+615,ABplpaapaap,ABplpaapaa,AB,9,10,True,304.0,235.0,263.0,28.0,Neuron,Neuron
+616,ABplpaapap,ABplpaapa,AB,8,9,False,305.5,205.0,235.0,30.0,Unspecified,Neuron
+617,ABplpaapapa,ABplpaapap,AB,9,10,True,305.0,235.0,263.0,28.0,Neuron,Neuron
+618,ABplpaapapp,ABplpaapap,AB,9,10,True,306.0,235.0,263.0,28.0,Death,Not annotated
+619,ABplpaapp,ABplpaap,AB,7,8,False,308.625,178.0,205.0,27.0,Unspecified,Neuron
+620,ABplpaappa,ABplpaapp,AB,8,9,False,307.5,205.0,235.0,30.0,Neuron,Neuron
+621,ABplpaappaa,ABplpaappa,AB,9,10,True,307.0,235.0,263.0,28.0,Neuron,Neuron
+622,ABplpaappap,ABplpaappa,AB,9,10,True,308.0,235.0,263.0,28.0,Neuron,Neuron
+623,ABplpaappp,ABplpaapp,AB,8,9,False,309.75,205.0,235.0,30.0,Unspecified,Neuron
+624,ABplpaapppa,ABplpaappp,AB,9,10,True,309.0,235.0,263.0,28.0,Neuron,Neuron
+625,ABplpaapppp,ABplpaappp,AB,9,10,False,310.5,235.0,269.0,34.0,Unspecified,Neuron
+626,ABplpaappppa,ABplpaapppp,AB,10,11,True,310.0,269.0,297.0,28.0,Neuron,Neuron
+627,ABplpaappppp,ABplpaapppp,AB,10,11,True,311.0,269.0,297.0,28.0,Death,Not annotated
+628,ABplpap,ABplpa,AB,5,6,False,319.1875,132.0,154.0,22.0,Unspecified,Unspecified
+629,ABplpapa,ABplpap,AB,6,7,False,315.5,154.0,178.0,24.0,Unspecified,Unspecified
+630,ABplpapaa,ABplpapa,AB,7,8,False,313.5,178.0,205.0,27.0,Neuron,Neuron
+631,ABplpapaaa,ABplpapaa,AB,8,9,False,312.5,205.0,235.0,30.0,Neuron,Neuron
+632,ABplpapaaaa,ABplpapaaa,AB,9,10,True,312.0,235.0,263.0,28.0,Neuron,Neuron
+633,ABplpapaaap,ABplpapaaa,AB,9,10,True,313.0,235.0,263.0,28.0,Neuron,Neuron
+634,ABplpapaap,ABplpapaa,AB,8,9,False,314.5,205.0,235.0,30.0,Neuron,Neuron
+635,ABplpapaapa,ABplpapaap,AB,9,10,True,314.0,235.0,263.0,28.0,Neuron,Neuron
+636,ABplpapaapp,ABplpapaap,AB,9,10,True,315.0,235.0,263.0,28.0,Neuron,Neuron
+637,ABplpapap,ABplpapa,AB,7,8,False,317.5,178.0,205.0,27.0,Unspecified,Unspecified
+638,ABplpapapa,ABplpapap,AB,8,9,False,316.5,205.0,235.0,30.0,Unspecified,Not annotated
+639,ABplpapapaa,ABplpapapa,AB,9,10,True,316.0,235.0,263.0,28.0,Other,Not annotated
+640,ABplpapapap,ABplpapapa,AB,9,10,True,317.0,235.0,263.0,28.0,Neuron,Neuron
+641,ABplpapapp,ABplpapap,AB,8,9,False,318.5,205.0,235.0,30.0,Neuron,Neuron
+642,ABplpapappa,ABplpapapp,AB,9,10,True,318.0,235.0,263.0,28.0,Neuron,Neuron
+643,ABplpapappp,ABplpapapp,AB,9,10,True,319.0,235.0,263.0,28.0,Neuron,Neuron
+644,ABplpapp,ABplpap,AB,6,7,False,322.875,154.0,178.0,24.0,Unspecified,Unspecified
+645,ABplpappa,ABplpapp,AB,7,8,False,321.25,178.0,205.0,27.0,Unspecified,Unspecified
+646,ABplpappaa,ABplpappa,AB,8,9,False,320.5,205.0,235.0,30.0,Unspecified,Not annotated
+647,ABplpappaaa,ABplpappaa,AB,9,10,True,320.0,235.0,263.0,28.0,Neuron,Neuron
+648,ABplpappaap,ABplpappaa,AB,9,10,True,321.0,235.0,263.0,28.0,Other,Not annotated
+649,ABplpappap,ABplpappa,AB,8,9,True,322.0,205.0,233.0,28.0,Death,Not annotated
+650,ABplpappp,ABplpapp,AB,7,8,False,324.5,178.0,205.0,27.0,Unspecified,Unspecified
+651,ABplpapppa,ABplpappp,AB,8,9,False,323.5,205.0,235.0,30.0,Other,Not annotated
+652,ABplpapppaa,ABplpapppa,AB,9,10,True,323.0,235.0,263.0,28.0,Other,Not annotated
+653,ABplpapppap,ABplpapppa,AB,9,10,True,324.0,235.0,263.0,28.0,Other,Not annotated
+654,ABplpapppp,ABplpappp,AB,8,9,False,325.5,205.0,235.0,30.0,Unspecified,Not annotated
+655,ABplpappppa,ABplpapppp,AB,9,10,True,325.0,235.0,263.0,28.0,Neuron,Neuron
+656,ABplpappppp,ABplpapppp,AB,9,10,True,326.0,235.0,263.0,28.0,Other,Skin
+657,ABplpp,ABplp,AB,4,5,False,343.421875,112.0,132.0,20.0,Unspecified,Unspecified
+658,ABplppa,ABplpp,AB,5,6,False,335.0625,132.0,154.0,22.0,Unspecified,Neuron
+659,ABplppaa,ABplppa,AB,6,7,False,330.6875,154.0,178.0,24.0,Unspecified,Neuron
+660,ABplppaaa,ABplppaa,AB,7,8,False,328.875,178.0,205.0,27.0,Unspecified,Neuron
+661,ABplppaaaa,ABplppaaa,AB,8,9,False,327.75,205.0,235.0,30.0,Unspecified,Neuron
+662,ABplppaaaaa,ABplppaaaa,AB,9,10,True,327.0,235.0,263.0,28.0,Neuron,Neuron
+663,ABplppaaaap,ABplppaaaa,AB,9,10,False,328.5,235.0,269.0,34.0,Unspecified,Neuron
+664,ABplppaaaapa,ABplppaaaap,AB,10,11,True,328.0,269.0,297.0,28.0,Death,Not annotated
+665,ABplppaaaapp,ABplppaaaap,AB,10,11,True,329.0,269.0,297.0,28.0,Neuron,Neuron
+666,ABplppaaap,ABplppaaa,AB,8,9,True,330.0,205.0,233.0,28.0,Death,Not annotated
+667,ABplppaap,ABplppaa,AB,7,8,False,332.5,178.0,205.0,27.0,Unspecified,Neuron
+668,ABplppaapa,ABplppaap,AB,8,9,False,331.5,205.0,235.0,30.0,Unspecified,Neuron
+669,ABplppaapaa,ABplppaapa,AB,9,10,True,331.0,235.0,263.0,28.0,Death,Not annotated
+670,ABplppaapap,ABplppaapa,AB,9,10,True,332.0,235.0,263.0,28.0,Neuron,Neuron
+671,ABplppaapp,ABplppaap,AB,8,9,False,333.5,205.0,235.0,30.0,Neuron,Neuron
+672,ABplppaappa,ABplppaapp,AB,9,10,True,333.0,235.0,263.0,28.0,Neuron,Neuron
+673,ABplppaappp,ABplppaapp,AB,9,10,True,334.0,235.0,263.0,28.0,Neuron,Neuron
+674,ABplppap,ABplppa,AB,6,7,False,339.4375,154.0,178.0,24.0,Neuron,Neuron
+675,ABplppapa,ABplppap,AB,7,8,False,337.375,178.0,205.0,27.0,Neuron,Neuron
+676,ABplppapaa,ABplppapa,AB,8,9,False,336.25,205.0,235.0,30.0,Neuron,Neuron
+677,ABplppapaaa,ABplppapaa,AB,9,10,False,335.5,235.0,269.0,34.0,Neuron,Neuron
+678,ABplppapaaaa,ABplppapaaa,AB,10,11,True,335.0,269.0,297.0,28.0,Neuron,Neuron
+679,ABplppapaaap,ABplppapaaa,AB,10,11,True,336.0,269.0,297.0,28.0,Neuron,Neuron
+680,ABplppapaap,ABplppapaa,AB,9,10,True,337.0,235.0,263.0,28.0,Neuron,Neuron
+681,ABplppapap,ABplppapa,AB,8,9,False,338.5,205.0,235.0,30.0,Neuron,Neuron
+682,ABplppapapa,ABplppapap,AB,9,10,True,338.0,235.0,263.0,28.0,Neuron,Neuron
+683,ABplppapapp,ABplppapap,AB,9,10,True,339.0,235.0,263.0,28.0,Neuron,Neuron
+684,ABplppapp,ABplppap,AB,7,8,False,341.5,178.0,205.0,27.0,Neuron,Neuron
+685,ABplppappa,ABplppapp,AB,8,9,False,340.5,205.0,235.0,30.0,Neuron,Neuron
+686,ABplppappaa,ABplppappa,AB,9,10,True,340.0,235.0,263.0,28.0,Neuron,Neuron
+687,ABplppappap,ABplppappa,AB,9,10,True,341.0,235.0,263.0,28.0,Neuron,Neuron
+688,ABplppappp,ABplppapp,AB,8,9,False,342.5,205.0,235.0,30.0,Neuron,Neuron
+689,ABplppapppa,ABplppappp,AB,9,10,True,342.0,235.0,263.0,28.0,Neuron,Neuron
+690,ABplppapppp,ABplppappp,AB,9,10,True,343.0,235.0,263.0,28.0,Neuron,Neuron
+691,ABplppp,ABplpp,AB,5,6,False,351.78125,132.0,154.0,22.0,Unspecified,Unspecified
+692,ABplpppa,ABplppp,AB,6,7,False,348.0625,154.0,178.0,24.0,Unspecified,Unspecified
+693,ABplpppaa,ABplpppa,AB,7,8,False,345.875,178.0,205.0,27.0,Neuron,Neuron
+694,ABplpppaaa,ABplpppaa,AB,8,9,False,344.5,205.0,235.0,30.0,Neuron,Neuron
+695,ABplpppaaaa,ABplpppaaa,AB,9,10,True,344.0,235.0,263.0,28.0,Neuron,Neuron
+696,ABplpppaaap,ABplpppaaa,AB,9,10,True,345.0,235.0,263.0,28.0,Neuron,Neuron
+697,ABplpppaap,ABplpppaa,AB,8,9,False,347.25,205.0,235.0,30.0,Neuron,Neuron
+698,ABplpppaapa,ABplpppaap,AB,9,10,False,346.5,235.0,269.0,34.0,Neuron,Neuron
+699,ABplpppaapaa,ABplpppaapa,AB,10,11,True,346.0,269.0,297.0,28.0,Neuron,Neuron
+700,ABplpppaapap,ABplpppaapa,AB,10,11,True,347.0,269.0,297.0,28.0,Neuron,Neuron
+701,ABplpppaapp,ABplpppaap,AB,9,10,True,348.0,235.0,263.0,28.0,Neuron,Neuron
+702,ABplpppap,ABplpppa,AB,7,8,False,350.25,178.0,205.0,27.0,Unspecified,Unspecified
+703,ABplpppapa,ABplpppap,AB,8,9,False,349.5,205.0,235.0,30.0,Unspecified,Not annotated
+704,ABplpppapaa,ABplpppapa,AB,9,10,True,349.0,235.0,263.0,28.0,Neuron,Neuron
+705,ABplpppapap,ABplpppapa,AB,9,10,True,350.0,235.0,263.0,28.0,Skin,Skin
+706,ABplpppapp,ABplpppap,AB,8,9,True,351.0,205.0,233.0,28.0,Death,Not annotated
+707,ABplpppp,ABplppp,AB,6,7,False,355.5,154.0,178.0,24.0,Unspecified,Unspecified
+708,ABplppppa,ABplpppp,AB,7,8,False,353.5,178.0,205.0,27.0,Unspecified,Unspecified
+709,ABplppppaa,ABplppppa,AB,8,9,False,352.5,205.0,235.0,30.0,Unspecified,Not annotated
+710,ABplppppaaa,ABplppppaa,AB,9,10,True,352.0,235.0,263.0,28.0,Neuron,Neuron
+711,ABplppppaap,ABplppppaa,AB,9,10,True,353.0,235.0,263.0,28.0,Other,Skin
+712,ABplppppap,ABplppppa,AB,8,9,False,354.5,205.0,235.0,30.0,Other,Not annotated
+713,ABplppppapa,ABplppppap,AB,9,10,True,354.0,235.0,263.0,28.0,Other,Not annotated
+714,ABplppppapp,ABplppppap,AB,9,10,True,355.0,235.0,263.0,28.0,Other,Not annotated
+715,ABplppppp,ABplpppp,AB,7,8,False,357.5,178.0,205.0,27.0,Unspecified,Unspecified
+716,ABplpppppa,ABplppppp,AB,8,9,False,356.5,205.0,235.0,30.0,Other,Not annotated
+717,ABplpppppaa,ABplpppppa,AB,9,10,True,356.0,235.0,263.0,28.0,Other,Not annotated
+718,ABplpppppap,ABplpppppa,AB,9,10,True,357.0,235.0,263.0,28.0,Other,Not annotated
+719,ABplpppppp,ABplppppp,AB,8,9,False,358.5,205.0,235.0,30.0,Unspecified,Skin
+720,ABplppppppa,ABplpppppp,AB,9,10,True,358.0,235.0,263.0,28.0,Death,Not annotated
+721,ABplppppppp,ABplpppppp,AB,9,10,True,359.0,235.0,263.0,28.0,Skin,Skin
+722,ABpr,ABp,AB,2,3,False,423.013671875,75.0,93.0,18.0,Unspecified,Unspecified
+723,ABpra,ABpr,AB,3,4,False,392.41015625,93.0,112.0,19.0,Unspecified,Unspecified
+724,ABpraa,ABpra,AB,4,5,False,377.765625,112.0,132.0,20.0,Unspecified,Unspecified
+725,ABpraaa,ABpraa,AB,5,6,False,368.5,132.0,154.0,22.0,Unspecified,Neuron
+726,ABpraaaa,ABpraaa,AB,6,7,False,363.5625,154.0,178.0,24.0,Unspecified,Neuron
+727,ABpraaaaa,ABpraaaa,AB,7,8,False,361.5,178.0,205.0,27.0,Unspecified,Neuron
+728,ABpraaaaaa,ABpraaaaa,AB,8,9,False,360.5,205.0,235.0,30.0,Neuron,Neuron
+729,ABpraaaaaaa,ABpraaaaaa,AB,9,10,True,360.0,235.0,263.0,28.0,Neuron,Neuron
+730,ABpraaaaaap,ABpraaaaaa,AB,9,10,True,361.0,235.0,263.0,28.0,Neuron,Neuron
+731,ABpraaaaap,ABpraaaaa,AB,8,9,False,362.5,205.0,235.0,30.0,Unspecified,Neuron
+732,ABpraaaaapd,ABpraaaaap,AB,9,10,True,362.0,235.0,263.0,28.0,Neuron,Neuron
+733,ABpraaaaapv,ABpraaaaap,AB,9,10,True,363.0,235.0,263.0,28.0,Death,Not annotated
+734,ABpraaaap,ABpraaaa,AB,7,8,False,365.625,178.0,205.0,27.0,Unspecified,Neuron
+735,ABpraaaapa,ABpraaaap,AB,8,9,False,364.5,205.0,235.0,30.0,Neuron,Neuron
+736,ABpraaaapad,ABpraaaapa,AB,9,10,True,364.0,235.0,263.0,28.0,Neuron,Neuron
+737,ABpraaaapav,ABpraaaapa,AB,9,10,True,365.0,235.0,263.0,28.0,Neuron,Neuron
+738,ABpraaaapp,ABpraaaap,AB,8,9,False,366.75,205.0,235.0,30.0,Unspecified,Neuron
+739,ABpraaaappa,ABpraaaapp,AB,9,10,True,366.0,235.0,263.0,28.0,Death,Not annotated
+740,ABpraaaappp,ABpraaaapp,AB,9,10,False,367.5,235.0,269.0,34.0,Unspecified,Neuron
+741,ABpraaaapppa,ABpraaaappp,AB,10,11,True,367.0,269.0,297.0,28.0,Neuron,Neuron
+742,ABpraaaapppp,ABpraaaappp,AB,10,11,True,368.0,269.0,297.0,28.0,Death,Not annotated
+743,ABpraaap,ABpraaa,AB,6,7,False,373.4375,154.0,178.0,24.0,Unspecified,Neuron
+744,ABpraaapa,ABpraaap,AB,7,8,False,370.875,178.0,205.0,27.0,Unspecified,Neuron
+745,ABpraaapaa,ABpraaapa,AB,8,9,False,369.5,205.0,235.0,30.0,Unspecified,Neuron
+746,ABpraaapaad,ABpraaapaa,AB,9,10,True,369.0,235.0,263.0,28.0,Neuron,Neuron
+747,ABpraaapaav,ABpraaapaa,AB,9,10,True,370.0,235.0,263.0,28.0,Death,Not annotated
+748,ABpraaapap,ABpraaapa,AB,8,9,False,372.25,205.0,235.0,30.0,Unspecified,Neuron
+749,ABpraaapapa,ABpraaapap,AB,9,10,False,371.5,235.0,269.0,34.0,Unspecified,Neuron
+750,ABpraaapapaa,ABpraaapapa,AB,10,11,True,371.0,269.0,297.0,28.0,Neuron,Neuron
+751,ABpraaapapap,ABpraaapapa,AB,10,11,True,372.0,269.0,297.0,28.0,Death,Not annotated
+752,ABpraaapapp,ABpraaapap,AB,9,10,True,373.0,235.0,263.0,28.0,Death,Not annotated
+753,ABpraaapp,ABpraaap,AB,7,8,False,376.0,178.0,205.0,27.0,Unspecified,Neuron
+754,ABpraaappa,ABpraaapp,AB,8,9,False,374.5,205.0,235.0,30.0,Neuron,Neuron
+755,ABpraaappaa,ABpraaappa,AB,9,10,True,374.0,235.0,263.0,28.0,Neuron,Neuron
+756,ABpraaappap,ABpraaappa,AB,9,10,True,375.0,235.0,263.0,28.0,Neuron,Neuron
+757,ABpraaappp,ABpraaapp,AB,8,9,False,377.5,205.0,235.0,30.0,Unspecified,Neuron
+758,ABpraaapppa,ABpraaappp,AB,9,10,False,376.5,235.0,269.0,34.0,Unspecified,Neuron
+759,ABpraaapppaa,ABpraaapppa,AB,10,11,True,376.0,269.0,297.0,28.0,Neuron,Neuron
+760,ABpraaapppap,ABpraaapppa,AB,10,11,True,377.0,269.0,297.0,28.0,Death,Not annotated
+761,ABpraaapppp,ABpraaappp,AB,9,10,False,378.5,235.0,269.0,34.0,Neuron,Neuron
+762,ABpraaappppa,ABpraaapppp,AB,10,11,True,378.0,269.0,297.0,28.0,Neuron,Neuron
+763,ABpraaappppp,ABpraaapppp,AB,10,11,True,379.0,269.0,297.0,28.0,Neuron,Neuron
+764,ABpraap,ABpraa,AB,5,6,False,387.03125,132.0,154.0,22.0,Unspecified,Unspecified
+765,ABpraapa,ABpraap,AB,6,7,False,383.5625,154.0,178.0,24.0,Unspecified,Unspecified
+766,ABpraapaa,ABpraapa,AB,7,8,False,381.5,178.0,205.0,27.0,Unspecified,Unspecified
+767,ABpraapaaa,ABpraapaa,AB,8,9,False,380.5,205.0,235.0,30.0,Unspecified,Not annotated
+768,ABpraapaaaa,ABpraapaaa,AB,9,10,True,380.0,235.0,263.0,28.0,Skin,Skin
+769,ABpraapaaap,ABpraapaaa,AB,9,10,True,381.0,235.0,263.0,28.0,Neuron,Neuron
+770,ABpraapaap,ABpraapaa,AB,8,9,False,382.5,205.0,235.0,30.0,Neuron,Neuron
+771,ABpraapaapa,ABpraapaap,AB,9,10,True,382.0,235.0,263.0,28.0,Neuron,Neuron
+772,ABpraapaapp,ABpraapaap,AB,9,10,True,383.0,235.0,263.0,28.0,Neuron,Neuron
+773,ABpraapap,ABpraapa,AB,7,8,False,385.625,178.0,205.0,27.0,Unspecified,Neuron
+774,ABpraapapa,ABpraapap,AB,8,9,False,384.5,205.0,235.0,30.0,Neuron,Neuron
+775,ABpraapapaa,ABpraapapa,AB,9,10,True,384.0,235.0,263.0,28.0,Neuron,Neuron
+776,ABpraapapap,ABpraapapa,AB,9,10,True,385.0,235.0,263.0,28.0,Neuron,Neuron
+777,ABpraapapp,ABpraapap,AB,8,9,False,386.75,205.0,235.0,30.0,Unspecified,Neuron
+778,ABpraapappa,ABpraapapp,AB,9,10,True,386.0,235.0,263.0,28.0,Neuron,Neuron
+779,ABpraapappp,ABpraapapp,AB,9,10,False,387.5,235.0,269.0,34.0,Unspecified,Neuron
+780,ABpraapapppa,ABpraapappp,AB,10,11,True,387.0,269.0,297.0,28.0,Neuron,Neuron
+781,ABpraapapppp,ABpraapappp,AB,10,11,True,388.0,269.0,297.0,28.0,Death,Not annotated
+782,ABpraapp,ABpraap,AB,6,7,False,390.5,154.0,178.0,24.0,Skin,Skin
+783,ABpraappa,ABpraapp,AB,7,8,False,389.5,178.0,205.0,27.0,Skin,Skin
+784,ABpraappaa,ABpraappa,AB,8,9,True,389.0,205.0,233.0,28.0,Skin,Skin
+785,ABpraappap,ABpraappa,AB,8,9,True,390.0,205.0,233.0,28.0,Skin,Skin
+786,ABpraappp,ABpraapp,AB,7,8,False,391.5,178.0,205.0,27.0,Skin,Skin
+787,ABpraapppa,ABpraappp,AB,8,9,True,391.0,205.0,233.0,28.0,Skin,Skin
+788,ABpraapppp,ABpraappp,AB,8,9,True,392.0,205.0,233.0,28.0,Skin,Skin
+789,ABprap,ABpra,AB,4,5,False,407.0546875,112.0,132.0,20.0,Unspecified,Unspecified
+790,ABprapa,ABprap,AB,5,6,False,400.578125,132.0,154.0,22.0,Unspecified,Unspecified
+791,ABprapaa,ABprapa,AB,6,7,False,397.5,154.0,178.0,24.0,Unspecified,Unspecified
+792,ABprapaaa,ABprapaa,AB,7,8,False,395.5,178.0,205.0,27.0,Unspecified,Neuron
+793,ABprapaaaa,ABprapaaa,AB,8,9,False,393.75,205.0,235.0,30.0,Unspecified,Neuron
+794,ABprapaaaaa,ABprapaaaa,AB,9,10,True,393.0,235.0,263.0,28.0,Death,Not annotated
+795,ABprapaaaap,ABprapaaaa,AB,9,10,False,394.5,235.0,269.0,34.0,Neuron,Neuron
+796,ABprapaaaapa,ABprapaaaap,AB,10,11,True,394.0,269.0,297.0,28.0,Neuron,Neuron
+797,ABprapaaaapp,ABprapaaaap,AB,10,11,True,395.0,269.0,297.0,28.0,Neuron,Neuron
+798,ABprapaaap,ABprapaaa,AB,8,9,False,397.25,205.0,235.0,30.0,Neuron,Neuron
+799,ABprapaaapa,ABprapaaap,AB,9,10,False,396.5,235.0,269.0,34.0,Neuron,Neuron
+800,ABprapaaapad,ABprapaaapa,AB,10,11,True,396.0,269.0,297.0,28.0,Neuron,Neuron
+801,ABprapaaapav,ABprapaaapa,AB,10,11,True,397.0,269.0,297.0,28.0,Neuron,Neuron
+802,ABprapaaapp,ABprapaaap,AB,9,10,True,398.0,235.0,263.0,28.0,Neuron,Neuron
+803,ABprapaap,ABprapaa,AB,7,8,False,399.5,178.0,205.0,27.0,Unspecified,Unspecified
+804,ABprapaapa,ABprapaap,AB,8,9,True,399.0,205.0,233.0,28.0,Other,Not annotated
+805,ABprapaapp,ABprapaap,AB,8,9,True,400.0,205.0,233.0,28.0,Skin,Skin
+806,ABprapap,ABprapa,AB,6,7,False,403.65625,154.0,178.0,24.0,Unspecified,Unspecified
+807,ABprapapa,ABprapap,AB,7,8,False,402.25,178.0,205.0,27.0,Unspecified,Unspecified
+808,ABprapapaa,ABprapapa,AB,8,9,False,401.5,205.0,235.0,30.0,Unspecified,Not annotated
+809,ABprapapaaa,ABprapapaa,AB,9,10,True,401.0,235.0,263.0,28.0,Other,Not annotated
+810,ABprapapaap,ABprapapaa,AB,9,10,True,402.0,235.0,263.0,28.0,Skin,Skin
+811,ABprapapap,ABprapapa,AB,8,9,True,403.0,205.0,233.0,28.0,Skin,Skin
+812,ABprapapp,ABprapap,AB,7,8,False,405.0625,178.0,205.0,27.0,Unspecified,Unspecified
+813,ABprapappa,ABprapapp,AB,8,9,True,404.0,205.0,233.0,28.0,Skin,Skin
+814,ABprapappp,ABprapapp,AB,8,9,False,406.125,205.0,235.0,30.0,Unspecified,Neuron
+815,ABprapapppa,ABprapappp,AB,9,10,True,405.0,235.0,263.0,28.0,Death,Not annotated
+816,ABprapapppp,ABprapappp,AB,9,10,False,407.25,235.0,269.0,34.0,Unspecified,Neuron
+817,ABprapappppa,ABprapapppp,AB,10,11,False,406.5,269.0,307.0,38.0,Neuron,Neuron
+818,ABprapappppaa,ABprapappppa,AB,11,12,True,406.0,307.0,335.0,28.0,Neuron,Neuron
+819,ABprapappppap,ABprapappppa,AB,11,12,True,407.0,307.0,335.0,28.0,Neuron,Neuron
+820,ABprapappppp,ABprapapppp,AB,10,11,True,408.0,269.0,297.0,28.0,Death,Not annotated
+821,ABprapp,ABprap,AB,5,6,False,413.53125,132.0,154.0,22.0,Unspecified,Unspecified
+822,ABprappa,ABprapp,AB,6,7,False,410.5,154.0,178.0,24.0,Skin,Skin
+823,ABprappaa,ABprappa,AB,7,8,False,409.5,178.0,205.0,27.0,Skin,Skin
+824,ABprappaaa,ABprappaa,AB,8,9,True,409.0,205.0,233.0,28.0,Skin,Skin
+825,ABprappaap,ABprappaa,AB,8,9,True,410.0,205.0,233.0,28.0,Skin,Skin
+826,ABprappap,ABprappa,AB,7,8,False,411.5,178.0,205.0,27.0,Skin,Skin
+827,ABprappapa,ABprappap,AB,8,9,True,411.0,205.0,233.0,28.0,Skin,Skin
+828,ABprappapp,ABprappap,AB,8,9,True,412.0,205.0,233.0,28.0,Skin,Skin
+829,ABprappp,ABprapp,AB,6,7,False,416.5625,154.0,178.0,24.0,Unspecified,Unspecified
+830,ABprapppa,ABprappp,AB,7,8,False,414.625,178.0,205.0,27.0,Unspecified,Neuron
+831,ABprapppaa,ABprapppa,AB,8,9,False,413.5,205.0,235.0,30.0,Unspecified,Neuron
+832,ABprapppaaa,ABprapppaa,AB,9,10,True,413.0,235.0,263.0,28.0,Neuron,Neuron
+833,ABprapppaap,ABprapppaa,AB,9,10,True,414.0,235.0,263.0,28.0,Death,Not annotated
+834,ABprapppap,ABprapppa,AB,8,9,False,415.75,205.0,235.0,30.0,Unspecified,Neuron
+835,ABprapppapa,ABprapppap,AB,9,10,True,415.0,235.0,263.0,28.0,Death,Not annotated
+836,ABprapppapp,ABprapppap,AB,9,10,False,416.5,235.0,269.0,34.0,Neuron,Neuron
+837,ABprapppappa,ABprapppapp,AB,10,11,True,416.0,269.0,297.0,28.0,Neuron,Neuron
+838,ABprapppappp,ABprapppapp,AB,10,11,True,417.0,269.0,297.0,28.0,Neuron,Neuron
+839,ABprapppp,ABprappp,AB,7,8,False,418.5,178.0,205.0,27.0,Skin,Skin
+840,ABprappppa,ABprapppp,AB,8,9,True,418.0,205.0,233.0,28.0,Skin,Skin
+841,ABprappppp,ABprapppp,AB,8,9,True,419.0,205.0,233.0,28.0,Skin,Skin
+842,ABprp,ABpr,AB,3,4,False,453.6171875,93.0,112.0,19.0,Unspecified,Unspecified
+843,ABprpa,ABprp,AB,4,5,False,436.8125,112.0,132.0,20.0,Unspecified,Unspecified
+844,ABprpaa,ABprpa,AB,5,6,False,428.125,132.0,154.0,22.0,Unspecified,Unspecified
+845,ABprpaaa,ABprpaa,AB,6,7,False,423.6875,154.0,178.0,24.0,Unspecified,Unspecified
+846,ABprpaaaa,ABprpaaa,AB,7,8,False,421.5,178.0,205.0,27.0,Unspecified,Unspecified
+847,ABprpaaaaa,ABprpaaaa,AB,8,9,False,420.5,205.0,235.0,30.0,Neuron,Neuron
+848,ABprpaaaaaa,ABprpaaaaa,AB,9,10,True,420.0,235.0,263.0,28.0,Neuron,Neuron
+849,ABprpaaaaap,ABprpaaaaa,AB,9,10,True,421.0,235.0,263.0,28.0,Neuron,Neuron
+850,ABprpaaaap,ABprpaaaa,AB,8,9,False,422.5,205.0,235.0,30.0,Unspecified,Not annotated
+851,ABprpaaaapa,ABprpaaaap,AB,9,10,True,422.0,235.0,263.0,28.0,Other,Not annotated
+852,ABprpaaaapp,ABprpaaaap,AB,9,10,True,423.0,235.0,263.0,28.0,Neuron,Neuron
+853,ABprpaaap,ABprpaaa,AB,7,8,False,425.875,178.0,205.0,27.0,Unspecified,Neuron
+854,ABprpaaapa,ABprpaaap,AB,8,9,False,424.5,205.0,235.0,30.0,Neuron,Neuron
+855,ABprpaaapaa,ABprpaaapa,AB,9,10,True,424.0,235.0,263.0,28.0,Neuron,Neuron
+856,ABprpaaapap,ABprpaaapa,AB,9,10,True,425.0,235.0,263.0,28.0,Neuron,Neuron
+857,ABprpaaapp,ABprpaaap,AB,8,9,False,427.25,205.0,235.0,30.0,Unspecified,Neuron
+858,ABprpaaappa,ABprpaaapp,AB,9,10,False,426.5,235.0,269.0,34.0,Unspecified,Neuron
+859,ABprpaaappaa,ABprpaaappa,AB,10,11,True,426.0,269.0,297.0,28.0,Neuron,Neuron
+860,ABprpaaappap,ABprpaaappa,AB,10,11,True,427.0,269.0,297.0,28.0,Death,Not annotated
+861,ABprpaaappp,ABprpaaapp,AB,9,10,True,428.0,235.0,263.0,28.0,Neuron,Neuron
+862,ABprpaap,ABprpaa,AB,6,7,False,432.5625,154.0,178.0,24.0,Unspecified,Neuron
+863,ABprpaapa,ABprpaap,AB,7,8,False,430.5,178.0,205.0,27.0,Unspecified,Neuron
+864,ABprpaapaa,ABprpaapa,AB,8,9,False,429.5,205.0,235.0,30.0,Neuron,Neuron
+865,ABprpaapaaa,ABprpaapaa,AB,9,10,True,429.0,235.0,263.0,28.0,Neuron,Neuron
+866,ABprpaapaap,ABprpaapaa,AB,9,10,True,430.0,235.0,263.0,28.0,Neuron,Neuron
+867,ABprpaapap,ABprpaapa,AB,8,9,False,431.5,205.0,235.0,30.0,Unspecified,Neuron
+868,ABprpaapapa,ABprpaapap,AB,9,10,True,431.0,235.0,263.0,28.0,Neuron,Neuron
+869,ABprpaapapp,ABprpaapap,AB,9,10,True,432.0,235.0,263.0,28.0,Death,Not annotated
+870,ABprpaapp,ABprpaap,AB,7,8,False,434.625,178.0,205.0,27.0,Unspecified,Neuron
+871,ABprpaappa,ABprpaapp,AB,8,9,False,433.5,205.0,235.0,30.0,Neuron,Neuron
+872,ABprpaappaa,ABprpaappa,AB,9,10,True,433.0,235.0,263.0,28.0,Neuron,Neuron
+873,ABprpaappap,ABprpaappa,AB,9,10,True,434.0,235.0,263.0,28.0,Neuron,Neuron
+874,ABprpaappp,ABprpaapp,AB,8,9,False,435.75,205.0,235.0,30.0,Unspecified,Neuron
+875,ABprpaapppa,ABprpaappp,AB,9,10,True,435.0,235.0,263.0,28.0,Neuron,Neuron
+876,ABprpaapppp,ABprpaappp,AB,9,10,False,436.5,235.0,269.0,34.0,Unspecified,Neuron
+877,ABprpaappppa,ABprpaapppp,AB,10,11,True,436.0,269.0,297.0,28.0,Neuron,Neuron
+878,ABprpaappppp,ABprpaapppp,AB,10,11,True,437.0,269.0,297.0,28.0,Death,Not annotated
+879,ABprpap,ABprpa,AB,5,6,False,445.5,132.0,154.0,22.0,Unspecified,Unspecified
+880,ABprpapa,ABprpap,AB,6,7,False,441.5,154.0,178.0,24.0,Unspecified,Unspecified
+881,ABprpapaa,ABprpapa,AB,7,8,False,439.5,178.0,205.0,27.0,Neuron,Neuron
+882,ABprpapaaa,ABprpapaa,AB,8,9,False,438.5,205.0,235.0,30.0,Neuron,Neuron
+883,ABprpapaaaa,ABprpapaaa,AB,9,10,True,438.0,235.0,263.0,28.0,Neuron,Neuron
+884,ABprpapaaap,ABprpapaaa,AB,9,10,True,439.0,235.0,263.0,28.0,Neuron,Neuron
+885,ABprpapaap,ABprpapaa,AB,8,9,False,440.5,205.0,235.0,30.0,Neuron,Neuron
+886,ABprpapaapa,ABprpapaap,AB,9,10,True,440.0,235.0,263.0,28.0,Neuron,Neuron
+887,ABprpapaapp,ABprpapaap,AB,9,10,True,441.0,235.0,263.0,28.0,Neuron,Neuron
+888,ABprpapap,ABprpapa,AB,7,8,False,443.5,178.0,205.0,27.0,Unspecified,Unspecified
+889,ABprpapapa,ABprpapap,AB,8,9,False,442.5,205.0,235.0,30.0,Unspecified,Not annotated
+890,ABprpapapaa,ABprpapapa,AB,9,10,True,442.0,235.0,263.0,28.0,Other,Not annotated
+891,ABprpapapap,ABprpapapa,AB,9,10,True,443.0,235.0,263.0,28.0,Neuron,Neuron
+892,ABprpapapp,ABprpapap,AB,8,9,False,444.5,205.0,235.0,30.0,Neuron,Neuron
+893,ABprpapappa,ABprpapapp,AB,9,10,True,444.0,235.0,263.0,28.0,Neuron,Neuron
+894,ABprpapappp,ABprpapapp,AB,9,10,True,445.0,235.0,263.0,28.0,Neuron,Neuron
+895,ABprpapp,ABprpap,AB,6,7,False,449.5,154.0,178.0,24.0,Unspecified,Unspecified
+896,ABprpappa,ABprpapp,AB,7,8,False,447.5,178.0,205.0,27.0,Neuron,Neuron
+897,ABprpappaa,ABprpappa,AB,8,9,False,446.5,205.0,235.0,30.0,Neuron,Neuron
+898,ABprpappaaa,ABprpappaa,AB,9,10,True,446.0,235.0,263.0,28.0,Neuron,Neuron
+899,ABprpappaap,ABprpappaa,AB,9,10,True,447.0,235.0,263.0,28.0,Neuron,Neuron
+900,ABprpappap,ABprpappa,AB,8,9,False,448.5,205.0,235.0,30.0,Neuron,Neuron
+901,ABprpappapa,ABprpappap,AB,9,10,True,448.0,235.0,263.0,28.0,Neuron,Neuron
+902,ABprpappapp,ABprpappap,AB,9,10,True,449.0,235.0,263.0,28.0,Neuron,Neuron
+903,ABprpappp,ABprpapp,AB,7,8,False,451.5,178.0,205.0,27.0,Unspecified,Unspecified
+904,ABprpapppa,ABprpappp,AB,8,9,False,450.5,205.0,235.0,30.0,Neuron,Neuron
+905,ABprpapppaa,ABprpapppa,AB,9,10,True,450.0,235.0,263.0,28.0,Neuron,Neuron
+906,ABprpapppap,ABprpapppa,AB,9,10,True,451.0,235.0,263.0,28.0,Neuron,Neuron
+907,ABprpapppp,ABprpappp,AB,8,9,False,452.5,205.0,235.0,30.0,Other,Not annotated
+908,ABprpappppa,ABprpapppp,AB,9,10,True,452.0,235.0,263.0,28.0,Other,Not annotated
+909,ABprpappppp,ABprpapppp,AB,9,10,True,453.0,235.0,263.0,28.0,Other,Not annotated
+910,ABprpp,ABprp,AB,4,5,False,470.421875,112.0,132.0,20.0,Unspecified,Unspecified
+911,ABprppa,ABprpp,AB,5,6,False,462.0625,132.0,154.0,22.0,Unspecified,Neuron
+912,ABprppaa,ABprppa,AB,6,7,False,457.6875,154.0,178.0,24.0,Unspecified,Neuron
+913,ABprppaaa,ABprppaa,AB,7,8,False,455.875,178.0,205.0,27.0,Unspecified,Neuron
+914,ABprppaaaa,ABprppaaa,AB,8,9,False,454.75,205.0,235.0,30.0,Unspecified,Neuron
+915,ABprppaaaaa,ABprppaaaa,AB,9,10,True,454.0,235.0,263.0,28.0,Neuron,Neuron
+916,ABprppaaaap,ABprppaaaa,AB,9,10,False,455.5,235.0,269.0,34.0,Unspecified,Neuron
+917,ABprppaaaapa,ABprppaaaap,AB,10,11,True,455.0,269.0,297.0,28.0,Death,Not annotated
+918,ABprppaaaapp,ABprppaaaap,AB,10,11,True,456.0,269.0,297.0,28.0,Neuron,Neuron
+919,ABprppaaap,ABprppaaa,AB,8,9,True,457.0,205.0,233.0,28.0,Death,Not annotated
+920,ABprppaap,ABprppaa,AB,7,8,False,459.5,178.0,205.0,27.0,Unspecified,Neuron
+921,ABprppaapa,ABprppaap,AB,8,9,False,458.5,205.0,235.0,30.0,Unspecified,Neuron
+922,ABprppaapaa,ABprppaapa,AB,9,10,True,458.0,235.0,263.0,28.0,Death,Not annotated
+923,ABprppaapap,ABprppaapa,AB,9,10,True,459.0,235.0,263.0,28.0,Neuron,Neuron
+924,ABprppaapp,ABprppaap,AB,8,9,False,460.5,205.0,235.0,30.0,Neuron,Neuron
+925,ABprppaappa,ABprppaapp,AB,9,10,True,460.0,235.0,263.0,28.0,Neuron,Neuron
+926,ABprppaappp,ABprppaapp,AB,9,10,True,461.0,235.0,263.0,28.0,Neuron,Neuron
+927,ABprppap,ABprppa,AB,6,7,False,466.4375,154.0,178.0,24.0,Neuron,Neuron
+928,ABprppapa,ABprppap,AB,7,8,False,464.375,178.0,205.0,27.0,Neuron,Neuron
+929,ABprppapaa,ABprppapa,AB,8,9,False,463.25,205.0,235.0,30.0,Neuron,Neuron
+930,ABprppapaaa,ABprppapaa,AB,9,10,False,462.5,235.0,269.0,34.0,Neuron,Neuron
+931,ABprppapaaaa,ABprppapaaa,AB,10,11,True,462.0,269.0,297.0,28.0,Neuron,Neuron
+932,ABprppapaaap,ABprppapaaa,AB,10,11,True,463.0,269.0,297.0,28.0,Neuron,Neuron
+933,ABprppapaap,ABprppapaa,AB,9,10,True,464.0,235.0,263.0,28.0,Neuron,Neuron
+934,ABprppapap,ABprppapa,AB,8,9,False,465.5,205.0,235.0,30.0,Neuron,Neuron
+935,ABprppapapa,ABprppapap,AB,9,10,True,465.0,235.0,263.0,28.0,Neuron,Neuron
+936,ABprppapapp,ABprppapap,AB,9,10,True,466.0,235.0,263.0,28.0,Neuron,Neuron
+937,ABprppapp,ABprppap,AB,7,8,False,468.5,178.0,205.0,27.0,Neuron,Neuron
+938,ABprppappa,ABprppapp,AB,8,9,False,467.5,205.0,235.0,30.0,Neuron,Neuron
+939,ABprppappaa,ABprppappa,AB,9,10,True,467.0,235.0,263.0,28.0,Neuron,Neuron
+940,ABprppappap,ABprppappa,AB,9,10,True,468.0,235.0,263.0,28.0,Neuron,Neuron
+941,ABprppappp,ABprppapp,AB,8,9,False,469.5,205.0,235.0,30.0,Neuron,Neuron
+942,ABprppapppa,ABprppappp,AB,9,10,True,469.0,235.0,263.0,28.0,Neuron,Neuron
+943,ABprppapppp,ABprppappp,AB,9,10,True,470.0,235.0,263.0,28.0,Neuron,Neuron
+944,ABprppp,ABprpp,AB,5,6,False,478.78125,132.0,154.0,22.0,Unspecified,Unspecified
+945,ABprpppa,ABprppp,AB,6,7,False,475.0625,154.0,178.0,24.0,Unspecified,Unspecified
+946,ABprpppaa,ABprpppa,AB,7,8,False,472.875,178.0,205.0,27.0,Unspecified,Unspecified
+947,ABprpppaaa,ABprpppaa,AB,8,9,False,471.5,205.0,235.0,30.0,Unspecified,Not annotated
+948,ABprpppaaaa,ABprpppaaa,AB,9,10,True,471.0,235.0,263.0,28.0,Other,Not annotated
+949,ABprpppaaap,ABprpppaaa,AB,9,10,True,472.0,235.0,263.0,28.0,Neuron,Neuron
+950,ABprpppaap,ABprpppaa,AB,8,9,False,474.25,205.0,235.0,30.0,Neuron,Neuron
+951,ABprpppaapa,ABprpppaap,AB,9,10,False,473.5,235.0,269.0,34.0,Neuron,Neuron
+952,ABprpppaapaa,ABprpppaapa,AB,10,11,True,473.0,269.0,297.0,28.0,Neuron,Neuron
+953,ABprpppaapap,ABprpppaapa,AB,10,11,True,474.0,269.0,297.0,28.0,Neuron,Neuron
+954,ABprpppaapp,ABprpppaap,AB,9,10,True,475.0,235.0,263.0,28.0,Neuron,Neuron
+955,ABprpppap,ABprpppa,AB,7,8,False,477.25,178.0,205.0,27.0,Unspecified,Unspecified
+956,ABprpppapa,ABprpppap,AB,8,9,False,476.5,205.0,235.0,30.0,Unspecified,Not annotated
+957,ABprpppapaa,ABprpppapa,AB,9,10,True,476.0,235.0,263.0,28.0,Neuron,Neuron
+958,ABprpppapap,ABprpppapa,AB,9,10,True,477.0,235.0,263.0,28.0,Skin,Skin
+959,ABprpppapp,ABprpppap,AB,8,9,True,478.0,205.0,233.0,28.0,Death,Not annotated
+960,ABprpppp,ABprppp,AB,6,7,False,482.5,154.0,178.0,24.0,Unspecified,Unspecified
+961,ABprppppa,ABprpppp,AB,7,8,False,480.5,178.0,205.0,27.0,Unspecified,Unspecified
+962,ABprppppaa,ABprppppa,AB,8,9,False,479.5,205.0,235.0,30.0,Unspecified,Not annotated
+963,ABprppppaaa,ABprppppaa,AB,9,10,True,479.0,235.0,263.0,28.0,Neuron,Neuron
+964,ABprppppaap,ABprppppaa,AB,9,10,True,480.0,235.0,263.0,28.0,Other,Skin
+965,ABprppppap,ABprppppa,AB,8,9,False,481.5,205.0,235.0,30.0,Unspecified,Not annotated
+966,ABprppppapa,ABprppppap,AB,9,10,True,481.0,235.0,263.0,28.0,Other,Not annotated
+967,ABprppppapp,ABprppppap,AB,9,10,True,482.0,235.0,263.0,28.0,Neuron,Neuron
+968,ABprppppp,ABprpppp,AB,7,8,False,484.5,178.0,205.0,27.0,Unspecified,Unspecified
+969,ABprpppppa,ABprppppp,AB,8,9,False,483.5,205.0,235.0,30.0,Unspecified,Not annotated
+970,ABprpppppaa,ABprpppppa,AB,9,10,True,483.0,235.0,263.0,28.0,Muscle,Muscle
+971,ABprpppppap,ABprpppppa,AB,9,10,True,484.0,235.0,263.0,28.0,Other,Not annotated
+972,ABprpppppp,ABprppppp,AB,8,9,False,485.5,205.0,235.0,30.0,Unspecified,Skin
+973,ABprppppppa,ABprpppppp,AB,9,10,True,485.0,235.0,263.0,28.0,Death,Not annotated
+974,ABprppppppp,ABprpppppp,AB,9,10,True,486.0,235.0,263.0,28.0,Skin,Skin
+975,P1,P0,P1,0,1,False,603.5048828125,40.0,67.0,27.0,Unspecified,Not annotated
+976,EMS,P1,EMS,0,2,False,563.947265625,67.0,82.0,15.0,Unspecified,Not annotated
+977,MS,EMS,MS,0,3,False,537.39453125,82.0,104.0,22.0,Unspecified,Unspecified
+978,MSa,MS,MS,1,4,False,514.265625,104.0,128.0,24.0,Unspecified,Unspecified
+979,MSaa,MSa,MS,2,5,False,502.34375,128.0,154.0,26.0,Unspecified,Unspecified
+980,MSaaa,MSaa,MS,3,6,False,495.09375,154.0,183.0,29.0,Unspecified,Unspecified
+981,MSaaaa,MSaaa,MS,4,7,False,491.1875,183.0,216.0,33.0,Unspecified,Unspecified
+982,MSaaaaa,MSaaaa,MS,5,8,False,488.875,216.0,254.0,38.0,Unspecified,Unspecified
+983,MSaaaaaa,MSaaaaa,MS,6,9,False,487.5,254.0,298.0,44.0,Other,Not annotated
+984,MSaaaaaal,MSaaaaaa,MS,7,10,True,487.0,298.0,334.0,36.0,Other,Not annotated
+985,MSaaaaaar,MSaaaaaa,MS,7,10,True,488.0,298.0,334.0,36.0,Other,Not annotated
+986,MSaaaaap,MSaaaaa,MS,6,9,False,490.25,254.0,298.0,44.0,Pharynx,Pharynx
+987,MSaaaaapa,MSaaaaap,MS,7,10,False,489.5,298.0,348.0,50.0,Pharynx,Pharynx
+988,MSaaaaapaa,MSaaaaapa,MS,8,11,True,489.0,348.0,384.0,36.0,Pharynx,Pharynx
+989,MSaaaaapap,MSaaaaapa,MS,8,11,True,490.0,348.0,384.0,36.0,Pharynx,Pharynx
+990,MSaaaaapp,MSaaaaap,MS,7,10,True,491.0,298.0,334.0,36.0,Pharynx,Pharynx
+991,MSaaaap,MSaaaa,MS,5,8,False,493.5,216.0,254.0,38.0,Unspecified,Pharynx
+992,MSaaaapa,MSaaaap,MS,6,9,False,492.5,254.0,298.0,44.0,Pharynx,Pharynx
+993,MSaaaapaa,MSaaaapa,MS,7,10,True,492.0,298.0,334.0,36.0,Pharynx,Pharynx
+994,MSaaaapap,MSaaaapa,MS,7,10,True,493.0,298.0,334.0,36.0,Pharynx,Pharynx
+995,MSaaaapp,MSaaaap,MS,6,9,False,494.5,254.0,298.0,44.0,Unspecified,Pharynx
+996,MSaaaappa,MSaaaapp,MS,7,10,True,494.0,298.0,334.0,36.0,Death,Not annotated
+997,MSaaaappp,MSaaaapp,MS,7,10,True,495.0,298.0,334.0,36.0,Pharynx,Pharynx
+998,MSaaap,MSaaa,MS,4,7,False,499.0,183.0,216.0,33.0,Unspecified,Unspecified
+999,MSaaapa,MSaaap,MS,5,8,False,497.5,216.0,254.0,38.0,Pharynx,Pharynx
+1000,MSaaapaa,MSaaapa,MS,6,9,False,496.5,254.0,298.0,44.0,Pharynx,Pharynx
+1001,MSaaapaaa,MSaaapaa,MS,7,10,True,496.0,298.0,334.0,36.0,Pharynx,Pharynx
+1002,MSaaapaap,MSaaapaa,MS,7,10,True,497.0,298.0,334.0,36.0,Pharynx,Pharynx
+1003,MSaaapap,MSaaapa,MS,6,9,False,498.5,254.0,298.0,44.0,Pharynx,Pharynx
+1004,MSaaapapa,MSaaapap,MS,7,10,True,498.0,298.0,334.0,36.0,Pharynx,Pharynx
+1005,MSaaapapp,MSaaapap,MS,7,10,True,499.0,298.0,334.0,36.0,Pharynx,Pharynx
+1006,MSaaapp,MSaaap,MS,5,8,False,500.5,216.0,254.0,38.0,Unspecified,Not annotated
+1007,MSaaappa,MSaaapp,MS,6,9,True,500.0,254.0,290.0,36.0,Death,Not annotated
+1008,MSaaappp,MSaaapp,MS,6,9,True,501.0,254.0,290.0,36.0,Other,Not annotated
+1009,MSaap,MSaa,MS,3,6,False,509.59375,154.0,183.0,29.0,Unspecified,Unspecified
+1010,MSaapa,MSaap,MS,4,7,False,506.1875,183.0,216.0,33.0,Unspecified,Unspecified
+1011,MSaapaa,MSaapa,MS,5,8,False,503.875,216.0,254.0,38.0,Unspecified,Pharynx
+1012,MSaapaaa,MSaapaa,MS,6,9,False,502.5,254.0,298.0,44.0,Pharynx,Pharynx
+1013,MSaapaaaa,MSaapaaa,MS,7,10,True,502.0,298.0,334.0,36.0,Pharynx,Pharynx
+1014,MSaapaaap,MSaapaaa,MS,7,10,True,503.0,298.0,334.0,36.0,Pharynx,Pharynx
+1015,MSaapaap,MSaapaa,MS,6,9,False,505.25,254.0,298.0,44.0,Unspecified,Pharynx
+1016,MSaapaapa,MSaapaap,MS,7,10,False,504.5,298.0,348.0,50.0,Unspecified,Pharynx
+1017,MSaapaapaa,MSaapaapa,MS,8,11,True,504.0,348.0,384.0,36.0,Pharynx,Pharynx
+1018,MSaapaapap,MSaapaapa,MS,8,11,True,505.0,348.0,384.0,36.0,Death,Not annotated
+1019,MSaapaapp,MSaapaap,MS,7,10,True,506.0,298.0,334.0,36.0,Pharynx,Pharynx
+1020,MSaapap,MSaapa,MS,5,8,False,508.5,216.0,254.0,38.0,Unspecified,Unspecified
+1021,MSaapapa,MSaapap,MS,6,9,False,507.5,254.0,298.0,44.0,Unspecified,Pharynx
+1022,MSaapapaa,MSaapapa,MS,7,10,True,507.0,298.0,334.0,36.0,Pharynx,Pharynx
+1023,MSaapapap,MSaapapa,MS,7,10,True,508.0,298.0,334.0,36.0,Death,Not annotated
+1024,MSaapapp,MSaapap,MS,6,9,False,509.5,254.0,298.0,44.0,Unspecified,Not annotated
+1025,MSaapappa,MSaapapp,MS,7,10,True,509.0,298.0,334.0,36.0,Pharynx,Pharynx
+1026,MSaapappp,MSaapapp,MS,7,10,True,510.0,298.0,334.0,36.0,Other,Not annotated
+1027,MSaapp,MSaap,MS,4,7,False,513.0,183.0,216.0,33.0,Unspecified,Unspecified
+1028,MSaappa,MSaapp,MS,5,8,False,511.5,216.0,254.0,38.0,Other,Not annotated
+1029,MSaappaa,MSaappa,MS,6,9,True,511.0,254.0,290.0,36.0,Other,Not annotated
+1030,MSaappap,MSaappa,MS,6,9,True,512.0,254.0,290.0,36.0,Other,Not annotated
+1031,MSaappp,MSaapp,MS,5,8,False,514.5,216.0,254.0,38.0,Muscle,Muscle
+1032,MSaapppa,MSaappp,MS,6,9,False,513.5,254.0,298.0,44.0,Muscle,Muscle
+1033,MSaapppaa,MSaapppa,MS,7,10,True,513.0,298.0,334.0,36.0,Muscle,Muscle
+1034,MSaapppap,MSaapppa,MS,7,10,True,514.0,298.0,334.0,36.0,Muscle,Muscle
+1035,MSaapppp,MSaappp,MS,6,9,False,515.5,254.0,298.0,44.0,Muscle,Muscle
+1036,MSaappppa,MSaapppp,MS,7,10,True,515.0,298.0,334.0,36.0,Muscle,Muscle
+1037,MSaappppp,MSaapppp,MS,7,10,True,516.0,298.0,334.0,36.0,Muscle,Muscle
+1038,MSap,MSa,MS,2,5,False,526.1875,128.0,154.0,26.0,Unspecified,Unspecified
+1039,MSapa,MSap,MS,3,6,False,521.875,154.0,183.0,29.0,Unspecified,Unspecified
+1040,MSapaa,MSapa,MS,4,7,False,519.375,183.0,216.0,33.0,Unspecified,Unspecified
+1041,MSapaaa,MSapaa,MS,5,8,False,518.25,216.0,254.0,38.0,Unspecified,Unspecified
+1042,MSapaaaa,MSapaaa,MS,6,9,False,517.5,254.0,298.0,44.0,Other,Not annotated
+1043,MSapaaaad,MSapaaaa,MS,7,10,True,517.0,298.0,334.0,36.0,Other,Not annotated
+1044,MSapaaaav,MSapaaaa,MS,7,10,True,518.0,298.0,334.0,36.0,Other,Not annotated
+1045,MSapaaap,MSapaaa,MS,6,9,True,519.0,254.0,290.0,36.0,Muscle,Muscle
+1046,MSapaap,MSapaa,MS,5,8,False,520.5,216.0,254.0,38.0,Unspecified,Not annotated
+1047,MSapaapa,MSapaap,MS,6,9,True,520.0,254.0,290.0,36.0,Death,Not annotated
+1048,MSapaapp,MSapaap,MS,6,9,True,521.0,254.0,290.0,36.0,Other,Not annotated
+1049,MSapap,MSapa,MS,4,7,False,524.375,183.0,216.0,33.0,Unspecified,Unspecified
+1050,MSapapa,MSapap,MS,5,8,False,523.25,216.0,254.0,38.0,Unspecified,Unspecified
+1051,MSapapaa,MSapapa,MS,6,9,False,522.5,254.0,298.0,44.0,Other,Not annotated
+1052,MSapapaaa,MSapapaa,MS,7,10,True,522.0,298.0,334.0,36.0,Other,Not annotated
+1053,MSapapaap,MSapapaa,MS,7,10,True,523.0,298.0,334.0,36.0,Other,Not annotated
+1054,MSapapap,MSapapa,MS,6,9,True,524.0,254.0,290.0,36.0,Muscle,Muscle
+1055,MSapapp,MSapap,MS,5,8,False,525.5,216.0,254.0,38.0,Muscle,Muscle
+1056,MSapappa,MSapapp,MS,6,9,True,525.0,254.0,290.0,36.0,Muscle,Muscle
+1057,MSapappp,MSapapp,MS,6,9,True,526.0,254.0,290.0,36.0,Muscle,Muscle
+1058,MSapp,MSap,MS,3,6,False,530.5,154.0,183.0,29.0,Unspecified,Unspecified
+1059,MSappa,MSapp,MS,4,7,False,528.5,183.0,216.0,33.0,Unspecified,Unspecified
+1060,MSappaa,MSappa,MS,5,8,False,527.5,216.0,254.0,38.0,Other,Not annotated
+1061,MSappaaa,MSappaa,MS,6,9,True,527.0,254.0,290.0,36.0,Other,Not annotated
+1062,MSappaap,MSappaa,MS,6,9,True,528.0,254.0,290.0,36.0,Other,Not annotated
+1063,MSappap,MSappa,MS,5,8,False,529.5,216.0,254.0,38.0,Unspecified,Muscle
+1064,MSappapa,MSappap,MS,6,9,True,529.0,254.0,290.0,36.0,Death,Not annotated
+1065,MSappapp,MSappap,MS,6,9,True,530.0,254.0,290.0,36.0,Muscle,Muscle
+1066,MSappp,MSapp,MS,4,7,False,532.5,183.0,216.0,33.0,Muscle,Muscle
+1067,MSapppa,MSappp,MS,5,8,False,531.5,216.0,254.0,38.0,Muscle,Muscle
+1068,MSapppaa,MSapppa,MS,6,9,True,531.0,254.0,290.0,36.0,Muscle,Muscle
+1069,MSapppap,MSapppa,MS,6,9,True,532.0,254.0,290.0,36.0,Muscle,Muscle
+1070,MSapppp,MSappp,MS,5,8,False,533.5,216.0,254.0,38.0,Muscle,Muscle
+1071,MSappppa,MSapppp,MS,6,9,True,533.0,254.0,290.0,36.0,Muscle,Muscle
+1072,MSappppp,MSapppp,MS,6,9,True,534.0,254.0,290.0,36.0,Muscle,Muscle
+1073,MSp,MS,MS,1,4,False,560.5234375,104.0,128.0,24.0,Unspecified,Unspecified
+1074,MSpa,MSp,MS,2,5,False,548.859375,128.0,154.0,26.0,Unspecified,Unspecified
+1075,MSpaa,MSpa,MS,3,6,False,542.125,154.0,183.0,29.0,Unspecified,Unspecified
+1076,MSpaaa,MSpaa,MS,4,7,False,538.5,183.0,216.0,33.0,Unspecified,Pharynx
+1077,MSpaaaa,MSpaaa,MS,5,8,False,536.5,216.0,254.0,38.0,Unspecified,Pharynx
+1078,MSpaaaaa,MSpaaaa,MS,6,9,False,535.5,254.0,298.0,44.0,Unspecified,Pharynx
+1079,MSpaaaaaa,MSpaaaaa,MS,7,10,True,535.0,298.0,334.0,36.0,Pharynx,Pharynx
+1080,MSpaaaaap,MSpaaaaa,MS,7,10,True,536.0,298.0,334.0,36.0,Death,Not annotated
+1081,MSpaaaap,MSpaaaa,MS,6,9,False,537.5,254.0,298.0,44.0,Pharynx,Pharynx
+1082,MSpaaaapa,MSpaaaap,MS,7,10,True,537.0,298.0,334.0,36.0,Pharynx,Pharynx
+1083,MSpaaaapp,MSpaaaap,MS,7,10,True,538.0,298.0,334.0,36.0,Pharynx,Pharynx
+1084,MSpaaap,MSpaaa,MS,5,8,False,540.5,216.0,254.0,38.0,Pharynx,Pharynx
+1085,MSpaaapa,MSpaaap,MS,6,9,False,539.5,254.0,298.0,44.0,Pharynx,Pharynx
+1086,MSpaaapaa,MSpaaapa,MS,7,10,True,539.0,298.0,334.0,36.0,Pharynx,Pharynx
+1087,MSpaaapap,MSpaaapa,MS,7,10,True,540.0,298.0,334.0,36.0,Pharynx,Pharynx
+1088,MSpaaapp,MSpaaap,MS,6,9,False,541.5,254.0,298.0,44.0,Pharynx,Pharynx
+1089,MSpaaappa,MSpaaapp,MS,7,10,True,541.0,298.0,334.0,36.0,Pharynx,Pharynx
+1090,MSpaaappp,MSpaaapp,MS,7,10,True,542.0,298.0,334.0,36.0,Pharynx,Pharynx
+1091,MSpaap,MSpaa,MS,4,7,False,545.75,183.0,216.0,33.0,Unspecified,Unspecified
+1092,MSpaapa,MSpaap,MS,5,8,False,544.5,216.0,254.0,38.0,Unspecified,Unspecified
+1093,MSpaapaa,MSpaapa,MS,6,9,False,543.5,254.0,298.0,44.0,Unspecified,Pharynx
+1094,MSpaapaaa,MSpaapaa,MS,7,10,True,543.0,298.0,334.0,36.0,Pharynx,Pharynx
+1095,MSpaapaap,MSpaapaa,MS,7,10,True,544.0,298.0,334.0,36.0,Death,Not annotated
+1096,MSpaapap,MSpaapa,MS,6,9,False,545.5,254.0,298.0,44.0,Unspecified,Not annotated
+1097,MSpaapapa,MSpaapap,MS,7,10,True,545.0,298.0,334.0,36.0,Pharynx,Pharynx
+1098,MSpaapapp,MSpaapap,MS,7,10,True,546.0,298.0,334.0,36.0,Other,Not annotated
+1099,MSpaapp,MSpaap,MS,5,8,True,547.0,216.0,252.0,36.0,Death,Not annotated
+1100,MSpap,MSpa,MS,3,6,False,555.59375,154.0,183.0,29.0,Unspecified,Unspecified
+1101,MSpapa,MSpap,MS,4,7,False,552.1875,183.0,216.0,33.0,Unspecified,Unspecified
+1102,MSpapaa,MSpapa,MS,5,8,False,549.875,216.0,254.0,38.0,Unspecified,Pharynx
+1103,MSpapaaa,MSpapaa,MS,6,9,False,548.5,254.0,298.0,44.0,Pharynx,Pharynx
+1104,MSpapaaaa,MSpapaaa,MS,7,10,True,548.0,298.0,334.0,36.0,Pharynx,Pharynx
+1105,MSpapaaap,MSpapaaa,MS,7,10,True,549.0,298.0,334.0,36.0,Pharynx,Pharynx
+1106,MSpapaap,MSpapaa,MS,6,9,False,551.25,254.0,298.0,44.0,Unspecified,Pharynx
+1107,MSpapaapa,MSpapaap,MS,7,10,False,550.5,298.0,348.0,50.0,Unspecified,Pharynx
+1108,MSpapaapaa,MSpapaapa,MS,8,11,True,550.0,348.0,384.0,36.0,Pharynx,Pharynx
+1109,MSpapaapap,MSpapaapa,MS,8,11,True,551.0,348.0,384.0,36.0,Death,Not annotated
+1110,MSpapaapp,MSpapaap,MS,7,10,True,552.0,298.0,334.0,36.0,Pharynx,Pharynx
+1111,MSpapap,MSpapa,MS,5,8,False,554.5,216.0,254.0,38.0,Unspecified,Unspecified
+1112,MSpapapa,MSpapap,MS,6,9,False,553.5,254.0,298.0,44.0,Unspecified,Pharynx
+1113,MSpapapaa,MSpapapa,MS,7,10,True,553.0,298.0,334.0,36.0,Pharynx,Pharynx
+1114,MSpapapap,MSpapapa,MS,7,10,True,554.0,298.0,334.0,36.0,Death,Not annotated
+1115,MSpapapp,MSpapap,MS,6,9,False,555.5,254.0,298.0,44.0,Unspecified,Not annotated
+1116,MSpapappa,MSpapapp,MS,7,10,True,555.0,298.0,334.0,36.0,Pharynx,Pharynx
+1117,MSpapappp,MSpapapp,MS,7,10,True,556.0,298.0,334.0,36.0,Other,Not annotated
+1118,MSpapp,MSpap,MS,4,7,False,559.0,183.0,216.0,33.0,Muscle,Muscle
+1119,MSpappa,MSpapp,MS,5,8,False,557.5,216.0,254.0,38.0,Muscle,Muscle
+1120,MSpappaa,MSpappa,MS,6,9,True,557.0,254.0,290.0,36.0,Muscle,Muscle
+1121,MSpappap,MSpappa,MS,6,9,True,558.0,254.0,290.0,36.0,Muscle,Muscle
+1122,MSpappp,MSpapp,MS,5,8,False,560.5,216.0,254.0,38.0,Muscle,Muscle
+1123,MSpapppa,MSpappp,MS,6,9,False,559.5,254.0,298.0,44.0,Muscle,Muscle
+1124,MSpapppaa,MSpapppa,MS,7,10,True,559.0,298.0,334.0,36.0,Muscle,Muscle
+1125,MSpapppap,MSpapppa,MS,7,10,True,560.0,298.0,334.0,36.0,Muscle,Muscle
+1126,MSpapppp,MSpappp,MS,6,9,False,561.5,254.0,298.0,44.0,Muscle,Muscle
+1127,MSpappppa,MSpapppp,MS,7,10,True,561.0,298.0,334.0,36.0,Muscle,Muscle
+1128,MSpappppp,MSpapppp,MS,7,10,True,562.0,298.0,334.0,36.0,Muscle,Muscle
+1129,MSpp,MSp,MS,2,5,False,572.1875,128.0,154.0,26.0,Unspecified,Unspecified
+1130,MSppa,MSpp,MS,3,6,False,567.875,154.0,183.0,29.0,Unspecified,Unspecified
+1131,MSppaa,MSppa,MS,4,7,False,565.375,183.0,216.0,33.0,Unspecified,Unspecified
+1132,MSppaaa,MSppaa,MS,5,8,False,564.25,216.0,254.0,38.0,Unspecified,Unspecified
+1133,MSppaaaa,MSppaaa,MS,6,9,False,563.5,254.0,298.0,44.0,Other,Not annotated
+1134,MSppaaaad,MSppaaaa,MS,7,10,True,563.0,298.0,334.0,36.0,Other,Not annotated
+1135,MSppaaaav,MSppaaaa,MS,7,10,True,564.0,298.0,334.0,36.0,Other,Not annotated
+1136,MSppaaap,MSppaaa,MS,6,9,True,565.0,254.0,290.0,36.0,Muscle,Muscle
+1137,MSppaap,MSppaa,MS,5,8,False,566.5,216.0,254.0,38.0,Unspecified,Not annotated
+1138,MSppaapa,MSppaap,MS,6,9,True,566.0,254.0,290.0,36.0,Death,Not annotated
+1139,MSppaapp,MSppaap,MS,6,9,True,567.0,254.0,290.0,36.0,Other,Not annotated
+1140,MSppap,MSppa,MS,4,7,False,570.375,183.0,216.0,33.0,Unspecified,Unspecified
+1141,MSppapa,MSppap,MS,5,8,False,569.25,216.0,254.0,38.0,Unspecified,Unspecified
+1142,MSppapaa,MSppapa,MS,6,9,False,568.5,254.0,298.0,44.0,Other,Not annotated
+1143,MSppapaaa,MSppapaa,MS,7,10,True,568.0,298.0,334.0,36.0,Other,Not annotated
+1144,MSppapaap,MSppapaa,MS,7,10,True,569.0,298.0,334.0,36.0,Other,Not annotated
+1145,MSppapap,MSppapa,MS,6,9,True,570.0,254.0,290.0,36.0,Muscle,Muscle
+1146,MSppapp,MSppap,MS,5,8,False,571.5,216.0,254.0,38.0,Muscle,Muscle
+1147,MSppappa,MSppapp,MS,6,9,True,571.0,254.0,290.0,36.0,Muscle,Muscle
+1148,MSppappp,MSppapp,MS,6,9,True,572.0,254.0,290.0,36.0,Muscle,Muscle
+1149,MSppp,MSpp,MS,3,6,False,576.5,154.0,183.0,29.0,Unspecified,Unspecified
+1150,MSpppa,MSppp,MS,4,7,False,574.5,183.0,216.0,33.0,Unspecified,Unspecified
+1151,MSpppaa,MSpppa,MS,5,8,False,573.5,216.0,254.0,38.0,Unspecified,Not annotated
+1152,MSpppaaa,MSpppaa,MS,6,9,True,573.0,254.0,290.0,36.0,Death,Not annotated
+1153,MSpppaap,MSpppaa,MS,6,9,True,574.0,254.0,290.0,36.0,Other,Not annotated
+1154,MSpppap,MSpppa,MS,5,8,False,575.5,216.0,254.0,38.0,Unspecified,Muscle
+1155,MSpppapa,MSpppap,MS,6,9,True,575.0,254.0,290.0,36.0,Death,Not annotated
+1156,MSpppapp,MSpppap,MS,6,9,True,576.0,254.0,290.0,36.0,Muscle,Muscle
+1157,MSpppp,MSppp,MS,4,7,False,578.5,183.0,216.0,33.0,Muscle,Muscle
+1158,MSppppa,MSpppp,MS,5,8,False,577.5,216.0,254.0,38.0,Muscle,Muscle
+1159,MSppppaa,MSppppa,MS,6,9,True,577.0,254.0,290.0,36.0,Muscle,Muscle
+1160,MSppppap,MSppppa,MS,6,9,True,578.0,254.0,290.0,36.0,Muscle,Muscle
+1161,MSppppp,MSpppp,MS,5,8,False,579.5,216.0,254.0,38.0,Muscle,Muscle
+1162,MSpppppa,MSppppp,MS,6,9,True,579.0,254.0,290.0,36.0,Muscle,Muscle
+1163,MSpppppp,MSppppp,MS,6,9,True,580.0,254.0,290.0,36.0,Muscle,Muscle
+1164,E,EMS,E,0,3,False,590.5,82.0,114.0,32.0,Intestine,Intestine
+1165,Ea,E,E,1,4,False,585.875,114.0,148.0,34.0,Intestine,Intestine
+1166,Eal,Ea,E,2,5,False,583.375,148.0,184.0,36.0,Intestine,Intestine
+1167,Eala,Eal,E,3,6,False,582.25,184.0,224.0,40.0,Intestine,Intestine
+1168,Ealaa,Eala,E,4,7,False,581.5,224.0,270.0,46.0,Intestine,Intestine
+1169,Ealaad,Ealaa,E,5,8,True,581.0,270.0,318.0,48.0,Intestine,Intestine
+1170,Ealaav,Ealaa,E,5,8,True,582.0,270.0,318.0,48.0,Intestine,Intestine
+1171,Ealap,Eala,E,4,7,True,583.0,224.0,272.0,48.0,Intestine,Intestine
+1172,Ealp,Eal,E,3,6,False,584.5,184.0,224.0,40.0,Intestine,Intestine
+1173,Ealpa,Ealp,E,4,7,True,584.0,224.0,272.0,48.0,Intestine,Intestine
+1174,Ealpp,Ealp,E,4,7,True,585.0,224.0,272.0,48.0,Intestine,Intestine
+1175,Ear,Ea,E,2,5,False,588.375,148.0,184.0,36.0,Intestine,Intestine
+1176,Eara,Ear,E,3,6,False,587.25,184.0,224.0,40.0,Intestine,Intestine
+1177,Earaa,Eara,E,4,7,False,586.5,224.0,270.0,46.0,Intestine,Intestine
+1178,Earaad,Earaa,E,5,8,True,586.0,270.0,318.0,48.0,Intestine,Intestine
+1179,Earaav,Earaa,E,5,8,True,587.0,270.0,318.0,48.0,Intestine,Intestine
+1180,Earap,Eara,E,4,7,True,588.0,224.0,272.0,48.0,Intestine,Intestine
+1181,Earp,Ear,E,3,6,False,589.5,184.0,224.0,40.0,Intestine,Intestine
+1182,Earpa,Earp,E,4,7,True,589.0,224.0,272.0,48.0,Intestine,Intestine
+1183,Earpp,Earp,E,4,7,True,590.0,224.0,272.0,48.0,Intestine,Intestine
+1184,Ep,E,E,1,4,False,595.125,114.0,148.0,34.0,Intestine,Intestine
+1185,Epl,Ep,E,2,5,False,592.625,148.0,184.0,36.0,Intestine,Intestine
+1186,Epla,Epl,E,3,6,False,591.5,184.0,224.0,40.0,Intestine,Intestine
+1187,Eplaa,Epla,E,4,7,True,591.0,224.0,272.0,48.0,Intestine,Intestine
+1188,Eplap,Epla,E,4,7,True,592.0,224.0,272.0,48.0,Intestine,Intestine
+1189,Eplp,Epl,E,3,6,False,593.75,184.0,224.0,40.0,Intestine,Intestine
+1190,Eplpa,Eplp,E,4,7,True,593.0,224.0,272.0,48.0,Intestine,Intestine
+1191,Eplpp,Eplp,E,4,7,False,594.5,224.0,270.0,46.0,Intestine,Intestine
+1192,Eplppa,Eplpp,E,5,8,True,594.0,270.0,318.0,48.0,Intestine,Intestine
+1193,Eplppp,Eplpp,E,5,8,True,595.0,270.0,318.0,48.0,Intestine,Intestine
+1194,Epr,Ep,E,2,5,False,597.625,148.0,184.0,36.0,Intestine,Intestine
+1195,Epra,Epr,E,3,6,False,596.5,184.0,224.0,40.0,Intestine,Intestine
+1196,Epraa,Epra,E,4,7,True,596.0,224.0,272.0,48.0,Intestine,Intestine
+1197,Eprap,Epra,E,4,7,True,597.0,224.0,272.0,48.0,Intestine,Intestine
+1198,Eprp,Epr,E,3,6,False,598.75,184.0,224.0,40.0,Intestine,Intestine
+1199,Eprpa,Eprp,E,4,7,True,598.0,224.0,272.0,48.0,Intestine,Intestine
+1200,Eprpp,Eprp,E,4,7,False,599.5,224.0,270.0,46.0,Intestine,Intestine
+1201,Eprppa,Eprpp,E,5,8,True,599.0,270.0,318.0,48.0,Intestine,Intestine
+1202,Eprppp,Eprpp,E,5,8,True,600.0,270.0,318.0,48.0,Intestine,Intestine
+1203,P2,P1,P2,0,2,False,643.0625,67.0,95.0,28.0,Unspecified,Not annotated
+1204,C,P2,C,0,3,False,622.5,95.0,118.0,23.0,Unspecified,Unspecified
+1205,Ca,C,C,1,4,False,610.5,118.0,143.0,25.0,Unspecified,Unspecified
+1206,Caa,Ca,C,2,5,False,604.5,143.0,171.0,28.0,Unspecified,Unspecified
+1207,Caaa,Caa,C,3,6,False,602.5,171.0,203.0,32.0,Skin,Skin
+1208,Caaaa,Caaa,C,4,7,False,601.5,203.0,240.0,37.0,Skin,Skin
+1209,Caaaaa,Caaaa,C,5,8,True,601.0,240.0,276.0,36.0,Skin,Skin
+1210,Caaaap,Caaaa,C,5,8,True,602.0,240.0,276.0,36.0,Skin,Skin
+1211,Caaap,Caaa,C,4,7,False,603.5,203.0,240.0,37.0,Skin,Skin
+1212,Caaapa,Caaap,C,5,8,True,603.0,240.0,276.0,36.0,Skin,Skin
+1213,Caaapp,Caaap,C,5,8,True,604.0,240.0,276.0,36.0,Skin,Skin
+1214,Caap,Caa,C,3,6,False,606.5,171.0,203.0,32.0,Unspecified,Unspecified
+1215,Caapa,Caap,C,4,7,False,605.5,203.0,240.0,37.0,Unspecified,Neuron
+1216,Caapaa,Caapa,C,5,8,True,605.0,240.0,276.0,36.0,Neuron,Neuron
+1217,Caapap,Caapa,C,5,8,True,606.0,240.0,276.0,36.0,Death,Not annotated
+1218,Caapp,Caap,C,4,7,False,607.5,203.0,240.0,37.0,Unspecified,Unspecified
+1219,Caappd,Caapp,C,5,8,True,607.0,240.0,276.0,36.0,Skin,Skin
+1220,Caappv,Caapp,C,5,8,True,608.0,240.0,276.0,36.0,Neuron,Neuron
+1221,Cap,Ca,C,2,5,False,616.5,143.0,171.0,28.0,Muscle,Muscle
+1222,Capa,Cap,C,3,6,False,612.5,171.0,203.0,32.0,Muscle,Muscle
+1223,Capaa,Capa,C,4,7,False,610.5,203.0,240.0,37.0,Muscle,Muscle
+1224,Capaaa,Capaa,C,5,8,False,609.5,240.0,283.0,43.0,Muscle,Muscle
+1225,Capaaaa,Capaaa,C,6,9,True,609.0,283.0,319.0,36.0,Muscle,Muscle
+1226,Capaaap,Capaaa,C,6,9,True,610.0,283.0,319.0,36.0,Muscle,Muscle
+1227,Capaap,Capaa,C,5,8,False,611.5,240.0,283.0,43.0,Muscle,Muscle
+1228,Capaapa,Capaap,C,6,9,True,611.0,283.0,319.0,36.0,Muscle,Muscle
+1229,Capaapp,Capaap,C,6,9,True,612.0,283.0,319.0,36.0,Muscle,Muscle
+1230,Capap,Capa,C,4,7,False,614.5,203.0,240.0,37.0,Muscle,Muscle
+1231,Capapa,Capap,C,5,8,False,613.5,240.0,283.0,43.0,Muscle,Muscle
+1232,Capapaa,Capapa,C,6,9,True,613.0,283.0,319.0,36.0,Muscle,Muscle
+1233,Capapap,Capapa,C,6,9,True,614.0,283.0,319.0,36.0,Muscle,Muscle
+1234,Capapp,Capap,C,5,8,False,615.5,240.0,283.0,43.0,Muscle,Muscle
+1235,Capappa,Capapp,C,6,9,True,615.0,283.0,319.0,36.0,Muscle,Muscle
+1236,Capappp,Capapp,C,6,9,True,616.0,283.0,319.0,36.0,Muscle,Muscle
+1237,Capp,Cap,C,3,6,False,620.5,171.0,203.0,32.0,Muscle,Muscle
+1238,Cappa,Capp,C,4,7,False,618.5,203.0,240.0,37.0,Muscle,Muscle
+1239,Cappaa,Cappa,C,5,8,False,617.5,240.0,283.0,43.0,Muscle,Muscle
+1240,Cappaaa,Cappaa,C,6,9,True,617.0,283.0,319.0,36.0,Muscle,Muscle
+1241,Cappaap,Cappaa,C,6,9,True,618.0,283.0,319.0,36.0,Muscle,Muscle
+1242,Cappap,Cappa,C,5,8,False,619.5,240.0,283.0,43.0,Muscle,Muscle
+1243,Cappapa,Cappap,C,6,9,True,619.0,283.0,319.0,36.0,Muscle,Muscle
+1244,Cappapp,Cappap,C,6,9,True,620.0,283.0,319.0,36.0,Muscle,Muscle
+1245,Cappp,Capp,C,4,7,False,622.5,203.0,240.0,37.0,Muscle,Muscle
+1246,Capppa,Cappp,C,5,8,False,621.5,240.0,283.0,43.0,Muscle,Muscle
+1247,Capppaa,Capppa,C,6,9,True,621.0,283.0,319.0,36.0,Muscle,Muscle
+1248,Capppap,Capppa,C,6,9,True,622.0,283.0,319.0,36.0,Muscle,Muscle
+1249,Capppp,Cappp,C,5,8,False,623.5,240.0,283.0,43.0,Muscle,Muscle
+1250,Cappppd,Capppp,C,6,9,True,623.0,283.0,319.0,36.0,Muscle,Muscle
+1251,Cappppv,Capppp,C,6,9,True,624.0,283.0,319.0,36.0,Muscle,Muscle
+1252,Cp,C,C,1,4,False,634.5,118.0,143.0,25.0,Unspecified,Unspecified
+1253,Cpa,Cp,C,2,5,False,628.5,143.0,171.0,28.0,Skin,Skin
+1254,Cpaa,Cpa,C,3,6,False,626.5,171.0,203.0,32.0,Skin,Skin
+1255,Cpaaa,Cpaa,C,4,7,False,625.5,203.0,240.0,37.0,Skin,Skin
+1256,Cpaaaa,Cpaaa,C,5,8,True,625.0,240.0,276.0,36.0,Skin,Skin
+1257,Cpaaap,Cpaaa,C,5,8,True,626.0,240.0,276.0,36.0,Skin,Skin
+1258,Cpaap,Cpaa,C,4,7,False,627.5,203.0,240.0,37.0,Skin,Skin
+1259,Cpaapa,Cpaap,C,5,8,True,627.0,240.0,276.0,36.0,Skin,Skin
+1260,Cpaapp,Cpaap,C,5,8,True,628.0,240.0,276.0,36.0,Skin,Skin
+1261,Cpap,Cpa,C,3,6,False,630.5,171.0,203.0,32.0,Skin,Skin
+1262,Cpapa,Cpap,C,4,7,False,629.5,203.0,240.0,37.0,Skin,Skin
+1263,Cpapaa,Cpapa,C,5,8,True,629.0,240.0,276.0,36.0,Skin,Skin
+1264,Cpapap,Cpapa,C,5,8,True,630.0,240.0,276.0,36.0,Skin,Skin
+1265,Cpapp,Cpap,C,4,7,False,631.5,203.0,240.0,37.0,Skin,Skin
+1266,Cpappd,Cpapp,C,5,8,True,631.0,240.0,276.0,36.0,Skin,Skin
+1267,Cpappv,Cpapp,C,5,8,True,632.0,240.0,276.0,36.0,Skin,Skin
+1268,Cpp,Cp,C,2,5,False,640.5,143.0,171.0,28.0,Muscle,Muscle
+1269,Cppa,Cpp,C,3,6,False,636.5,171.0,203.0,32.0,Muscle,Muscle
+1270,Cppaa,Cppa,C,4,7,False,634.5,203.0,240.0,37.0,Muscle,Muscle
+1271,Cppaaa,Cppaa,C,5,8,False,633.5,240.0,283.0,43.0,Muscle,Muscle
+1272,Cppaaaa,Cppaaa,C,6,9,True,633.0,283.0,319.0,36.0,Muscle,Muscle
+1273,Cppaaap,Cppaaa,C,6,9,True,634.0,283.0,319.0,36.0,Muscle,Muscle
+1274,Cppaap,Cppaa,C,5,8,False,635.5,240.0,283.0,43.0,Muscle,Muscle
+1275,Cppaapa,Cppaap,C,6,9,True,635.0,283.0,319.0,36.0,Muscle,Muscle
+1276,Cppaapp,Cppaap,C,6,9,True,636.0,283.0,319.0,36.0,Muscle,Muscle
+1277,Cppap,Cppa,C,4,7,False,638.5,203.0,240.0,37.0,Muscle,Muscle
+1278,Cppapa,Cppap,C,5,8,False,637.5,240.0,283.0,43.0,Muscle,Muscle
+1279,Cppapaa,Cppapa,C,6,9,True,637.0,283.0,319.0,36.0,Muscle,Muscle
+1280,Cppapap,Cppapa,C,6,9,True,638.0,283.0,319.0,36.0,Muscle,Muscle
+1281,Cppapp,Cppap,C,5,8,False,639.5,240.0,283.0,43.0,Muscle,Muscle
+1282,Cppappa,Cppapp,C,6,9,True,639.0,283.0,319.0,36.0,Muscle,Muscle
+1283,Cppappp,Cppapp,C,6,9,True,640.0,283.0,319.0,36.0,Muscle,Muscle
+1284,Cppp,Cpp,C,3,6,False,644.5,171.0,203.0,32.0,Muscle,Muscle
+1285,Cpppa,Cppp,C,4,7,False,642.5,203.0,240.0,37.0,Muscle,Muscle
+1286,Cpppaa,Cpppa,C,5,8,False,641.5,240.0,283.0,43.0,Muscle,Muscle
+1287,Cpppaaa,Cpppaa,C,6,9,True,641.0,283.0,319.0,36.0,Muscle,Muscle
+1288,Cpppaap,Cpppaa,C,6,9,True,642.0,283.0,319.0,36.0,Muscle,Muscle
+1289,Cpppap,Cpppa,C,5,8,False,643.5,240.0,283.0,43.0,Muscle,Muscle
+1290,Cpppapa,Cpppap,C,6,9,True,643.0,283.0,319.0,36.0,Muscle,Muscle
+1291,Cpppapp,Cpppap,C,6,9,True,644.0,283.0,319.0,36.0,Muscle,Muscle
+1292,Cpppp,Cppp,C,4,7,False,646.5,203.0,240.0,37.0,Muscle,Muscle
+1293,Cppppa,Cpppp,C,5,8,False,645.5,240.0,283.0,43.0,Muscle,Muscle
+1294,Cppppaa,Cppppa,C,6,9,True,645.0,283.0,319.0,36.0,Muscle,Muscle
+1295,Cppppap,Cppppa,C,6,9,True,646.0,283.0,319.0,36.0,Muscle,Muscle
+1296,Cppppp,Cpppp,C,5,8,False,647.5,240.0,283.0,43.0,Muscle,Muscle
+1297,Cpppppd,Cppppp,C,6,9,True,647.0,283.0,319.0,36.0,Muscle,Muscle
+1298,Cpppppv,Cppppp,C,6,9,True,648.0,283.0,319.0,36.0,Muscle,Muscle
+1299,P3,P2,P3,0,3,False,663.625,95.0,132.0,37.0,Unspecified,Unspecified
+1300,D,P3,D,0,4,False,657.75,132.0,160.0,28.0,Muscle,Muscle
+1301,Da,D,D,1,5,False,652.75,160.0,191.0,31.0,Muscle,Muscle
+1302,Daa,Da,D,2,6,False,650.5,191.0,226.0,35.0,Muscle,Muscle
+1303,Daaa,Daa,D,3,7,False,649.5,226.0,266.0,40.0,Muscle,Muscle
+1304,Daaaa,Daaa,D,4,8,True,649.0,266.0,306.0,40.0,Muscle,Muscle
+1305,Daaap,Daaa,D,4,8,True,650.0,266.0,306.0,40.0,Muscle,Muscle
+1306,Daap,Daa,D,3,7,False,651.5,226.0,266.0,40.0,Muscle,Muscle
+1307,Daapa,Daap,D,4,8,True,651.0,266.0,306.0,40.0,Muscle,Muscle
+1308,Daapp,Daap,D,4,8,True,652.0,266.0,306.0,40.0,Muscle,Muscle
+1309,Dap,Da,D,2,6,False,655.0,191.0,226.0,35.0,Muscle,Muscle
+1310,Dapa,Dap,D,3,7,False,653.5,226.0,266.0,40.0,Muscle,Muscle
+1311,Dapaa,Dapa,D,4,8,True,653.0,266.0,306.0,40.0,Muscle,Muscle
+1312,Dapap,Dapa,D,4,8,True,654.0,266.0,306.0,40.0,Muscle,Muscle
+1313,Dapp,Dap,D,3,7,False,656.5,226.0,266.0,40.0,Muscle,Muscle
+1314,Dappa,Dapp,D,4,8,False,655.5,266.0,312.0,46.0,Muscle,Muscle
+1315,Dappaa,Dappa,D,5,9,True,655.0,312.0,352.0,40.0,Muscle,Muscle
+1316,Dappap,Dappa,D,5,9,True,656.0,312.0,352.0,40.0,Muscle,Muscle
+1317,Dappp,Dapp,D,4,8,False,657.5,266.0,312.0,46.0,Muscle,Muscle
+1318,Dapppa,Dappp,D,5,9,True,657.0,312.0,352.0,40.0,Muscle,Muscle
+1319,Dapppp,Dappp,D,5,9,True,658.0,312.0,352.0,40.0,Muscle,Muscle
+1320,Dp,D,D,1,5,False,662.75,160.0,191.0,31.0,Muscle,Muscle
+1321,Dpa,Dp,D,2,6,False,660.5,191.0,226.0,35.0,Muscle,Muscle
+1322,Dpaa,Dpa,D,3,7,False,659.5,226.0,266.0,40.0,Muscle,Muscle
+1323,Dpaaa,Dpaa,D,4,8,True,659.0,266.0,306.0,40.0,Muscle,Muscle
+1324,Dpaap,Dpaa,D,4,8,True,660.0,266.0,306.0,40.0,Muscle,Muscle
+1325,Dpap,Dpa,D,3,7,False,661.5,226.0,266.0,40.0,Muscle,Muscle
+1326,Dpapa,Dpap,D,4,8,True,661.0,266.0,306.0,40.0,Muscle,Muscle
+1327,Dpapp,Dpap,D,4,8,True,662.0,266.0,306.0,40.0,Muscle,Muscle
+1328,Dpp,Dp,D,2,6,False,665.0,191.0,226.0,35.0,Muscle,Muscle
+1329,Dppa,Dpp,D,3,7,False,663.5,226.0,266.0,40.0,Muscle,Muscle
+1330,Dppaa,Dppa,D,4,8,True,663.0,266.0,306.0,40.0,Muscle,Muscle
+1331,Dppap,Dppa,D,4,8,True,664.0,266.0,306.0,40.0,Muscle,Muscle
+1332,Dppp,Dpp,D,3,7,False,666.5,226.0,266.0,40.0,Muscle,Muscle
+1333,Dpppa,Dppp,D,4,8,False,665.5,266.0,312.0,46.0,Muscle,Muscle
+1334,Dpppaa,Dpppa,D,5,9,True,665.0,312.0,352.0,40.0,Muscle,Muscle
+1335,Dpppap,Dpppa,D,5,9,True,666.0,312.0,352.0,40.0,Muscle,Muscle
+1336,Dpppp,Dppp,D,4,8,False,667.5,266.0,312.0,46.0,Muscle,Muscle
+1337,Dppppa,Dpppp,D,5,9,True,667.0,312.0,352.0,40.0,Muscle,Muscle
+1338,Dppppp,Dpppp,D,5,9,True,668.0,312.0,352.0,40.0,Muscle,Muscle
+1339,P4,P3,P4,0,4,False,669.5,132.0,160.0,28.0,Germline,Germline
+1340,Z2,P4,Germline,0,5,True,669.0,160.0,320.0,160.0,Germline,Germline
+1341,Z3,P4,Germline,0,5,True,670.0,160.0,320.0,160.0,Germline,Germline
