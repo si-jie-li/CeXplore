@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildDatasetFromRows } from './frameIndex'
+import { buildDatasetFromRows, trajectoryKey } from './frameIndex'
 import type { ColumnMapping } from './types'
 
 const mapping: ColumnMapping = {
@@ -16,7 +16,7 @@ describe('frame indexing', () => {
 
     expect(dataset.frameValues).toEqual([1, 2])
     expect(dataset.frameIndex.get(1)).toHaveLength(2)
-    expect(dataset.trajectoryIndex.get('AB')).toHaveLength(2)
+    expect(dataset.trajectoryIndex.get(trajectoryKey('embryo-1', 'AB'))).toHaveLength(2)
     expect(dataset.bounds.span).toEqual([20, 4, 2])
     expect(dataset.observations.find((row) => row.x === 10)?.renderX).toBe(8)
     expect(dataset.observations.find((row) => row.y === 2)?.renderY).toBeCloseTo(1.6)

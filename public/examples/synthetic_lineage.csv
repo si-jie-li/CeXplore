@@ -1,4 +1,4 @@
-cell_name,frame,x,y,z,parent
+cell_name,frame,AP,LR,VD,parent
 P0,0,0,0,0,
 P0,1,0.3,0.1,0.1,
 AB,2,1.4,0.6,0.2,P0

@@ -2,10 +2,17 @@ import type {
   CellSummary,
   ColumnMapping,
   CoordinateBounds,
+  DatasetSource,
   EmbryoDataset,
+  EmbryoDescriptor,
   Observation,
   RawMappedRow,
 } from './types'
+
+export const makeEmbryoId = (sourceId: string, sourceEmbryoId: string) =>
+  `${sourceId}::${encodeURIComponent(sourceEmbryoId)}`
+
+export const trajectoryKey = (embryoId: string, cellId: string) => `${embryoId}\u0000${cellId}`
 
 const finiteNumber = (value: unknown) => {
   if (typeof value === 'number') return Number.isFinite(value) ? value : undefined
@@ -50,15 +57,23 @@ function computeBounds(observations: Omit<Observation, 'renderX' | 'renderY' | '
 
 export function buildDatasetFromRows(
   rows: RawMappedRow[],
-  options: { name: string; sourceSize?: number; mapping: ColumnMapping },
+  options: {
+    name: string
+    sourceSize?: number
+    mapping: ColumnMapping
+    sources?: DatasetSource[]
+    embryos?: EmbryoDescriptor[]
+  },
 ): EmbryoDataset {
   const { mapping } = options
+  const defaultEmbryoId = options.embryos?.[0]?.id ?? 'embryo-1'
   const invalid = { missingCell: 0, coordinate: 0, temporal: 0, duplicate: 0 }
   const deDuplicated = new Map<string, Omit<Observation, 'renderX' | 'renderY' | 'renderZ'>>()
   const parentOverrides = new Map<string, string>()
 
   for (const row of rows) {
     const cellId = String(row.cellId ?? '').trim()
+    const embryoId = String(row.embryoId ?? defaultEmbryoId).trim() || defaultEmbryoId
     if (!cellId) {
       invalid.missingCell += 1
       continue
@@ -77,9 +92,9 @@ export function buildDatasetFromRows(
     }
     const parentId = String(row.parent ?? '').trim() || undefined
     if (parentId) parentOverrides.set(cellId, parentId)
-    const key = `${temporal}\u0000${cellId}`
+    const key = `${embryoId}\u0000${temporal}\u0000${cellId}`
     if (deDuplicated.has(key)) invalid.duplicate += 1
-    deDuplicated.set(key, { cellId, step: temporal, x, y, z, parentId })
+    deDuplicated.set(key, { cellId, embryoId, step: temporal, x, y, z, parentId })
   }
 
   const rawObservations = [...deDuplicated.values()]
@@ -91,7 +106,7 @@ export function buildDatasetFromRows(
       renderY: (row.y - bounds.center[1]) * bounds.scale,
       renderZ: (row.z - bounds.center[2]) * bounds.scale,
     }))
-    .sort((a, b) => a.step - b.step || a.cellId.localeCompare(b.cellId))
+    .sort((a, b) => a.step - b.step || a.embryoId.localeCompare(b.embryoId) || a.cellId.localeCompare(b.cellId))
 
   const frameIndex = new Map<number, Observation[]>()
   const trajectoryIndex = new Map<string, Observation[]>()
@@ -100,9 +115,10 @@ export function buildDatasetFromRows(
     const frame = frameIndex.get(observation.step) ?? []
     frame.push(observation)
     frameIndex.set(observation.step, frame)
-    const trajectory = trajectoryIndex.get(observation.cellId) ?? []
+    const key = trajectoryKey(observation.embryoId, observation.cellId)
+    const trajectory = trajectoryIndex.get(key) ?? []
     trajectory.push(observation)
-    trajectoryIndex.set(observation.cellId, trajectory)
+    trajectoryIndex.set(key, trajectory)
     const summary = cells.get(observation.cellId)
     if (summary) {
       summary.firstStep = Math.min(summary.firstStep, observation.step)
@@ -125,15 +141,34 @@ export function buildDatasetFromRows(
   if (invalid.duplicate) warnings.push(`${invalid.duplicate.toLocaleString()} duplicate cell/time rows were replaced by the last value.`)
   if (!observations.length) warnings.push('No valid observations matched this mapping and embryo filter.')
 
+  const observedEmbryoIds = [...new Set(observations.map((observation) => observation.embryoId))]
+  const embryos = options.embryos ?? observedEmbryoIds.map((id, index) => ({
+    id,
+    label: id,
+    sourceName: options.name,
+    sourceEmbryoId: id,
+    color: ['#3978c5', '#df7844', '#3f966c', '#a15ab0', '#d6a22d', '#2d9ca6'][index % 6],
+  }))
+  const sources = options.sources ?? [{
+    id: 'source-1',
+    name: options.name,
+    size: options.sourceSize ?? 0,
+    mapping,
+    embryoIds: embryos.map((embryo) => embryo.id),
+  }]
+
   return {
     name: options.name,
     sourceSize: options.sourceSize ?? 0,
     mapping,
+    sources,
+    embryos,
     temporalMode: mapping.playback === 'none' ? 'generation' : mapping.playback,
     frameValues: [...frameIndex.keys()].sort((a, b) => a - b),
     observations,
     frameIndex,
     trajectoryIndex,
+    maxObservationsPerFrame: Math.max(0, ...[...frameIndex.values()].map((frame) => frame.length)),
     cells,
     cellIds: [...cells.keys()].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
     parentOverrides,

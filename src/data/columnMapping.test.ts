@@ -11,8 +11,19 @@ describe('column mapping', () => {
     })
     expect(mapping).toMatchObject({
       cellId: 'cell_name', x: 'A_pos', y: 'L_pos', z: 'D_pos', time: 'time',
-      playback: 'time', embryo: 'embryo_id', embryoValue: 'ctr_emb1',
+      playback: 'time', embryo: 'embryo_id', embryoValues: [],
     })
+    expect(validateMapping({ ...mapping, embryoValues: ['ctr_emb1'] })).toEqual([])
+  })
+
+  it('recognizes biologically named AP, LR, and VD columns', () => {
+    const mapping = suggestMapping({
+      kind: 'delimited',
+      name: 'biological-axes.csv',
+      headers: ['cell_name', 'frame', 'AP', 'LR', 'VD'],
+      samples: [{ cell_name: 'AB' }],
+    })
+    expect(mapping).toMatchObject({ x: 'AP', y: 'LR', z: 'VD', playback: 'frame' })
     expect(validateMapping(mapping)).toEqual([])
   })
 })

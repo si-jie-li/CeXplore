@@ -21,7 +21,7 @@ export function createExplorerDataApi(
       const ids = new Set(group(groupId)?.cellIds ?? [])
       return (dataset.frameIndex.get(frame) ?? []).filter((observation) => ids.has(observation.cellId))
     },
-    getCellTrajectory: (cellId) => [...(dataset.trajectoryIndex.get(cellId) ?? [])],
+    getCellTrajectory: (cellId) => dataset.observations.filter((observation) => observation.cellId === cellId),
     getDescendants: (cellId) => getDescendants(lineage, cellId, true),
   }
 }

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { EmbryoDataset, Observation } from '../data/types'
+import type { EmbryoViewMode } from '../data/embryoView'
 import { getDescendants, type LineageModel } from '../lineage/lineageResolver'
 
 export type DisplayMode = 'color' | 'isolate' | 'highlight'
@@ -31,6 +32,8 @@ export interface ExplorerSettings {
   showAxes: boolean
   showTrajectories: boolean
   trailLength: TrailLength
+  embryoViewMode: EmbryoViewMode
+  colorByEmbryo: boolean
 }
 
 interface ExplorerState {
@@ -39,6 +42,7 @@ interface ExplorerState {
   currentFrameIndex: number
   playing: boolean
   playbackSpeed: number
+  activeEmbryoIds: Set<string>
   selection: Set<string>
   selectionMeta: SelectionMeta
   cellColors: Record<string, string>
@@ -54,8 +58,9 @@ interface ExplorerState {
   setPlaying: (playing: boolean) => void
   setPlaybackSpeed: (speed: number) => void
   setSelection: (cellIds: Iterable<string>, meta?: SelectionMeta) => void
+  toggleCells: (cellIds: Iterable<string>) => void
   toggleCell: (cellId: string) => void
-  selectLineage: (cellId: string) => void
+  selectLineage: (cellId: string, additive?: boolean) => void
   clearSelection: () => void
   applyColor: (color: string, saveAsGroup?: boolean) => void
   setInspectedCell: (cellId?: string) => void
@@ -66,6 +71,8 @@ interface ExplorerState {
   selectGroup: (id: string) => void
   focusGroup: (id: string) => void
   setSettings: (patch: Partial<ExplorerSettings>) => void
+  setActiveEmbryos: (embryoIds: Iterable<string>) => void
+  toggleEmbryo: (embryoId: string) => void
   resetCamera: () => void
   focusSelection: () => void
   importConfiguration: (config: SessionConfiguration) => string[]
@@ -78,6 +85,7 @@ export interface SessionConfiguration {
   cellColors: Record<string, string>
   groups: CellGroup[]
   settings: ExplorerSettings
+  activeEmbryoIds?: string[]
 }
 
 const defaultSettings: ExplorerSettings = {
@@ -88,6 +96,8 @@ const defaultSettings: ExplorerSettings = {
   showAxes: true,
   showTrajectories: false,
   trailLength: 10,
+  embryoViewMode: 'overlay',
+  colorByEmbryo: false,
 }
 
 const groupId = () =>
@@ -105,6 +115,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   currentFrameIndex: 0,
   playing: false,
   playbackSpeed: 1,
+  activeEmbryoIds: new Set(),
   selection: new Set(),
   selectionMeta: { kind: 'manual' },
   cellColors: {},
@@ -118,6 +129,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       lineage,
       currentFrameIndex: 0,
       playing: false,
+      activeEmbryoIds: new Set(dataset.embryos.map((embryo) => embryo.id)),
       selection: new Set(),
       selectionMeta: { kind: 'manual' },
       cellColors: {},
@@ -132,6 +144,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       lineage: undefined,
       currentFrameIndex: 0,
       playing: false,
+      activeEmbryoIds: new Set(),
       selection: new Set(),
       cellColors: {},
       groups: [],
@@ -154,16 +167,30 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     const selection = new Set([...cellIds].filter((id) => valid?.has(id)))
     set({ selection, selectionMeta: meta, inspectedCellId: selection.size === 1 ? [...selection][0] : undefined })
   },
-  toggleCell: (cellId) => {
+  toggleCells: (cellIds) => {
+    const valid = get().dataset?.cells
+    const ids = [...cellIds].filter((id) => valid?.has(id))
     const selection = new Set(get().selection)
-    if (selection.has(cellId)) selection.delete(cellId)
-    else selection.add(cellId)
-    set({ selection, selectionMeta: { kind: 'manual' }, inspectedCellId: cellId })
+    const remove = ids.length > 0 && ids.every((id) => selection.has(id))
+    for (const id of ids) {
+      if (remove) selection.delete(id)
+      else selection.add(id)
+    }
+    set({
+      selection,
+      selectionMeta: { kind: 'manual' },
+      inspectedCellId: ids.length === 1 ? ids[0] : undefined,
+    })
   },
-  selectLineage: (cellId) => {
+  toggleCell: (cellId) => get().toggleCells([cellId]),
+  selectLineage: (cellId, additive = false) => {
     const lineage = get().lineage
     if (!lineage) return
     const descendants = getDescendants(lineage, cellId, true)
+    if (additive) {
+      get().toggleCells(descendants)
+      return
+    }
     set({
       selection: new Set(descendants),
       selectionMeta: { kind: 'lineage', rootCell: cellId },
@@ -223,6 +250,20 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     set((state) => ({ cameraCommand: { type: 'focus', nonce: state.cameraCommand.nonce + 1 } }))
   },
   setSettings: (patch) => set((state) => ({ settings: { ...state.settings, ...patch } })),
+  setActiveEmbryos: (embryoIds) => {
+    const valid = new Set(get().dataset?.embryos.map((embryo) => embryo.id) ?? [])
+    const activeEmbryoIds = new Set([...embryoIds].filter((id) => valid.has(id)))
+    if (!activeEmbryoIds.size && valid.size) return
+    set({ activeEmbryoIds, hoveredObservation: undefined })
+  },
+  toggleEmbryo: (embryoId) => {
+    const active = new Set(get().activeEmbryoIds)
+    if (active.has(embryoId)) {
+      if (active.size === 1) return
+      active.delete(embryoId)
+    } else active.add(embryoId)
+    set({ activeEmbryoIds: active, hoveredObservation: undefined })
+  },
   resetCamera: () =>
     set((state) => ({ cameraCommand: { type: 'reset', nonce: state.cameraCommand.nonce + 1 } })),
   focusSelection: () =>
@@ -240,7 +281,16 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     const cellColors = Object.fromEntries(
       Object.entries(config.cellColors ?? {}).filter(([id]) => validIds.has(id)),
     )
-    set({ groups, cellColors, settings: { ...defaultSettings, ...config.settings } })
+    const activeEmbryoIds = new Set(
+      (config.activeEmbryoIds ?? dataset.embryos.map((embryo) => embryo.id))
+        .filter((id) => dataset.embryos.some((embryo) => embryo.id === id)),
+    )
+    set({
+      groups,
+      cellColors,
+      settings: { ...defaultSettings, ...config.settings },
+      activeEmbryoIds: activeEmbryoIds.size ? activeEmbryoIds : new Set(dataset.embryos.map((embryo) => embryo.id)),
+    })
     return warnings
   },
 }))
@@ -254,5 +304,6 @@ export function createSessionConfiguration(state: ExplorerState): SessionConfigu
     cellColors: state.cellColors,
     groups: state.groups,
     settings: state.settings,
+    activeEmbryoIds: [...state.activeEmbryoIds],
   }
 }

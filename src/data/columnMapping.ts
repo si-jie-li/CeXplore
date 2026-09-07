@@ -19,21 +19,15 @@ export function suggestMapping(inspection: SourceInspection): ColumnMapping {
 
   return {
     cellId: exact(headers, ['cell_name', 'cell', 'cell_id', 'cellid', 'name']),
-    x: hasAligned ? exact(headers, ['A_pos']) : exact(headers, ['x', 'x_pos', 'x_position']),
-    y: hasAligned ? exact(headers, ['L_pos']) : exact(headers, ['y', 'y_pos', 'y_position']),
-    z: hasAligned ? exact(headers, ['D_pos']) : exact(headers, ['z', 'z_pos', 'z_position']),
+    x: hasAligned ? exact(headers, ['A_pos']) : exact(headers, ['ap', 'ap_pos', 'a_pos', 'anterior_posterior', 'x', 'x_pos', 'x_position']),
+    y: hasAligned ? exact(headers, ['L_pos']) : exact(headers, ['lr', 'lr_pos', 'l_pos', 'left_right', 'y', 'y_pos', 'y_position']),
+    z: hasAligned ? exact(headers, ['D_pos']) : exact(headers, ['vd', 'vd_pos', 'd_pos', 'ventral_dorsal', 'dorsal_ventral', 'z', 'z_pos', 'z_position']),
     time,
     frame,
     playback: time ? 'time' : frame ? 'frame' : 'none',
     parent: exact(headers, ['parent', 'parent_cell', 'parent_name']),
     embryo: exact(headers, ['embryo_id', 'embryo', 'dataset_id', 'sample_id']),
-    embryoValue: exact(headers, ['embryo_id', 'embryo', 'dataset_id', 'sample_id'])
-      ? String(
-          inspection.samples[0]?.[
-            exact(headers, ['embryo_id', 'embryo', 'dataset_id', 'sample_id'])
-          ] ?? '',
-        )
-      : '',
+    embryoValues: [],
     sheet: inspection.sheetNames?.[0],
   }
 }
@@ -41,14 +35,17 @@ export function suggestMapping(inspection: SourceInspection): ColumnMapping {
 export function validateMapping(mapping: ColumnMapping): string[] {
   const errors: string[] = []
   if (!mapping.cellId) errors.push('Choose a cell ID column.')
-  if (!mapping.x || !mapping.y || !mapping.z) errors.push('Choose X, Y, and Z coordinate columns.')
+  if (!mapping.x || !mapping.y || !mapping.z) errors.push('Choose AP, LR, and VD coordinate columns.')
   if (new Set([mapping.x, mapping.y, mapping.z]).size < 3) {
-    errors.push('X, Y, and Z must use different columns.')
+    errors.push('AP, LR, and VD must use different columns.')
   }
   if (mapping.playback === 'time' && !mapping.time) errors.push('Choose a time column.')
   if (mapping.playback === 'frame' && !mapping.frame) errors.push('Choose a frame column.')
-  if (mapping.embryo && !mapping.embryoValue?.trim()) {
-    errors.push('Enter the embryo ID to load, or clear the embryo column.')
+  const selectedEmbryos = mapping.embryoValues?.length
+    ? mapping.embryoValues
+    : mapping.embryoValue?.trim() ? [mapping.embryoValue.trim()] : []
+  if (mapping.embryo && selectedEmbryos.length === 0) {
+    errors.push('Select at least one embryo ID to import, or clear the embryo column.')
   }
   return errors
 }

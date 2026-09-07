@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { buildDatasetFromRows } from '../data/frameIndex'
 import type { ColumnMapping } from '../data/types'
@@ -49,5 +49,47 @@ describe('linked interactions', () => {
     expect(useExplorerStore.getState().currentFrameIndex).toBe(0)
     fireEvent.click(screen.getByRole('button', { name: 'Previous frame' }))
     expect(useExplorerStore.getState().currentFrameIndex).toBe(1)
+  })
+
+  it('Command/Control-clicks multiple tree branches and keeps assigned branch colors', () => {
+    const { container } = render(<><LineageTree /><ListPanel /></>)
+    const branchFor = (cellId: string) => [...container.querySelectorAll('.lineage-branch-group.represented')]
+      .find((group) => group.querySelector('title')?.textContent?.trim().startsWith(`${cellId} `)) as SVGGElement
+
+    fireEvent.click(branchFor('ABpl'), { metaKey: true })
+    fireEvent.click(branchFor('ABpr'), { ctrlKey: true })
+    expect([...useExplorerStore.getState().selection]).toEqual(expect.arrayContaining(['ABpl', 'ABpr']))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Assign #3978c5' }))
+    expect(branchFor('ABpl').querySelector<SVGLineElement>('.lineage-branch')?.style.stroke).toBe('#3978c5')
+    expect(branchFor('ABpr').querySelector<SVGLineElement>('.lineage-branch')?.style.stroke).toBe('#3978c5')
+  })
+
+  it('renders a lineage branch color when coloring starts from the Cells list', () => {
+    const { container } = render(<><LineageTree /><ListPanel /></>)
+    const abplCheckbox = within(container).getByRole('checkbox', { name: /^ABpl$/ })
+    fireEvent.click(abplCheckbox)
+    fireEvent.click(within(container).getByRole('button', { name: 'Assign #df7844' }))
+
+    const abplBranch = [...container.querySelectorAll('.lineage-branch-group.represented')]
+      .find((group) => group.querySelector('title')?.textContent?.trim().startsWith('ABpl '))
+      ?.querySelector<SVGLineElement>('.lineage-branch')
+    expect(abplBranch?.style.stroke).toBe('#df7844')
+  })
+
+  it('keeps late-generation names hidden until their branch is hovered', () => {
+    const deepDataset = buildDatasetFromRows([
+      { cellId: 'ABalaaa', temporal: 1, x: 0, y: 0, z: 0 },
+    ], { name: 'deep.csv', mapping })
+    useExplorerStore.getState().setDataset(deepDataset, resolveLineage(deepDataset.cells))
+    const { container } = render(<LineageTree />)
+    const labels = () => [...container.querySelectorAll('.branch-label')].map((label) => label.textContent)
+
+    expect(labels()).not.toContain('ABalaaa')
+    const deepBranch = [...container.querySelectorAll('.lineage-branch-group')]
+      .find((group) => group.querySelector('title')?.textContent?.trim().startsWith('ABalaaa '))
+    expect(deepBranch).toBeDefined()
+    fireEvent.mouseEnter(deepBranch!)
+    expect(labels()).toContain('ABalaaa')
   })
 })

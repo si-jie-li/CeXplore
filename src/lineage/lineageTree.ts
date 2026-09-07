@@ -4,29 +4,48 @@ import type { LineageModel, LineageNode } from './lineageResolver'
 export interface LineageLayoutNode {
   id: string
   x: number
-  y: number
-  value: number
+  startY: number
+  birthY: number
+  endY: number
+  birthValue: number
+  endValue: number
   depth: number
   represented: boolean
   resolved: boolean
   parentId?: string
+  children: string[]
   firstStep?: number
   lastStep?: number
 }
 
-export interface LineageEdge {
+export interface LineageConnector {
   id: string
-  from: LineageLayoutNode
-  to: LineageLayoutNode
+  parentId: string
+  x1: number
+  x2: number
+  y: number
+}
+
+export interface LineageTick {
+  value: number
+  y: number
+  label: string
 }
 
 export interface LineageLayout {
   nodes: LineageLayoutNode[]
-  edges: LineageEdge[]
+  connectors: LineageConnector[]
+  ticks: LineageTick[]
   width: number
   height: number
+  plotLeft: number
+  plotRight: number
+  plotTop: number
+  plotBottom: number
   minValue: number
   maxValue: number
+  axisLabel: string
+  usesCanonicalTime: boolean
 }
 
 function nodeSort(a: LineageNode, b: LineageNode) {
@@ -36,6 +55,20 @@ function nodeSort(a: LineageNode, b: LineageNode) {
   if (ax !== undefined) return -1
   if (bx !== undefined) return 1
   return a.id.localeCompare(b.id, undefined, { numeric: true })
+}
+
+function niceStep(range: number) {
+  const roughStep = Math.max(range / 8, Number.EPSILON)
+  const magnitude = 10 ** Math.floor(Math.log10(roughStep))
+  const normalized = roughStep / magnitude
+  const factor = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10
+  return factor * magnitude
+}
+
+function formatTick(value: number) {
+  const absolute = Math.abs(value)
+  if (absolute >= 100 || Number.isInteger(value)) return String(Math.round(value))
+  return value.toFixed(1).replace(/\.0$/, '')
 }
 
 export function createLineageLayout(model: LineageModel, mode: TemporalMode): LineageLayout {
@@ -50,75 +83,131 @@ export function createLineageLayout(model: LineageModel, mode: TemporalMode): Li
   const leaves = [...model.nodes.values()]
     .filter((node) => node.children.length === 0)
     .sort(nodeSort)
-  const xPositions = new Map(leaves.map((node, index) => [node.id, 44 + index * 28]))
+  const leafSpacing = leaves.length <= 20 ? 38 : leaves.length <= 60 ? 20 : leaves.length <= 160 ? 10 : 6
+  const plotLeft = 76
+  const plotRightPadding = 28
+  const plotTop = 34
+  const plotBottomPadding = 42
+  const xPositions = new Map(leaves.map((node, index) => [node.id, plotLeft + 24 + index * leafSpacing]))
   const placeInternal = (id: string): number => {
     const existing = xPositions.get(id)
     if (existing !== undefined) return existing
     const children = model.nodes.get(id)?.children ?? []
-    if (!children.length) return 44
+    if (!children.length) return plotLeft + 24
     const x = children.reduce((sum, child) => sum + placeInternal(child), 0) / children.length
     xPositions.set(id, x)
     return x
   }
   model.roots.forEach(placeInternal)
 
-  const values = new Map<string, number>()
-  const temporalValue = (id: string): number => {
-    const known = values.get(id)
+  const observedSteps = [...new Set([...model.nodes.values()].flatMap((node) => (
+    node.summary ? [node.summary.firstStep, node.summary.lastStep] : []
+  )))].sort((a, b) => a - b)
+  const positiveObservedGaps = observedSteps
+    .slice(1)
+    .map((value, index) => value - observedSteps[index])
+    .filter((gap) => gap > Number.EPSILON)
+  const observedStep = positiveObservedGaps.length ? Math.min(...positiveObservedGaps) : 1
+
+  const birthValues = new Map<string, number>()
+  const birthValueFor = (id: string): number => {
+    const known = birthValues.get(id)
     if (known !== undefined) return known
     const node = model.nodes.get(id)!
-    if (mode === 'generation') {
-      const depth = depths.get(id) ?? node.canonical?.depth ?? 0
-      values.set(id, depth)
-      return depth
+    let value: number
+    if (mode === 'generation' && node.canonical) value = node.canonical.birthTime
+    else if (node.summary) value = node.summary.firstStep
+    else {
+      const childValues = node.children.map(birthValueFor)
+      value = childValues.length ? Math.min(...childValues) - observedStep : 0
     }
-    if (node.summary) {
-      values.set(id, node.summary.firstStep)
-      return node.summary.firstStep
-    }
-    const childValues = node.children.map(temporalValue)
-    const value = childValues.length
-      ? Math.min(...childValues) - 1
-      : node.canonical?.birthTime ?? 0
-    values.set(id, value)
+    birthValues.set(id, value)
     return value
   }
-  model.roots.forEach(temporalValue)
+  model.roots.forEach(birthValueFor)
+  model.nodes.forEach((_node, id) => birthValueFor(id))
 
-  const allValues = [...values.values()]
-  const minValue = Math.min(...allValues, 0)
-  const maxObserved = Math.max(
-    ...[...model.nodes.values()].map((node) => node.summary?.lastStep ?? values.get(node.id) ?? 0),
-    mode === 'generation' ? Math.max(...depths.values(), 0) : 0,
-  )
-  const range = Math.max(maxObserved - minValue, 1)
-  const height = mode === 'generation' ? Math.max(520, range * 72 + 100) : Math.max(620, range * 3 + 120)
-  const yFor = (value: number) => 48 + ((value - minValue) / range) * (height - 96)
+  const endValues = new Map<string, number>()
+  for (const node of model.nodes.values()) {
+    const birth = birthValues.get(node.id) ?? 0
+    const childBirths = node.children.map((child) => birthValues.get(child) ?? birth)
+    let end: number
+    if (childBirths.length) end = Math.min(...childBirths)
+    else if (mode !== 'generation' && node.summary) {
+      end = node.summary.lastStep > birth ? node.summary.lastStep : birth + observedStep
+    }
+    else if (mode === 'generation' && node.canonical) end = node.canonical.endTime
+    else end = birth + (mode === 'generation' ? 12 : observedStep)
+    endValues.set(node.id, Math.max(end, birth + Number.EPSILON))
+  }
 
-  const nodes: LineageLayoutNode[] = [...model.nodes.values()].map((node) => ({
-    id: node.id,
-    x: xPositions.get(node.id) ?? 44,
-    y: yFor(values.get(node.id) ?? 0),
-    value: values.get(node.id) ?? 0,
-    depth: depths.get(node.id) ?? 0,
-    represented: node.represented,
-    resolved: node.resolved,
-    parentId: node.parentId,
-    firstStep: node.summary?.firstStep,
-    lastStep: node.summary?.lastStep,
-  }))
-  const byId = new Map(nodes.map((node) => [node.id, node]))
-  const edges: LineageEdge[] = nodes.flatMap((node) => {
-    if (!node.parentId) return []
-    const parent = byId.get(node.parentId)
-    return parent ? [{ id: `${parent.id}-${node.id}`, from: parent, to: node }] : []
+  const rawMin = Math.min(...birthValues.values(), 0)
+  const rawMax = Math.max(...endValues.values(), rawMin + 1)
+  const tickStep = niceStep(rawMax - rawMin)
+  const minValue = Math.floor(rawMin / tickStep) * tickStep
+  const maxValue = Math.max(Math.ceil(rawMax / tickStep) * tickStep, minValue + tickStep)
+  const range = maxValue - minValue
+  const height = Math.max(620, Math.min(1120, range * 3.2 + plotTop + plotBottomPadding))
+  const plotBottom = height - plotBottomPadding
+  const yFor = (value: number) => plotTop + ((value - minValue) / range) * (plotBottom - plotTop)
+  const plotRight = Math.max(652, plotLeft + 48 + Math.max(leaves.length - 1, 0) * leafSpacing)
+  const width = plotRight + plotRightPadding
+
+  const nodes: LineageLayoutNode[] = [...model.nodes.values()].map((node) => {
+    const birthValue = birthValues.get(node.id) ?? 0
+    const endValue = endValues.get(node.id) ?? birthValue
+    const parentEnd = node.parentId ? endValues.get(node.parentId) : undefined
+    return {
+      id: node.id,
+      x: xPositions.get(node.id) ?? plotLeft + 24,
+      startY: yFor(parentEnd ?? birthValue),
+      birthY: yFor(birthValue),
+      endY: yFor(endValue),
+      birthValue,
+      endValue,
+      depth: depths.get(node.id) ?? node.canonical?.depth ?? 0,
+      represented: node.represented,
+      resolved: node.resolved,
+      parentId: node.parentId,
+      children: [...node.children],
+      firstStep: node.summary?.firstStep,
+      lastStep: node.summary?.lastStep,
+    }
   })
+  const nodeById = new Map(nodes.map((node) => [node.id, node]))
+  const connectors: LineageConnector[] = nodes.flatMap((node) => {
+    if (!node.children.length) return []
+    const childXs = node.children
+      .map((childId) => nodeById.get(childId)?.x)
+      .filter((x): x is number => x !== undefined)
+    if (!childXs.length) return []
+    return [{
+      id: `division-${node.id}`,
+      parentId: node.id,
+      x1: Math.min(node.x, ...childXs),
+      x2: Math.max(node.x, ...childXs),
+      y: node.endY,
+    }]
+  })
+  const ticks: LineageTick[] = []
+  for (let value = minValue; value <= maxValue + tickStep / 2; value += tickStep) {
+    const cleanValue = Math.abs(value) < tickStep / 1000 ? 0 : value
+    ticks.push({ value: cleanValue, y: yFor(cleanValue), label: formatTick(cleanValue) })
+  }
+
   return {
     nodes,
-    edges,
-    width: Math.max(680, leaves.length * 28 + 120),
+    connectors,
+    ticks,
+    width,
     height,
+    plotLeft,
+    plotRight,
+    plotTop,
+    plotBottom,
     minValue,
-    maxValue: maxObserved,
+    maxValue,
+    axisLabel: mode === 'generation' ? 'Canonical developmental time (min)' : mode === 'time' ? 'Developmental time' : 'Frame',
+    usesCanonicalTime: mode === 'generation',
   }
 }

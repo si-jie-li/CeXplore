@@ -32,6 +32,7 @@ function AppHeader() {
   const dataset = useExplorerStore((state) => state.dataset)!
   const lineage = useExplorerStore((state) => state.lineage)!
   const groups = useExplorerStore((state) => state.groups)
+  const activeEmbryoIds = useExplorerStore((state) => state.activeEmbryoIds)
   const clearDataset = useExplorerStore((state) => state.clearDataset)
   const importConfiguration = useExplorerStore((state) => state.importConfiguration)
 
@@ -48,7 +49,7 @@ function AppHeader() {
       </div>
       <div className="dataset-summary">
         <strong title={dataset.name}>{dataset.name}</strong>
-        <span>{dataset.mapping.embryoValue ? `${dataset.mapping.embryoValue} · ` : ''}{dataset.cellIds.length} cells · {dataset.frameValues.length} {dataset.temporalMode === 'generation' ? 'state' : dataset.temporalMode === 'time' ? 'time points' : 'frames'} · {formatBytes(dataset.sourceSize)}</span>
+        <span>{dataset.sources.length} file{dataset.sources.length === 1 ? '' : 's'} · {activeEmbryoIds.size}/{dataset.embryos.length} embryos shown · {dataset.cellIds.length} cells · {dataset.frameValues.length} {dataset.temporalMode === 'generation' ? 'state' : dataset.temporalMode === 'time' ? 'time points' : 'frames'} · {formatBytes(dataset.sourceSize)}</span>
       </div>
       <div className="header-actions">
         <FileLoader compact />

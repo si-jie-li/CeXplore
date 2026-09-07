@@ -22,7 +22,7 @@ export function DisplayControls() {
       <div className="settings-grid">
         <label className="range-setting">
           <span>Nucleus size <b>{settings.nucleusSize.toFixed(2)}</b></span>
-          <input type="range" min="0.16" max="0.75" step="0.01" value={settings.nucleusSize} onChange={(event) => setSettings({ nucleusSize: Number(event.target.value) })} />
+          <input type="range" min="0.05" max="0.75" step="0.01" value={settings.nucleusSize} onChange={(event) => setSettings({ nucleusSize: Number(event.target.value) })} />
         </label>
         <label className="range-setting">
           <span>Background opacity <b>{Math.round(settings.unselectedOpacity * 100)}%</b></span>

@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Html, Line, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { Focus, RotateCcw } from 'lucide-react'
 import type { Observation } from '../data/types'
+import { getCellTrajectories, getFrameObservations } from '../data/embryoView'
 import { getCellAppearance } from '../state/cellAppearance'
 import { useExplorerStore } from '../state/explorerStore'
+import { EmbryoPanel } from './EmbryoPanel'
 
 interface RenderNucleus {
   observation: Observation
@@ -28,6 +30,7 @@ function InstancedNuclei({
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const setSelection = useExplorerStore((state) => state.setSelection)
+  const toggleCell = useExplorerStore((state) => state.toggleCell)
   const setHoveredObservation = useExplorerStore((state) => state.setHoveredObservation)
   const setInspectedCell = useExplorerStore((state) => state.setInspectedCell)
 
@@ -60,7 +63,8 @@ function InstancedNuclei({
         event.stopPropagation()
         const item = itemForEvent(event)
         if (!item) return
-        setSelection([item.observation.cellId], { kind: 'cell', rootCell: item.observation.cellId })
+        if (event.metaKey || event.ctrlKey) toggleCell(item.observation.cellId)
+        else setSelection([item.observation.cellId], { kind: 'cell', rootCell: item.observation.cellId })
         setInspectedCell(item.observation.cellId)
       }}
       onPointerMove={(event) => {
@@ -91,6 +95,7 @@ function Trajectories({ currentStep }: { currentStep: number }) {
   const groups = useExplorerStore((state) => state.groups)
   const cellColors = useExplorerStore((state) => state.cellColors)
   const settings = useExplorerStore((state) => state.settings)
+  const activeEmbryoIds = useExplorerStore((state) => state.activeEmbryoIds)
   const frameValues = dataset.frameValues
   const frameIndex = frameValues.indexOf(currentStep)
   if (!settings.showTrajectories || selection.size === 0) return null
@@ -100,22 +105,29 @@ function Trajectories({ currentStep }: { currentStep: number }) {
       : frameValues[Math.max(0, frameIndex - settings.trailLength + 1)]
   return (
     <>
-      {[...selection].map((cellId) => {
-        const points = (dataset.trajectoryIndex.get(cellId) ?? [])
-          .filter((point) => point.step <= currentStep && point.step >= earliest)
-          .map((point) => [point.renderX, point.renderY, point.renderZ] as [number, number, number])
-        if (points.length < 2) return null
+      {[...selection].flatMap((cellId) => {
         const groupColor = groups.filter((group) => group.visible && group.cellIds.includes(cellId)).at(-1)?.color
-        return (
+        return getCellTrajectories(
+          dataset,
+          cellId,
+          activeEmbryoIds,
+          settings.embryoViewMode,
+          earliest,
+          currentStep,
+        ).map((trajectory) => {
+          const points = trajectory.points.map((point) => [point.renderX, point.renderY, point.renderZ] as [number, number, number])
+          const embryoColor = dataset.embryos.find((embryo) => embryo.id === trajectory.embryoId)?.color
+          return (
           <Line
-            key={cellId}
+            key={`${trajectory.embryoId}-${cellId}`}
             points={points}
-            color={groupColor ?? cellColors[cellId] ?? '#d34f3f'}
+            color={settings.colorByEmbryo && embryoColor ? embryoColor : groupColor ?? cellColors[cellId] ?? '#d34f3f'}
             lineWidth={1.2}
             transparent
             opacity={0.72}
           />
-        )
+          )
+        })
       })}
     </>
   )
@@ -125,9 +137,9 @@ function AxisGuide() {
   return (
     <group>
       <axesHelper args={[5]} />
-      <Html position={[5.5, 0, 0]} center className="axis-label">X</Html>
-      <Html position={[0, 5.5, 0]} center className="axis-label">Y</Html>
-      <Html position={[0, 0, 5.5]} center className="axis-label">Z</Html>
+      <Html position={[5.5, 0, 0]} center className="axis-label">AP</Html>
+      <Html position={[0, 5.5, 0]} center className="axis-label">LR</Html>
+      <Html position={[0, 0, 5.5]} center className="axis-label">VD</Html>
     </group>
   )
 }
@@ -143,7 +155,7 @@ function CellLabels({ observations }: { observations: Observation[] }) {
     <>
       {labelRows.map((observation) => (
         <Html
-          key={observation.cellId}
+          key={`${observation.embryoId}-${observation.cellId}`}
           position={[observation.renderX, observation.renderY + settings.nucleusSize * 1.8, observation.renderZ]}
           center
           distanceFactor={18}
@@ -161,6 +173,10 @@ function CameraController({ observations }: { observations: Observation[] }) {
   const { camera } = useThree()
   const selection = useExplorerStore((state) => state.selection)
   const command = useExplorerStore((state) => state.cameraCommand)
+  const observationsRef = useRef(observations)
+  const selectionRef = useRef(selection)
+  observationsRef.current = observations
+  selectionRef.current = selection
 
   useEffect(() => {
     if (!controls.current) return
@@ -168,7 +184,7 @@ function CameraController({ observations }: { observations: Observation[] }) {
       camera.position.set(17, 13, 19)
       controls.current.target.set(0, 0, 0)
     } else {
-      const targets = observations.filter((observation) => selection.has(observation.cellId))
+      const targets = observationsRef.current.filter((observation) => selectionRef.current.has(observation.cellId))
       if (targets.length) {
         const center = targets.reduce(
           (sum, item) => sum.add(new THREE.Vector3(item.renderX, item.renderY, item.renderZ)),
@@ -182,7 +198,7 @@ function CameraController({ observations }: { observations: Observation[] }) {
     }
     camera.updateProjectionMatrix()
     controls.current.update()
-  }, [camera, command, observations, selection])
+  }, [camera, command.nonce, command.type])
 
   return <OrbitControls ref={controls} makeDefault enableDamping dampingFactor={0.08} />
 }
@@ -194,6 +210,10 @@ function Scene({ observations }: { observations: Observation[] }) {
   const groups = useExplorerStore((state) => state.groups)
   const settings = useExplorerStore((state) => state.settings)
   const setSelection = useExplorerStore((state) => state.setSelection)
+  const embryoColors = useMemo(
+    () => new Map(dataset.embryos.map((embryo) => [embryo.id, embryo.color])),
+    [dataset.embryos],
+  )
 
   const classified = useMemo(() => {
     const opaque: RenderNucleus[] = []
@@ -208,12 +228,15 @@ function Scene({ observations }: { observations: Observation[] }) {
         unselectedOpacity: settings.unselectedOpacity,
       })
       if (!appearance.visible) continue
-      const item = { observation, color: appearance.color, selected: appearance.selected }
+      const color = settings.colorByEmbryo && settings.embryoViewMode === 'overlay'
+        ? embryoColors.get(observation.embryoId) ?? appearance.color
+        : appearance.color
+      const item = { observation, color, selected: appearance.selected }
       if (appearance.opacity >= 0.9) opaque.push(item)
       else subdued.push(item)
     }
     return { opaque, subdued }
-  }, [cellColors, groups, observations, selection, settings.displayMode, settings.unselectedOpacity])
+  }, [cellColors, embryoColors, groups, observations, selection, settings.colorByEmbryo, settings.displayMode, settings.embryoViewMode, settings.unselectedOpacity])
 
   return (
     <>
@@ -221,8 +244,8 @@ function Scene({ observations }: { observations: Observation[] }) {
       <ambientLight intensity={1.45} />
       <directionalLight position={[8, 12, 10]} intensity={1.8} />
       <directionalLight position={[-8, -5, -8]} intensity={0.55} />
-      <InstancedNuclei items={classified.subdued} capacity={dataset.cellIds.length} size={settings.nucleusSize} opacity={settings.displayMode === 'color' ? 0.62 : settings.unselectedOpacity} />
-      <InstancedNuclei items={classified.opaque} capacity={dataset.cellIds.length} size={settings.nucleusSize} opacity={1} />
+      <InstancedNuclei items={classified.subdued} capacity={dataset.maxObservationsPerFrame} size={settings.nucleusSize} opacity={settings.displayMode === 'color' ? 0.62 : settings.unselectedOpacity} />
+      <InstancedNuclei items={classified.opaque} capacity={dataset.maxObservationsPerFrame} size={settings.nucleusSize} opacity={1} />
       <Trajectories currentStep={dataset.frameValues[useExplorerStore.getState().currentFrameIndex] ?? 0} />
       <CellLabels observations={[...classified.opaque, ...classified.subdued].map((item) => item.observation)} />
       {settings.showAxes && <AxisGuide />}
@@ -238,8 +261,16 @@ export function Embryo3D() {
   const resetCamera = useExplorerStore((state) => state.resetCamera)
   const focusSelection = useExplorerStore((state) => state.focusSelection)
   const selectionSize = useExplorerStore((state) => state.selection.size)
+  const activeEmbryoIds = useExplorerStore((state) => state.activeEmbryoIds)
+  const settings = useExplorerStore((state) => state.settings)
+  const [showEmbryos, setShowEmbryos] = useState(dataset.embryos.length > 1)
   const step = dataset.frameValues[currentFrameIndex] ?? dataset.frameValues[0] ?? 0
-  const observations = dataset.frameIndex.get(step) ?? []
+  const observations = useMemo(
+    () => getFrameObservations(dataset, step, activeEmbryoIds, settings.embryoViewMode),
+    [activeEmbryoIds, dataset, settings.embryoViewMode, step],
+  )
+
+  useEffect(() => setShowEmbryos(dataset.embryos.length > 1), [dataset])
 
   return (
     <section className="panel embryo-panel" aria-label="3D embryo viewer">
@@ -249,6 +280,9 @@ export function Embryo3D() {
           <h2>3D embryo</h2>
         </div>
         <div className="canvas-actions">
+          <button className={`tool-button ${showEmbryos ? 'active' : ''}`} onClick={() => setShowEmbryos((value) => !value)}>
+            Embryos {activeEmbryoIds.size}/{dataset.embryos.length}
+          </button>
           <button className="tool-button" onClick={focusSelection} disabled={!selectionSize} title="Center camera on selected cells"><Focus size={15} /> Focus</button>
           <button className="tool-button" onClick={resetCamera} title="Reset camera"><RotateCcw size={15} /> Reset</button>
         </div>
@@ -262,8 +296,9 @@ export function Embryo3D() {
         >
           <Scene observations={observations} />
         </Canvas>
+        {showEmbryos && <EmbryoPanel onClose={() => setShowEmbryos(false)} />}
         <div className="canvas-hint">Drag to rotate · Right-drag to pan · Scroll to zoom</div>
-        <div className="frame-count">{observations.length} nuclei</div>
+        <div className="frame-count">{observations.length} {settings.embryoViewMode === 'mean' ? 'mean nuclei' : 'nuclei'}</div>
       </div>
     </section>
   )

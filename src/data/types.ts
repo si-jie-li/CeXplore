@@ -10,6 +10,8 @@ export interface ColumnMapping {
   playback: 'time' | 'frame' | 'none'
   parent?: string
   embryo?: string
+  embryoValues?: string[]
+  /** Kept for importing sessions made by v0.1. */
   embryoValue?: string
   sheet?: string
 }
@@ -26,6 +28,7 @@ export interface SourceInspection {
 
 export interface RawMappedRow {
   cellId: string
+  embryoId?: string
   x: unknown
   y: unknown
   z: unknown
@@ -35,6 +38,7 @@ export interface RawMappedRow {
 
 export interface Observation {
   cellId: string
+  embryoId: string
   step: number
   x: number
   y: number
@@ -43,6 +47,23 @@ export interface Observation {
   renderY: number
   renderZ: number
   parentId?: string
+  contributingEmbryoIds?: string[]
+}
+
+export interface EmbryoDescriptor {
+  id: string
+  label: string
+  sourceName: string
+  sourceEmbryoId: string
+  color: string
+}
+
+export interface DatasetSource {
+  id: string
+  name: string
+  size: number
+  mapping: ColumnMapping
+  embryoIds: string[]
 }
 
 export interface CellSummary {
@@ -64,11 +85,14 @@ export interface EmbryoDataset {
   name: string
   sourceSize: number
   mapping: ColumnMapping
+  sources: DatasetSource[]
+  embryos: EmbryoDescriptor[]
   temporalMode: TemporalMode
   frameValues: number[]
   observations: Observation[]
   frameIndex: Map<number, Observation[]>
   trajectoryIndex: Map<string, Observation[]>
+  maxObservationsPerFrame: number
   cells: Map<string, CellSummary>
   cellIds: string[]
   parentOverrides: Map<string, string>

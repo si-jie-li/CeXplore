@@ -43,4 +43,23 @@ describe('shared explorer state', () => {
     hidden.deleteGroup(group.id)
     expect(useExplorerStore.getState().groups).toHaveLength(0)
   })
+
+  it('adds and removes whole lineages without replacing an existing selection', () => {
+    const state = useExplorerStore.getState()
+    state.setSelection(['ABpl'])
+    state.selectLineage('ABpr', true)
+    expect([...useExplorerStore.getState().selection]).toEqual(expect.arrayContaining(['ABpl', 'ABpr']))
+    useExplorerStore.getState().selectLineage('ABpr', true)
+    expect([...useExplorerStore.getState().selection]).toEqual(['ABpl'])
+  })
+
+  it('does not issue a camera reset when playback moves to another frame', () => {
+    const before = useExplorerStore.getState().cameraCommand
+    useExplorerStore.getState().stepFrame(1)
+    useExplorerStore.getState().setCurrentFrameIndex(0)
+    expect(useExplorerStore.getState().cameraCommand).toEqual(before)
+
+    useExplorerStore.getState().resetCamera()
+    expect(useExplorerStore.getState().cameraCommand.nonce).toBe(before.nonce + 1)
+  })
 })

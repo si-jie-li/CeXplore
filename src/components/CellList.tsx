@@ -52,7 +52,11 @@ export function CellList() {
                 <span className="cell-name">{cellId}</span>
                 {!node?.resolved && <span className="unresolved-mark" title="Lineage unresolved">?</span>}
               </label>
-              <button className="row-action" onClick={() => selectLineage(cellId)} title={`Select ${cellId} and represented descendants`}><GitBranch size={14} /></button>
+              <button
+                className="row-action"
+                onClick={(event) => selectLineage(cellId, event.metaKey || event.ctrlKey)}
+                title={`Select ${cellId} and represented descendants`}
+              ><GitBranch size={14} /></button>
             </div>
           )
         })}

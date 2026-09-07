@@ -67,6 +67,7 @@ function mapRecord(record: Record<string, unknown>, mapping: ColumnMapping): Raw
   const temporalColumn = mapping.playback === 'time' ? mapping.time : mapping.frame
   return {
     cellId: String(record[mapping.cellId] ?? ''),
+    embryoId: mapping.embryo ? String(record[mapping.embryo] ?? '').trim() : undefined,
     x: record[mapping.x],
     y: record[mapping.y],
     z: record[mapping.z],
@@ -75,8 +76,14 @@ function mapRecord(record: Record<string, unknown>, mapping: ColumnMapping): Raw
   }
 }
 
-const matchesEmbryo = (record: Record<string, unknown>, mapping: ColumnMapping) =>
-  !mapping.embryo || String(record[mapping.embryo] ?? '').trim() === mapping.embryoValue?.trim()
+const selectedEmbryos = (mapping: ColumnMapping) => new Set(
+  mapping.embryoValues?.length
+    ? mapping.embryoValues
+    : mapping.embryoValue?.trim() ? [mapping.embryoValue.trim()] : [],
+)
+
+const matchesEmbryo = (record: Record<string, unknown>, mapping: ColumnMapping, selected = selectedEmbryos(mapping)) =>
+  !mapping.embryo || selected.has(String(record[mapping.embryo] ?? '').trim())
 
 async function parseWorkbook(file: File, mapping: ColumnMapping) {
   const XLSX = await import('xlsx')
@@ -87,7 +94,8 @@ async function parseWorkbook(file: File, mapping: ColumnMapping) {
     defval: '',
     raw: true,
   })
-  return records.filter((record) => matchesEmbryo(record, mapping)).map((record) => mapRecord(record, mapping))
+  const selected = selectedEmbryos(mapping)
+  return records.filter((record) => matchesEmbryo(record, mapping, selected)).map((record) => mapRecord(record, mapping))
 }
 
 function parseDelimited(
@@ -98,6 +106,7 @@ function parseDelimited(
 ): Promise<RawMappedRow[]> {
   return new Promise((resolve, reject) => {
     const retained: RawMappedRow[] = []
+    const selected = selectedEmbryos(mapping)
     let processedRows = 0
     Papa.parse<Record<string, unknown>>(file, {
       header: true,
@@ -106,7 +115,7 @@ function parseDelimited(
       skipEmptyLines: 'greedy',
       step(result) {
         processedRows += 1
-        if (matchesEmbryo(result.data, mapping)) retained.push(mapRecord(result.data, mapping))
+        if (matchesEmbryo(result.data, mapping, selected)) retained.push(mapRecord(result.data, mapping))
         if (processedRows % 10_000 === 0) {
           onProgress?.({ processedRows, retainedRows: retained.length })
         }
@@ -122,15 +131,81 @@ function parseDelimited(
   })
 }
 
+async function listWorkbookEmbryos(file: File, column: string, sheet?: string) {
+  const XLSX = await import('xlsx')
+  const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' })
+  const sheetName = sheet || workbook.SheetNames[0]
+  if (!workbook.Sheets[sheetName]) throw new Error(`Worksheet “${sheetName}” was not found.`)
+  const records = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[sheetName], {
+    defval: '',
+    raw: true,
+  })
+  return [...new Set(records.map((record) => String(record[column] ?? '').trim()).filter(Boolean))]
+}
+
+function listDelimitedEmbryos(
+  file: File,
+  column: string,
+  delimiter: string | undefined,
+  onProgress?: (progress: ParseProgress) => void,
+): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    const ids = new Set<string>()
+    let processedRows = 0
+    Papa.parse<Record<string, unknown>>(file, {
+      header: true,
+      delimiter,
+      worker: true,
+      skipEmptyLines: 'greedy',
+      step(result) {
+        processedRows += 1
+        const value = String(result.data[column] ?? '').trim()
+        if (value) ids.add(value)
+        if (processedRows % 10_000 === 0) {
+          onProgress?.({ processedRows, retainedRows: ids.size })
+        }
+      },
+      complete() {
+        onProgress?.({ processedRows, retainedRows: ids.size })
+        resolve([...ids])
+      },
+      error(error) {
+        reject(error)
+      },
+    })
+  })
+}
+
+export async function listEmbryoIds(
+  file: File,
+  inspection: SourceInspection,
+  column: string,
+  sheet?: string,
+  onProgress?: (progress: ParseProgress) => void,
+) {
+  const ids = inspection.kind === 'xlsx'
+    ? await listWorkbookEmbryos(file, column, sheet)
+    : await listDelimitedEmbryos(file, column, inspection.delimiter, onProgress)
+  return ids.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+}
+
+export async function loadMappedRows(
+  file: File,
+  inspection: SourceInspection,
+  mapping: ColumnMapping,
+  onProgress?: (progress: ParseProgress) => void,
+) {
+  return inspection.kind === 'xlsx'
+    ? parseWorkbook(file, mapping)
+    : parseDelimited(file, mapping, inspection.delimiter, onProgress)
+}
+
 export async function loadDataset(
   file: File,
   inspection: SourceInspection,
   mapping: ColumnMapping,
   onProgress?: (progress: ParseProgress) => void,
 ): Promise<EmbryoDataset> {
-  const rows =
-    inspection.kind === 'xlsx'
-      ? await parseWorkbook(file, mapping)
-      : await parseDelimited(file, mapping, inspection.delimiter, onProgress)
+  const rows = await loadMappedRows(file, inspection, mapping, onProgress)
   return buildDatasetFromRows(rows, { name: file.name, sourceSize: file.size, mapping })
 }
