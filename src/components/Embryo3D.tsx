@@ -5,9 +5,10 @@ import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { Focus, RotateCcw } from 'lucide-react'
 import type { Observation } from '../data/types'
-import { getCellTrajectories, getFrameObservations } from '../data/embryoView'
+import { getCellTrajectories, getDivisionConnections, getFrameObservations } from '../data/embryoView'
 import { getCellAppearance } from '../state/cellAppearance'
 import { useExplorerStore } from '../state/explorerStore'
+import { resolveTrailCellIds, resolveTrailGroups, trailVertexColor } from '../state/trails'
 import { EmbryoPanel } from './EmbryoPanel'
 
 interface RenderNucleus {
@@ -91,6 +92,7 @@ function InstancedNuclei({
 
 function Trajectories({ currentStep }: { currentStep: number }) {
   const dataset = useExplorerStore((state) => state.dataset)!
+  const lineage = useExplorerStore((state) => state.lineage)!
   const selection = useExplorerStore((state) => state.selection)
   const groups = useExplorerStore((state) => state.groups)
   const cellColors = useExplorerStore((state) => state.cellColors)
@@ -98,16 +100,45 @@ function Trajectories({ currentStep }: { currentStep: number }) {
   const activeEmbryoIds = useExplorerStore((state) => state.activeEmbryoIds)
   const frameValues = dataset.frameValues
   const frameIndex = frameValues.indexOf(currentStep)
-  if (!settings.showTrajectories || selection.size === 0) return null
+  const trailGroups = useMemo(
+    () => resolveTrailGroups(groups, settings.trailGroupIds),
+    [groups, settings.trailGroupIds],
+  )
+  const trailCellIds = useMemo(
+    () => resolveTrailCellIds(groups, settings.trailGroupIds, selection),
+    [groups, selection, settings.trailGroupIds],
+  )
+  const parentByCell = useMemo(
+    () => new Map([...lineage.nodes].map(([cellId, node]) => [cellId, node.parentId])),
+    [lineage.nodes],
+  )
+  if (!settings.showTrajectories || trailCellIds.size === 0) return null
   const earliest =
     settings.trailLength === 'all'
-      ? -Infinity
+      ? frameValues[0]
       : frameValues[Math.max(0, frameIndex - settings.trailLength + 1)]
+  const colorFor = (cellId: string, embryoId: string) => {
+    const groupColor = trailGroups.filter((group) => group.cellIds.includes(cellId)).at(-1)?.color
+    const embryoColor = dataset.embryos.find((embryo) => embryo.id === embryoId)?.color
+    return settings.colorByEmbryo && embryoColor
+      ? embryoColor
+      : groupColor ?? cellColors[cellId] ?? '#d34f3f'
+  }
+  const vertexColorsFor = (points: Observation[], color: string) => {
+    return points.map((point) => trailVertexColor(color, point.step, earliest, currentStep))
+  }
+  const divisionConnections = getDivisionConnections(
+    dataset,
+    trailCellIds,
+    parentByCell,
+    activeEmbryoIds,
+    settings.embryoViewMode,
+    earliest,
+    currentStep,
+  )
   return (
     <>
-      {[...selection].flatMap((cellId) => {
-        const groupColor = groups.filter((group) => group.visible && group.cellIds.includes(cellId)).at(-1)?.color
-        return getCellTrajectories(
+      {[...trailCellIds].flatMap((cellId) => getCellTrajectories(
           dataset,
           cellId,
           activeEmbryoIds,
@@ -116,19 +147,29 @@ function Trajectories({ currentStep }: { currentStep: number }) {
           currentStep,
         ).map((trajectory) => {
           const points = trajectory.points.map((point) => [point.renderX, point.renderY, point.renderZ] as [number, number, number])
-          const embryoColor = dataset.embryos.find((embryo) => embryo.id === trajectory.embryoId)?.color
+          const color = colorFor(cellId, trajectory.embryoId)
           return (
-          <Line
-            key={`${trajectory.embryoId}-${cellId}`}
-            points={points}
-            color={settings.colorByEmbryo && embryoColor ? embryoColor : groupColor ?? cellColors[cellId] ?? '#d34f3f'}
-            lineWidth={1.2}
-            transparent
-            opacity={0.72}
-          />
+            <Line
+              key={`motion-${trajectory.embryoId}-${cellId}`}
+              points={points}
+              vertexColors={vertexColorsFor(trajectory.points, color)}
+              lineWidth={settings.trailWidth}
+              depthWrite={false}
+            />
           )
-        })
-      })}
+        }))}
+      {divisionConnections.map((connection) => (
+        <Line
+          key={`division-${connection.embryoId}-${connection.parentCellId}-${connection.childCellId}`}
+          points={connection.points.map((point) => [point.renderX, point.renderY, point.renderZ] as [number, number, number])}
+          vertexColors={vertexColorsFor(
+            connection.points,
+            colorFor(connection.childCellId, connection.embryoId),
+          )}
+          lineWidth={settings.trailWidth}
+          depthWrite={false}
+        />
+      ))}
     </>
   )
 }
@@ -137,9 +178,9 @@ function AxisGuide() {
   return (
     <group>
       <axesHelper args={[5]} />
-      <Html position={[5.5, 0, 0]} center className="axis-label">AP</Html>
-      <Html position={[0, 5.5, 0]} center className="axis-label">LR</Html>
-      <Html position={[0, 0, 5.5]} center className="axis-label">VD</Html>
+      <Html position={[5.5, 0, 0]} center zIndexRange={[3, 0]} className="axis-label">AP</Html>
+      <Html position={[0, 5.5, 0]} center zIndexRange={[3, 0]} className="axis-label">LR</Html>
+      <Html position={[0, 0, 5.5]} center zIndexRange={[3, 0]} className="axis-label">VD</Html>
     </group>
   )
 }
@@ -159,6 +200,7 @@ function CellLabels({ observations }: { observations: Observation[] }) {
           position={[observation.renderX, observation.renderY + settings.nucleusSize * 1.8, observation.renderZ]}
           center
           distanceFactor={18}
+          zIndexRange={[3, 0]}
           className="nucleus-label"
         >
           {observation.cellId}

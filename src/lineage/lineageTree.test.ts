@@ -21,13 +21,13 @@ describe('classical lineage layout', () => {
       ['ABa', 4, 5],
       ['ABp', 4, 5],
     ]))
-    const layout = createLineageLayout(model, 'frame')
+    const layout = createLineageLayout(model, 'frame', 75)
     const byId = new Map(layout.nodes.map((node) => [node.id, node]))
     const p0 = byId.get('P0')!
     const ab = byId.get('AB')!
     const p1 = byId.get('P1')!
 
-    expect(p0.endValue).toBe(2)
+    expect(p0.endValue).toBe(2.5)
     expect(ab.startY).toBeCloseTo(p0.endY)
     expect(p1.startY).toBeCloseTo(p0.endY)
     expect(layout.connectors.find((connector) => connector.parentId === 'P0')).toMatchObject({
@@ -35,21 +35,34 @@ describe('classical lineage layout', () => {
       x1: Math.min(ab.x, p1.x),
       x2: Math.max(ab.x, p1.x),
     })
-    expect(layout.axisLabel).toBe('Frame')
+    expect(layout.axisLabel).toBe('Elapsed time (minutes)')
+    expect(layout.valueScale).toBe(1.25)
   })
 
-  it('uses canonical developmental minutes when no uploaded time or frame exists', () => {
+  it.each([
+    ['time', 120, 180, 1],
+    ['frame', 1, 2, 75],
+  ] as const)('aligns a partial two-cell %s axis with its first observed branches', (
+    mode,
+    firstStep,
+    lastStep,
+    interval,
+  ) => {
     const model = resolveLineage(observedCells([
-      ['ABpl', 0, 0],
-      ['MS', 0, 0],
+      ['AB', firstStep, lastStep],
+      ['P1', firstStep, lastStep],
     ]))
-    const layout = createLineageLayout(model, 'generation')
+    const layout = createLineageLayout(model, mode, interval)
     const byId = new Map(layout.nodes.map((node) => [node.id, node]))
+    const expectedStart = mode === 'frame' ? (firstStep * interval) / 60 : firstStep
 
-    expect(layout.usesCanonicalTime).toBe(true)
-    expect(layout.axisLabel).toBe('Canonical developmental time (min)')
-    expect(byId.get('P0')?.birthValue).toBe(0)
-    expect(byId.get('P0')?.endValue).toBe(40)
-    expect(byId.get('AB')?.birthValue).toBe(40)
+    expect(layout.minValue).toBe(expectedStart)
+    expect(layout.ticks[0].value).toBe(expectedStart)
+    expect(byId.get('AB')?.birthValue).toBe(expectedStart)
+    expect(byId.get('P1')?.birthValue).toBe(expectedStart)
+    expect(byId.get('P0')?.birthValue).toBe(expectedStart)
+    expect(byId.get('P0')?.endValue).toBe(expectedStart)
+    expect(byId.get('AB')?.startY).toBeCloseTo(layout.plotTop)
+    expect(byId.get('P1')?.startY).toBeCloseTo(layout.plotTop)
   })
 })

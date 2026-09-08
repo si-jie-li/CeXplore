@@ -85,7 +85,7 @@ export function buildDatasetFromRows(
       invalid.coordinate += 1
       continue
     }
-    const temporal = mapping.playback === 'none' ? 0 : finiteNumber(row.temporal)
+    const temporal = finiteNumber(row.temporal)
     if (temporal === undefined) {
       invalid.temporal += 1
       continue
@@ -167,7 +167,7 @@ export function buildDatasetFromRows(
     mapping,
     sources,
     embryos,
-    temporalMode: mapping.playback === 'none' ? 'generation' : mapping.playback,
+    temporalMode: mapping.playback,
     frameValues: [...frameIndex.keys()].sort((a, b) => a - b),
     observations,
     frameIndex,

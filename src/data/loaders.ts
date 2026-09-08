@@ -71,7 +71,7 @@ function mapRecord(record: Record<string, unknown>, mapping: ColumnMapping): Raw
     x: record[mapping.x],
     y: record[mapping.y],
     z: record[mapping.z],
-    temporal: temporalColumn ? record[temporalColumn] : 0,
+    temporal: temporalColumn ? record[temporalColumn] : undefined,
     parent: mapping.parent ? record[mapping.parent] : undefined,
   }
 }

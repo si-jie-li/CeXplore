@@ -23,7 +23,11 @@ describe('column mapping', () => {
       headers: ['cell_name', 'frame', 'AP', 'LR', 'VD'],
       samples: [{ cell_name: 'AB' }],
     })
-    expect(mapping).toMatchObject({ x: 'AP', y: 'LR', z: 'VD', playback: 'frame' })
+    expect(mapping).toMatchObject({
+      x: 'AP', y: 'LR', z: 'VD', playback: 'frame', frameIntervalSeconds: 1,
+    })
     expect(validateMapping(mapping)).toEqual([])
+    expect(validateMapping({ ...mapping, frameIntervalSeconds: 0 }))
+      .toContain('Enter a frame interval greater than 0 seconds.')
   })
 })

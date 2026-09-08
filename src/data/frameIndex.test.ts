@@ -35,4 +35,20 @@ describe('frame indexing', () => {
     expect(dataset.warnings.join(' ')).toMatch(/duplicate/)
     expect(dataset.warnings.join(' ')).toMatch(/invalid coordinates/)
   })
+
+  it('sorts unique time values into playback frames and groups equal times together', () => {
+    const timeMapping: ColumnMapping = {
+      cellId: 'cell', x: 'x', y: 'y', z: 'z', time: 'time', playback: 'time',
+    }
+    const dataset = buildDatasetFromRows([
+      { cellId: 'ABa', temporal: 150, x: 3, y: 0, z: 0 },
+      { cellId: 'AB', temporal: 75, x: 1, y: 0, z: 0 },
+      { cellId: 'P1', temporal: 75, x: 2, y: 0, z: 0 },
+    ], { name: 'time.csv', mapping: timeMapping })
+
+    expect(dataset.temporalMode).toBe('time')
+    expect(dataset.frameValues).toEqual([75, 150])
+    expect(dataset.frameIndex.get(75)?.map((row) => row.cellId)).toEqual(['AB', 'P1'])
+    expect(dataset.frameIndex.get(150)?.map((row) => row.cellId)).toEqual(['ABa'])
+  })
 })

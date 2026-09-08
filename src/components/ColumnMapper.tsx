@@ -42,6 +42,29 @@ function FieldSelect({
   )
 }
 
+function FrameIntervalField({
+  value,
+  onChange,
+}: {
+  value?: number
+  onChange: (value: number | undefined) => void
+}) {
+  return (
+    <label className="mapping-field">
+      <span>Frame interval (seconds) <em>Required</em></span>
+      <input
+        type="number"
+        min="0"
+        step="any"
+        value={value ?? ''}
+        onChange={(event) => onChange(event.target.value === '' ? undefined : Number(event.target.value))}
+        aria-label="Frame interval in seconds"
+      />
+      <small>Lineage time (min) = frame × interval (s) / 60.</small>
+    </label>
+  )
+}
+
 export function ColumnMapper({
   inspection,
   busy,
@@ -135,7 +158,7 @@ export function ColumnMapper({
 
           <div className="mapping-section-label">Developmental coordinate</div>
           <div className="temporal-choice" role="radiogroup" aria-label="Playback coordinate">
-            {(['time', 'frame', 'none'] as const).map((choice) => (
+            {(['time', 'frame'] as const).map((choice) => (
               <button
                 key={choice}
                 className={mapping.playback === choice ? 'active' : ''}
@@ -143,13 +166,19 @@ export function ColumnMapper({
                 type="button"
               >
                 {mapping.playback === choice && <Check size={14} />}
-                {choice === 'none' ? 'Static / canonical time' : choice[0].toUpperCase() + choice.slice(1)}
+                {choice[0].toUpperCase() + choice.slice(1)}
               </button>
             ))}
           </div>
           <div className="mapping-grid compact-top">
-            {mapping.playback === 'time' && <FieldSelect label="Time" value={mapping.time} headers={headers} required onChange={(v) => update('time', v)} />}
+            {mapping.playback === 'time' && <FieldSelect label="Time (minutes)" value={mapping.time} headers={headers} required onChange={(v) => update('time', v)} />}
             {mapping.playback === 'frame' && <FieldSelect label="Frame" value={mapping.frame} headers={headers} required onChange={(v) => update('frame', v)} />}
+            {mapping.playback === 'frame' && (
+              <FrameIntervalField
+                value={mapping.frameIntervalSeconds}
+                onChange={(value) => update('frameIntervalSeconds', value)}
+              />
+            )}
             <FieldSelect label="Parent cell" value={mapping.parent} headers={headers} onChange={(v) => update('parent', v)} />
           </div>
 

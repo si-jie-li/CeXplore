@@ -46,7 +46,7 @@ export interface AnalysisPoint {
 
 export interface GroupAnalysisRequest {
   datasetName: string
-  temporalMode: 'time' | 'frame' | 'generation'
+  temporalMode: 'time' | 'frame'
   embryoIds: string[]
   observations: AnalysisObservation[]
   parentByCell: Record<string, string | undefined>

@@ -5,6 +5,13 @@ export type EmbryoViewMode = 'overlay' | 'mean'
 
 export const MEAN_EMBRYO_ID = '__mean__'
 
+export interface DivisionConnection {
+  embryoId: string
+  parentCellId: string
+  childCellId: string
+  points: [Observation, Observation]
+}
+
 export function getFrameObservations(
   dataset: EmbryoDataset,
   step: number,
@@ -67,4 +74,70 @@ export function getCellTrajectories(
     .flatMap((step) => getFrameObservations(dataset, step, activeEmbryoIds, 'mean'))
     .filter((point) => point.cellId === cellId)
   return points.length > 1 ? [{ embryoId: MEAN_EMBRYO_ID, points }] : []
+}
+
+export function getDivisionConnections(
+  dataset: EmbryoDataset,
+  trailCellIds: Set<string>,
+  parentByCell: ReadonlyMap<string, string | undefined>,
+  activeEmbryoIds: Set<string>,
+  mode: EmbryoViewMode,
+  earliestStep: number,
+  currentStep: number,
+): DivisionConnection[] {
+  const children = [...trailCellIds].flatMap((childCellId) => {
+    const parentCellId = parentByCell.get(childCellId)
+    return parentCellId && trailCellIds.has(parentCellId)
+      ? [{ parentCellId, childCellId }]
+      : []
+  })
+  if (!children.length) return []
+
+  const connections: DivisionConnection[] = []
+  if (mode === 'overlay') {
+    for (const embryoId of activeEmbryoIds) {
+      for (const { parentCellId, childCellId } of children) {
+        const childPoint = (dataset.trajectoryIndex.get(trajectoryKey(embryoId, childCellId)) ?? [])
+          .find((point) => point.step >= earliestStep && point.step <= currentStep)
+        if (!childPoint) continue
+        const parentPoint = (dataset.trajectoryIndex.get(trajectoryKey(embryoId, parentCellId)) ?? [])
+          .filter((point) => point.step >= earliestStep && point.step <= childPoint.step)
+          .at(-1)
+        if (parentPoint) {
+          connections.push({ embryoId, parentCellId, childCellId, points: [parentPoint, childPoint] })
+        }
+      }
+    }
+  } else {
+    const pointsByCell = new Map<string, Observation[]>()
+    for (const step of dataset.frameValues) {
+      if (step < earliestStep || step > currentStep) continue
+      for (const point of getFrameObservations(dataset, step, activeEmbryoIds, 'mean')) {
+        if (!trailCellIds.has(point.cellId)) continue
+        const points = pointsByCell.get(point.cellId) ?? []
+        points.push(point)
+        pointsByCell.set(point.cellId, points)
+      }
+    }
+    for (const { parentCellId, childCellId } of children) {
+      const childPoint = pointsByCell.get(childCellId)?.[0]
+      if (!childPoint) continue
+      const parentPoint = pointsByCell.get(parentCellId)
+        ?.filter((point) => point.step <= childPoint.step)
+        .at(-1)
+      if (parentPoint) {
+        connections.push({
+          embryoId: MEAN_EMBRYO_ID,
+          parentCellId,
+          childCellId,
+          points: [parentPoint, childPoint],
+        })
+      }
+    }
+  }
+  return connections.sort((a, b) =>
+    a.embryoId.localeCompare(b.embryoId)
+    || a.parentCellId.localeCompare(b.parentCellId, undefined, { numeric: true })
+    || a.childCellId.localeCompare(b.childCellId, undefined, { numeric: true }),
+  )
 }

@@ -24,7 +24,8 @@ export function suggestMapping(inspection: SourceInspection): ColumnMapping {
     z: hasAligned ? exact(headers, ['D_pos']) : exact(headers, ['vd', 'vd_pos', 'd_pos', 'ventral_dorsal', 'dorsal_ventral', 'z', 'z_pos', 'z_position']),
     time,
     frame,
-    playback: time ? 'time' : frame ? 'frame' : 'none',
+    playback: time ? 'time' : 'frame',
+    frameIntervalSeconds: 1,
     parent: exact(headers, ['parent', 'parent_cell', 'parent_name']),
     embryo: exact(headers, ['embryo_id', 'embryo', 'dataset_id', 'sample_id']),
     embryoValues: [],
@@ -41,6 +42,12 @@ export function validateMapping(mapping: ColumnMapping): string[] {
   }
   if (mapping.playback === 'time' && !mapping.time) errors.push('Choose a time column.')
   if (mapping.playback === 'frame' && !mapping.frame) errors.push('Choose a frame column.')
+  if (
+    mapping.playback === 'frame'
+    && (!Number.isFinite(mapping.frameIntervalSeconds) || (mapping.frameIntervalSeconds ?? 0) <= 0)
+  ) {
+    errors.push('Enter a frame interval greater than 0 seconds.')
+  }
   const selectedEmbryos = mapping.embryoValues?.length
     ? mapping.embryoValues
     : mapping.embryoValue?.trim() ? [mapping.embryoValue.trim()] : []

@@ -6,8 +6,6 @@ export interface CanonicalCell {
   parentId?: string
   treeOrder: number
   xPosition: number
-  birthTime: number
-  endTime: number
   depth: number
   founder: string
 }
@@ -19,8 +17,6 @@ interface CanonicalCsvRow {
   founder_lineage: string
   depth_from_P0: string
   x_position: string
-  birth_time_min: string
-  end_time_min: string
 }
 
 const parsed = Papa.parse<CanonicalCsvRow>(canonicalCsv, {
@@ -38,8 +34,6 @@ for (const row of parsed.data) {
     parentId: row.parent?.trim() || undefined,
     treeOrder: Number(row.tree_order) || Number.MAX_SAFE_INTEGER,
     xPosition: Number(row.x_position) || 0,
-    birthTime: Number(row.birth_time_min) || 0,
-    endTime: Number(row.end_time_min) || 0,
     depth: Number(row.depth_from_P0) || 0,
     founder: row.founder_lineage || 'Unresolved',
   })
@@ -73,8 +67,6 @@ for (const [id, parentId] of Object.entries(earlyParents)) {
       parentId,
       treeOrder: Number.MAX_SAFE_INTEGER,
       xPosition: Number.MAX_SAFE_INTEGER,
-      birthTime: 0,
-      endTime: 0,
       depth: 0,
       founder: id,
     })

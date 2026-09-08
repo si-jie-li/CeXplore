@@ -35,7 +35,7 @@ Supported formats:
 - TSV or other consistently delimited text
 - XLS/XLSX (choose a worksheet during column mapping)
 
-Required mappings are cell ID/name, AP, LR, and VD. Time, frame, parent cell, and embryo/sample ID are optional. If both time and frame exist, choose which one controls playback. With no temporal column the spatial data is shown as one static state and the tree uses the built-in canonical developmental-time table.
+Required mappings are cell ID/name, AP, LR, VD, and either Time or Frame. Parent cell and embryo/sample ID are optional. If both temporal columns exist, choose which one controls playback. For Time input, equal numeric time values form one frame, unique values are played in ascending order, and values are interpreted as minutes on the lineage tree. For Frame input, enter the seconds represented by one frame; the lineage-tree y-axis displays `(frame × interval seconds) / 60` in minutes.
 
 Select one or several files in the file dialog. Each file is mapped in sequence. When an **Embryo / sample column** is mapped, CeXplore scans its distinct IDs and presents checkboxes; only checked embryos are retained. A file without an embryo column is treated as one embryo named after that file. Large CSV/TSV files are scanned in a Web Worker rather than loaded wholesale into memory.
 
@@ -62,12 +62,12 @@ Use **Explore example** on the opening screen to load the bundled dataset at `pu
 - Drag, right-drag, and scroll in the 3D view to rotate, pan, and zoom. The camera remains unchanged during playback; Reset and Focus move it only when explicitly clicked.
 - Open **Embryos** in the 3D header to show any subset of imported embryos. Use **Overlay** for their individual nuclei, **Mean position** to average each available cell across the checked embryos, or **Color by embryo** to distinguish overlaid embryos.
 - Play/pause, step, scrub the authoritative observations, and select 0.25×–4× playback speed. Positions are not interpolated.
-- Pan and zoom the classical SVG lineage tree. Vertical segments are cell lifetimes and horizontal segments are divisions. The y-axis uses uploaded time/frame, or canonical minutes when neither is supplied. The first six lineage levels are labeled; hover later branches for names. Choose **Cell** or **Lineage** click mode; Shift-click selects descendants and Command/Control-click adds or removes cells/lineages from the current selection.
+- Pan and zoom the classical SVG lineage tree. Vertical segments are cell lifetimes and horizontal segments are divisions. The y-axis is in minutes: Time input uses the uploaded minute values, while Frame input converts its seconds-per-frame interval to minutes. For a dataset beginning after fertilization, the axis starts at the first observed branch instead of inventing earlier times. The first six lineage levels are labeled; hover later branches for names. Choose **Cell** or **Lineage** click mode; Shift-click selects descendants and Command/Control-click adds or removes cells/lineages from the current selection.
 - Search or check multiple cells in the cell list. Its lineage button selects the cell plus represented descendants.
 - Choose a palette color after selecting cells. The same persistent color is applied to 3D nuclei, list markers, and lineage branches. “Save colored selection as a group” is enabled by default.
 - Rename, recolor, show/hide, select, focus, or delete saved groups in the **Cell groups** tab.
 - Use **Color groups**, **Highlight**, or **Isolate** display mode. Several visible groups can be shown together.
-- Turn on trails for selected cells and choose 5, 10, 25, or all previous frames. Labels and AP/LR/VD axes are optional.
+- Turn on trails for saved cell groups (all groups and all previous frames by default), choose exactly which groups to show, and retain trails after clearing the live selection. Old/distant trail points are nearly transparent, pale, and desaturated; they become opaque, darker, and more saturated toward recent/current time. Adjust trail width from 0.5–4 px to balance visibility against clutter. Mother endpoints are connected to each observed daughter with the same time gradient. With no saved groups, trails fall back to the current selection.
 - Hover or click a nucleus to see original coordinates, parent, ancestors, and represented-descendant count.
 - Expand **Group analysis** to calculate selected metrics only when requested. Each selected embryo/time is measured independently with a symmetric kNN graph. The panel shows cohort median/IQR time trends, current and across-time embryo tables, local size-matched random-group comparisons, and full CSV export.
 - Export/import a small session JSON containing mapping, groups, colors, and display settings. The source dataset itself is not duplicated.
@@ -78,7 +78,7 @@ Use **Explore example** on the opening screen to load the bundled dataset at `pu
 src/
   data/          multi-file inspection/loading, validation, embryo views, frame/trajectory indexes
   analysis/      dynamic lineage membership, kNN metrics, matched null, Worker, CSV summaries
-  lineage/       canonical table adapter, resolver, descendants, static tree layout
+  lineage/       canonical parent adapter, resolver, descendants, SVG tree layout
   state/         shared Zustand state, groups, colors, playback, cell appearance
   components/    loader, mapper, SVG tree, instanced 3D view, lists, controls, info
   services/      clean query API for future quantitative work
@@ -93,14 +93,14 @@ The canonical adapter reads the repository-local `src/lineage/data/complete_embr
 
 Original coordinates are retained for inspection. Rendering subtracts the global center and applies one uniform scale based on the largest axis span, preserving anisotropy rather than stretching axes independently. The mapper and viewer label the three coordinates AP/LR/VD. CeXplore does not infer orientation or flip signs: the user must map columns whose meanings and signs already match those biological axes.
 
-Missing IDs, invalid coordinates/time values, and duplicates create import warnings. Invalid rows are skipped; for a duplicate cell within the same embryo and time/frame, the last valid observation wins. Cells may appear or disappear between frames. Playback always displays supplied observations, with no interpolation. Mean mode averages only embryos in which that cell has an observation at the current time.
+Missing IDs, invalid coordinates/time values, and duplicates create import warnings. Invalid rows are skipped; for a duplicate cell within the same embryo and uploaded time/frame, the last valid observation wins. Cells may appear or disappear between frames. Playback always displays supplied observations, with no interpolation. Mean mode averages only embryos in which that cell has an observation at the current time.
 
 ## Current limitations
 
-- Files combined in one import must use the same temporal mode, and their time/frame values must already be comparable.
+- Files combined in one import must use the same temporal mode, their time/frame values must already be comparable, and Frame files must use the same interval.
 - Multi-embryo overlays and means assume the coordinates are already registered to a common AP/LR/VD system; CeXplore does not perform embryo registration.
 - Canonical lineage coverage is limited to the supplied table; novel names need an explicit parent to resolve.
-- Tree branches use represented-cell birth/division times where they are observed. In an uploaded time/frame view, a missing connecting ancestor is placed one observed step before its earliest child; with no temporal column the canonical minute clock is used directly. This remains an exploratory view, not embryo-specific lineage-time calibration.
+- Tree branches use represented-cell birth/division values where they are observed. Missing connecting ancestors are collapsed onto their first observed descendant, so a partial-stage dataset begins at its first represented branches. This remains an exploratory view, not embryo-specific lineage-time calibration.
 - XLSX parsing loads the selected workbook into memory, while CSV/TSV parsing is streamed.
 - Labels are capped to selected cells when a frame contains more than 160 nuclei to protect interaction speed.
 - Overlapping groups use the most recently created visible group’s color for shared cells.

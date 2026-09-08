@@ -50,7 +50,7 @@ function AppHeader() {
       </div>
       <div className="dataset-summary">
         <strong title={dataset.name}>{dataset.name}</strong>
-        <span>{dataset.sources.length} file{dataset.sources.length === 1 ? '' : 's'} · {activeEmbryoIds.size}/{dataset.embryos.length} embryos shown · {dataset.cellIds.length} cells · {dataset.frameValues.length} {dataset.temporalMode === 'generation' ? 'state' : dataset.temporalMode === 'time' ? 'time points' : 'frames'} · {formatBytes(dataset.sourceSize)}</span>
+        <span>{dataset.sources.length} file{dataset.sources.length === 1 ? '' : 's'} · {activeEmbryoIds.size}/{dataset.embryos.length} embryos shown · {dataset.cellIds.length} cells · {dataset.frameValues.length} {dataset.temporalMode === 'time' ? 'time frames' : 'frames'} · {formatBytes(dataset.sourceSize)}</span>
       </div>
       <div className="header-actions">
         <FileLoader compact />

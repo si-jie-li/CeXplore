@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ColumnMapping, EmbryoDescriptor } from './types'
 import { buildDatasetFromRows } from './frameIndex'
-import { getCellTrajectories, getFrameObservations, MEAN_EMBRYO_ID } from './embryoView'
+import { getCellTrajectories, getDivisionConnections, getFrameObservations, MEAN_EMBRYO_ID } from './embryoView'
 
 const mapping: ColumnMapping = {
   cellId: 'cell', x: 'AP', y: 'LR', z: 'VD', frame: 'frame', playback: 'frame',
@@ -44,5 +44,32 @@ describe('multi-embryo views', () => {
     const mean = getCellTrajectories(dataset, 'AB', new Set(['e1', 'e2']), 'mean', 1, 2)
     expect(mean).toHaveLength(1)
     expect(mean[0].points.map((point) => point.x)).toEqual([1, 3])
+  })
+
+  it('connects a mother trajectory to both daughters in overlay and mean modes', () => {
+    const divisionDataset = buildDatasetFromRows([
+      { embryoId: 'e1', cellId: 'AB', temporal: 1, x: 0, y: 0, z: 0 },
+      { embryoId: 'e1', cellId: 'ABa', temporal: 2, x: 1, y: 1, z: 0 },
+      { embryoId: 'e1', cellId: 'ABp', temporal: 2, x: 1, y: -1, z: 0 },
+      { embryoId: 'e2', cellId: 'AB', temporal: 1, x: 2, y: 0, z: 0 },
+      { embryoId: 'e2', cellId: 'ABa', temporal: 2, x: 3, y: 1, z: 0 },
+      { embryoId: 'e2', cellId: 'ABp', temporal: 2, x: 3, y: -1, z: 0 },
+    ], { name: 'division', mapping, embryos })
+    const cells = new Set(['AB', 'ABa', 'ABp'])
+    const parents = new Map<string, string | undefined>([['ABa', 'AB'], ['ABp', 'AB']])
+
+    const overlay = getDivisionConnections(
+      divisionDataset, cells, parents, new Set(['e1', 'e2']), 'overlay', -Infinity, 2,
+    )
+    expect(overlay).toHaveLength(4)
+    expect(overlay.map((connection) => `${connection.embryoId}:${connection.parentCellId}>${connection.childCellId}`))
+      .toEqual(['e1:AB>ABa', 'e1:AB>ABp', 'e2:AB>ABa', 'e2:AB>ABp'])
+
+    const mean = getDivisionConnections(
+      divisionDataset, cells, parents, new Set(['e1', 'e2']), 'mean', -Infinity, 2,
+    )
+    expect(mean).toHaveLength(2)
+    expect(mean[0].points.map((point) => point.x)).toEqual([1, 2])
+    expect(mean.map((connection) => connection.childCellId)).toEqual(['ABa', 'ABp'])
   })
 })

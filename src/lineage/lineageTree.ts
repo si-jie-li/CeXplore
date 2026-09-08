@@ -45,7 +45,7 @@ export interface LineageLayout {
   minValue: number
   maxValue: number
   axisLabel: string
-  usesCanonicalTime: boolean
+  valueScale: number
 }
 
 function nodeSort(a: LineageNode, b: LineageNode) {
@@ -71,7 +71,25 @@ function formatTick(value: number) {
   return value.toFixed(1).replace(/\.0$/, '')
 }
 
-export function createLineageLayout(model: LineageModel, mode: TemporalMode): LineageLayout {
+export function lineageAxisValue(
+  step: number,
+  mode: TemporalMode,
+  frameIntervalSeconds = 1,
+) {
+  const safeInterval = Number.isFinite(frameIntervalSeconds) && frameIntervalSeconds > 0
+    ? frameIntervalSeconds
+    : 1
+  return mode === 'frame' ? (step * safeInterval) / 60 : step
+}
+
+export function createLineageLayout(
+  model: LineageModel,
+  mode: TemporalMode,
+  frameIntervalSeconds = 1,
+): LineageLayout {
+  const valueScale = mode === 'frame'
+    ? lineageAxisValue(1, mode, frameIntervalSeconds)
+    : 1
   const depths = new Map<string, number>()
   const visitDepth = (id: string, depth: number) => {
     if ((depths.get(id) ?? Infinity) <= depth) return
@@ -101,13 +119,21 @@ export function createLineageLayout(model: LineageModel, mode: TemporalMode): Li
   model.roots.forEach(placeInternal)
 
   const observedSteps = [...new Set([...model.nodes.values()].flatMap((node) => (
-    node.summary ? [node.summary.firstStep, node.summary.lastStep] : []
+    node.summary
+      ? [
+          lineageAxisValue(node.summary.firstStep, mode, frameIntervalSeconds),
+          lineageAxisValue(node.summary.lastStep, mode, frameIntervalSeconds),
+        ]
+      : []
   )))].sort((a, b) => a - b)
   const positiveObservedGaps = observedSteps
     .slice(1)
     .map((value, index) => value - observedSteps[index])
     .filter((gap) => gap > Number.EPSILON)
-  const observedStep = positiveObservedGaps.length ? Math.min(...positiveObservedGaps) : 1
+  const observedStep = positiveObservedGaps.length
+    ? Math.min(...positiveObservedGaps)
+    : valueScale
+  const firstObservedValue = observedSteps[0] ?? 0
 
   const birthValues = new Map<string, number>()
   const birthValueFor = (id: string): number => {
@@ -115,11 +141,14 @@ export function createLineageLayout(model: LineageModel, mode: TemporalMode): Li
     if (known !== undefined) return known
     const node = model.nodes.get(id)!
     let value: number
-    if (mode === 'generation' && node.canonical) value = node.canonical.birthTime
-    else if (node.summary) value = node.summary.firstStep
-    else {
+    if (node.summary) {
+      value = lineageAxisValue(node.summary.firstStep, mode, frameIntervalSeconds)
+    } else {
       const childValues = node.children.map(birthValueFor)
-      value = childValues.length ? Math.min(...childValues) - observedStep : 0
+      // A connecting ancestor has no uploaded timestamp. Place it at its first
+      // observed descendant instead of inventing an earlier frame/time. This
+      // keeps partial-stage datasets aligned with the first visible branches.
+      value = childValues.length ? Math.min(...childValues) : firstObservedValue
     }
     birthValues.set(id, value)
     return value
@@ -133,19 +162,22 @@ export function createLineageLayout(model: LineageModel, mode: TemporalMode): Li
     const childBirths = node.children.map((child) => birthValues.get(child) ?? birth)
     let end: number
     if (childBirths.length) end = Math.min(...childBirths)
-    else if (mode !== 'generation' && node.summary) {
-      end = node.summary.lastStep > birth ? node.summary.lastStep : birth + observedStep
-    }
-    else if (mode === 'generation' && node.canonical) end = node.canonical.endTime
-    else end = birth + (mode === 'generation' ? 12 : observedStep)
-    endValues.set(node.id, Math.max(end, birth + Number.EPSILON))
+    else if (node.summary) {
+      const last = lineageAxisValue(node.summary.lastStep, mode, frameIntervalSeconds)
+      end = last > birth ? last : birth + observedStep
+    } else end = birth
+    endValues.set(node.id, Math.max(end, node.represented ? birth + Number.EPSILON : birth))
   }
 
-  const rawMin = Math.min(...birthValues.values(), 0)
+  const rawMin = birthValues.size ? Math.min(...birthValues.values()) : 0
   const rawMax = Math.max(...endValues.values(), rawMin + 1)
   const tickStep = niceStep(rawMax - rawMin)
-  const minValue = Math.floor(rawMin / tickStep) * tickStep
-  const maxValue = Math.max(Math.ceil(rawMax / tickStep) * tickStep, minValue + tickStep)
+  // The first tick is the first branch value, not an arbitrary rounded zero.
+  const minValue = rawMin
+  const maxValue = Math.max(
+    minValue + Math.ceil((rawMax - minValue) / tickStep) * tickStep,
+    minValue + tickStep,
+  )
   const range = maxValue - minValue
   const height = Math.max(620, Math.min(1120, range * 3.2 + plotTop + plotBottomPadding))
   const plotBottom = height - plotBottomPadding
@@ -207,7 +239,7 @@ export function createLineageLayout(model: LineageModel, mode: TemporalMode): Li
     plotBottom,
     minValue,
     maxValue,
-    axisLabel: mode === 'generation' ? 'Canonical developmental time (min)' : mode === 'time' ? 'Developmental time' : 'Frame',
-    usesCanonicalTime: mode === 'generation',
+    axisLabel: mode === 'time' ? 'Developmental time (minutes)' : 'Elapsed time (minutes)',
+    valueScale,
   }
 }

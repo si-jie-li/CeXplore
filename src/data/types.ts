@@ -1,4 +1,4 @@
-export type TemporalMode = 'time' | 'frame' | 'generation'
+export type TemporalMode = 'time' | 'frame'
 
 export interface ColumnMapping {
   cellId: string
@@ -7,7 +7,9 @@ export interface ColumnMapping {
   z: string
   time?: string
   frame?: string
-  playback: 'time' | 'frame' | 'none'
+  playback: TemporalMode
+  /** Seconds represented by one frame; used to scale the lineage-tree y-axis. */
+  frameIntervalSeconds?: number
   parent?: string
   embryo?: string
   embryoValues?: string[]

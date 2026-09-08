@@ -99,7 +99,16 @@ export function FileLoader({ compact = false }: FileLoaderProps) {
     try {
       const firstPlayback = accumulatedSources.current[0]?.mapping.playback
       if (firstPlayback && firstPlayback !== mapping.playback) {
-        throw new Error('All files in one import must use the same playback mode: Time, Frame, or Static.')
+        throw new Error('All files in one import must use the same playback mode: Time or Frame.')
+      }
+      const firstFrameInterval = accumulatedSources.current[0]?.mapping.frameIntervalSeconds ?? 1
+      const frameInterval = mapping.frameIntervalSeconds ?? 1
+      if (
+        firstPlayback === 'frame'
+        && mapping.playback === 'frame'
+        && Math.abs(firstFrameInterval - frameInterval) > Number.EPSILON
+      ) {
+        throw new Error('All Frame files in one import must use the same frame interval.')
       }
       const rows = await loadMappedRows(file, inspection, mapping, ({ processedRows, retainedRows }) => {
         setProgress(`${fileIndex + 1}/${files.length} · ${processedRows.toLocaleString()} rows scanned · ${retainedRows.toLocaleString()} retained`)

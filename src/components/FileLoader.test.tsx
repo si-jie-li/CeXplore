@@ -22,6 +22,7 @@ describe('multi-file import flow', () => {
     ] } })
 
     expect(await screen.findByText(/file 1 of 2/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Static|canonical time/i })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Load & continue' }))
     expect(await screen.findByText(/file 2 of 2/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Load selected' }))
@@ -31,6 +32,7 @@ describe('multi-file import flow', () => {
     expect(dataset.sources).toHaveLength(2)
     expect(dataset.frameIndex.get(1)).toHaveLength(2)
     expect(dataset.embryos.map((embryo) => embryo.label)).toEqual(['first', 'second'])
+    expect(dataset.mapping.frameIntervalSeconds).toBe(1)
   })
 
   it('lists embryo IDs from one file and imports every checked embryo', async () => {
@@ -48,5 +50,20 @@ AB,1,2,0,0,emb_2
 
     await waitFor(() => expect(useExplorerStore.getState().dataset?.embryos).toHaveLength(2))
     expect(useExplorerStore.getState().dataset?.frameIndex.get(1)).toHaveLength(2)
+  })
+
+  it('stores the user-entered frame interval for the lineage time axis', async () => {
+    const { container } = render(<FileLoader />)
+    const input = container.querySelector('input[type=file]') as HTMLInputElement
+    fireEvent.change(input, { target: { files: [
+      new File([first], 'interval.csv', { type: 'text/csv' }),
+    ] } })
+
+    const interval = await screen.findByRole('spinbutton', { name: 'Frame interval in seconds' })
+    fireEvent.change(interval, { target: { value: '75' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Load selected' }))
+
+    await waitFor(() => expect(useExplorerStore.getState().dataset).toBeDefined())
+    expect(useExplorerStore.getState().dataset?.mapping.frameIntervalSeconds).toBe(75)
   })
 })

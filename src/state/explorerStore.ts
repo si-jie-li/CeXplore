@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { EmbryoDataset, Observation } from '../data/types'
 import type { EmbryoViewMode } from '../data/embryoView'
 import { getDescendants, type LineageModel } from '../lineage/lineageResolver'
+import type { TrailGroupSelection } from './trails'
 
 export type DisplayMode = 'color' | 'isolate' | 'highlight'
 export type TrailLength = 5 | 10 | 25 | 'all'
@@ -32,6 +33,8 @@ export interface ExplorerSettings {
   showAxes: boolean
   showTrajectories: boolean
   trailLength: TrailLength
+  trailGroupIds: TrailGroupSelection
+  trailWidth: number
   embryoViewMode: EmbryoViewMode
   colorByEmbryo: boolean
 }
@@ -95,7 +98,9 @@ const defaultSettings: ExplorerSettings = {
   showLabels: false,
   showAxes: true,
   showTrajectories: false,
-  trailLength: 10,
+  trailLength: 'all',
+  trailGroupIds: 'all',
+  trailWidth: 1.1,
   embryoViewMode: 'overlay',
   colorByEmbryo: false,
 }

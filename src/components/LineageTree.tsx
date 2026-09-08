@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { select } from 'd3-selection'
 import { zoom, zoomIdentity, type ZoomBehavior } from 'd3-zoom'
 import { GitBranch, LocateFixed } from 'lucide-react'
-import { createLineageLayout } from '../lineage/lineageTree'
+import { createLineageLayout, lineageAxisValue } from '../lineage/lineageTree'
 import { getCellAppearance } from '../state/cellAppearance'
 import { useExplorerStore } from '../state/explorerStore'
+import { formatNumber } from '../utils/format'
 
 type ClickMode = 'cell' | 'lineage'
 
@@ -28,14 +29,23 @@ export function LineageTree() {
   const selectLineage = useExplorerStore((state) => state.selectLineage)
   const setInspectedCell = useExplorerStore((state) => state.setInspectedCell)
   const layout = useMemo(
-    () => createLineageLayout(lineage, dataset.temporalMode),
-    [dataset.temporalMode, lineage],
+    () => createLineageLayout(
+      lineage,
+      dataset.temporalMode,
+      dataset.mapping.frameIntervalSeconds,
+    ),
+    [dataset.mapping.frameIntervalSeconds, dataset.temporalMode, lineage],
   )
   const layoutNodeById = useMemo(
     () => new Map(layout.nodes.map((node) => [node.id, node])),
     [layout.nodes],
   )
   const currentValue = dataset.frameValues[currentFrameIndex] ?? 0
+  const currentAxisValue = lineageAxisValue(
+    currentValue,
+    dataset.temporalMode,
+    dataset.mapping.frameIntervalSeconds,
+  )
   const activeCellRanges = useMemo(() => {
     const ranges = new Map<string, { first: number; last: number }>()
     for (const observation of dataset.observations) {
@@ -74,11 +84,10 @@ export function LineageTree() {
   }, [layout])
 
   const statusFor = (id: string) => {
-    if (dataset.temporalMode === 'generation') return 'static'
     const range = activeCellRanges.get(id)
     if (!range) {
       const birthValue = layoutNodeById.get(id)?.birthValue ?? 0
-      return currentValue < birthValue ? 'future' : 'past'
+      return currentAxisValue < birthValue ? 'future' : 'past'
     }
     if (currentValue < range.first) return 'future'
     if (currentValue > range.last) return 'past'
@@ -94,11 +103,9 @@ export function LineageTree() {
     unselectedOpacity: settings.unselectedOpacity,
   })
 
-  const currentLineY = dataset.temporalMode === 'generation'
-    ? undefined
-    : layout.plotTop
-      + ((currentValue - layout.minValue) / Math.max(layout.maxValue - layout.minValue, 1))
-        * (layout.plotBottom - layout.plotTop)
+  const currentLineY = layout.plotTop
+    + ((currentAxisValue - layout.minValue) / Math.max(layout.maxValue - layout.minValue, 1))
+      * (layout.plotBottom - layout.plotTop)
 
   const clickBranch = (cellId: string, shiftKey: boolean, additive: boolean) => {
     const node = lineage.nodes.get(cellId)
@@ -124,9 +131,9 @@ export function LineageTree() {
       <div className="panel-heading">
         <div>
           <span className="panel-kicker">
-            {layout.usesCanonicalTime
-              ? 'Canonical time axis'
-              : dataset.temporalMode === 'time' ? 'Time axis' : 'Frame axis'}
+            {dataset.temporalMode === 'time'
+              ? 'Time axis'
+              : `Frame axis · ${dataset.mapping.frameIntervalSeconds ?? 1} s/frame`}
           </span>
           <h2>Lineage tree</h2>
         </div>
@@ -162,10 +169,14 @@ export function LineageTree() {
               </text>
             </g>
 
-            {currentLineY !== undefined && currentLineY >= layout.plotTop && currentLineY <= layout.plotBottom && (
+            {currentLineY >= layout.plotTop && currentLineY <= layout.plotBottom && (
               <g className="current-time-marker">
                 <line x1={layout.plotLeft} x2={layout.plotRight} y1={currentLineY} y2={currentLineY} />
-                <text x={layout.plotLeft + 6} y={currentLineY - 6}>{currentValue}</text>
+                <text x={layout.plotLeft + 6} y={currentLineY - 6}>
+                  {dataset.temporalMode === 'frame'
+                    ? `${formatNumber(currentValue)} · ${formatNumber(currentAxisValue)} min`
+                    : `${formatNumber(currentValue)} min`}
+                </text>
               </g>
             )}
 
