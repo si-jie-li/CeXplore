@@ -5,6 +5,7 @@ import { FileLoader } from './components/FileLoader'
 import { LineageTree } from './components/LineageTree'
 import { ListPanel } from './components/ListPanel'
 import { ControlDeck } from './components/ControlDeck'
+import { AnalysisPanel } from './components/AnalysisPanel'
 import { createSessionConfiguration, useExplorerStore } from './state/explorerStore'
 import { formatBytes } from './utils/format'
 import { downloadJson, readSessionFile } from './utils/session'
@@ -93,6 +94,7 @@ function LoadedWorkspace() {
         <Embryo3D />
         <ListPanel />
         <ControlDeck />
+        <AnalysisPanel />
       </main>
     </div>
   )

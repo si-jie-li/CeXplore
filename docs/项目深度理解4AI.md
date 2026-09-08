@@ -1,0 +1,493 @@
+# CeXplore 项目深度理解 4AI 与后续开发地图
+
+> 这是一份面向 AI/开发者后续续建的源码级心智模型，不替代用户手册或指标方法文档。结论以当前工作区（`HEAD ca1e23c` 加尚未提交的 group-analysis 更新）源码、测试和生产构建为准，最后复核于 2026-09-08。
+
+## 1. 项目本质与边界
+
+CeXplore 是一个纯浏览器端的 *C. elegans* 胚胎细胞谱系、3D 核位置和群体空间指标探索器。它把多个来源文件标准化为一个内存数据集，让谱系树、3D 胚胎、细胞列表、分组、颜色和时间轴共享同一个 Zustand 状态；新增的分析抽屉再按需把当前 group 与 displayed embryos 转成独立 Worker 请求。
+
+当前产品边界很明确：
+
+- 输入是 CSV、TSV/TXT 或 XLS/XLSX；没有后端、数据库、账号或云同步。
+- 位置只展示输入观测，不插值、不配准、不推断坐标轴方向。
+- 多胚胎 `Mean position` 是当前时间点、当前选中胚胎中“存在该 cell 的观测”的算术平均。
+- 谱系来自仓库内 canonical 表，输入的非空 parent 可以覆盖 canonical parent。
+- Session 只保存映射、颜色、分组和显示设置，不保存 observation。
+- Group analysis 已接入 UI，但只在用户点击 Run analysis 后计算；它不使用 3D Mean position，而是逐 embryo、逐真实 time/frame 独立测量。
+- 当前四项指标和 matched null 是探索性描述，不是因果检验、正式显著性检验或多重比较校正。
+
+## 2. 一张图理解运行链路
+
+```text
+main.tsx
+  └─ App
+      ├─ 无 dataset：欢迎页 + FileLoader
+      └─ 有 dataset：
+          ├─ AppHeader（数据摘要、重新导入、Session）
+          ├─ 四块共享视图
+              ├─ LineageTree（SVG + D3 zoom）
+              ├─ Embryo3D（Three.js/WebGL）
+              ├─ ListPanel（Cells / Cell groups）
+              └─ ControlDeck（播放、显示、CellInfo）
+          └─ AnalysisPanel（覆盖式、可收起的按需分析抽屉）
+
+文件选择
+  → inspectFile：只预览 header / worksheet
+  → ColumnMapper：列映射，并扫描 embryo ID
+  → loadMappedRows：按已选 embryo 解析所需行
+  → FileLoader：给 source/embryo 建内部 ID，顺序合并多个文件
+  → buildDatasetFromRows：清洗、去重、归一化、建索引
+  → resolveLineage：canonical + supplied parent，补连接祖先
+  → useExplorerStore.setDataset
+  → 所有视图响应同一个 store
+
+用户点击 Run analysis
+  → 当前 selection/saved group + activeEmbryoIds + 参数
+  → 从 embryoIndex 复制选中 embryo 的 cellId/step/AP/LR/VD
+  → Web Worker：dynamic membership → per-embryo/time kNN → metrics + null
+  → GroupAnalysisResult：趋势图、当前汇总、胚胎表、CSV
+```
+
+项目的关键设计不是某一个组件，而是四条稳定边界：
+
+1. `RawMappedRow → EmbryoDataset`：文件格式在此之后不再影响业务代码。
+2. `EmbryoDataset → LineageModel`：空间观测与谱系拓扑分离。
+3. Zustand store：所有交互只改一份 authoritative state，视图不各存一份 selection。
+4. `GroupAnalysisRequest → GroupAnalysisResult`：分析是可序列化纯数据合同，计算层不依赖 React、Three.js 或 Zustand。
+
+## 3. 核心数据模型
+
+### 3.1 `ColumnMapping`
+
+保存用户为某个 source 选择的列：cell、AP/LR/VD、time/frame/static、parent、embryo 和 worksheet。`embryoValues` 是当前多选字段；单值 `embryoValue` 只为读取 v0.1 session 保留。
+
+多文件数据集同时保留：
+
+- 顶层 `dataset.mapping`：第一份 source 的 mapping，主要用于兼容和 Session 导出；
+- `dataset.sources[].mapping`：每份文件自己的真实 mapping。
+
+### 3.2 `Observation`
+
+这是渲染和查询的基本单位：
+
+```ts
+{
+  cellId,
+  embryoId,          // 内部 namespaced ID，不是原始 label
+  step,              // time、frame，或 static 时的 0
+  x, y, z,           // 原始 AP/LR/VD，供信息面板和分析使用
+  renderX/Y/Z,       // 全局中心化和统一缩放后的渲染坐标
+  parentId?,
+  contributingEmbryoIds? // 只用于 mean observation
+}
+```
+
+内部 embryo ID 使用 `source-N::encodeURIComponent(originalId)`，所以不同文件中同名 embryo 不会碰撞。没有 embryo 列的文件被当作一个 embryo，label 为去扩展名后的文件名。
+
+### 3.3 `EmbryoDataset`
+
+除 observation 外，构建阶段一次性生成：
+
+- `frameValues`：所有 observation 的唯一 step 升序并集；
+- `frameIndex: Map<step, Observation[]>`：当前帧读取入口；
+- `embryoIndex: Map<embryoId, Observation[]>`：按 embryo 快速准备分析请求；值仍引用原 observation，不在 dataset 内复制对象；
+- `trajectoryIndex: Map<embryoId + NUL + cellId, Observation[]>`：单 embryo 单 cell 轨迹；
+- `cells` / `cellIds`：跨所有 embryo 汇总的 cell 摘要；
+- `parentOverrides`：按 `cellId` 汇总的非空 supplied parent；
+- `bounds`：所有 embryo、所有 step 的全局坐标范围；
+- `sources` / `embryos`：来源和显示元数据；
+- `warnings`：无效行和重复行统计。
+
+重要含义：`cells`、bounds、谱系布局都是整个导入数据集级别，不随当前勾选 embryo 重建。`embryoIndex` 只改善读取路径；启动分析时仍会把被选 embryo 的最小字段复制为 Worker 可 structured-clone 的普通对象。
+
+### 3.4 `LineageModel`
+
+每个 `LineageNode` 记录 parent、children、是否真实出现在数据中（`represented`）、是否解析成功、关系来源和 canonical/observation 摘要。
+
+`represented: false` 的节点不是虚假 observation，而是为了把稀疏数据接回谱系根而插入的 connecting ancestor。Lineage selection 默认只返回 represented descendants，因此不会把这些连接节点塞进 cell group。
+
+### 3.5 Analysis 数据合同
+
+分析层不直接传递 `EmbryoDataset`、Map 或 store。`GroupAnalysisRequest` 只包含：
+
+- dataset 名和 temporal mode；
+- 本次 captured embryo IDs；
+- 精简后的 `{cellId, embryoId, step, x, y, z}`；
+- 扁平 `parentByCell`；
+- group snapshot、metric 列表、k、null 次数、minimum group size 和随机种子。
+
+`GroupAnalysisResult.points` 的每一行是一个 `embryoId × step`，包含 group size、该帧总细胞数、low-n eligibility，以及所选 metric 的 observed/null/z/percentile。group 不存在的帧也保留 row，但 metric 字段为空。
+
+## 4. 导入流程与数据规则
+
+### 4.1 导入是逐文件状态机
+
+`FileLoader` 使用 React state 保存当前文件和 inspection，使用 refs 累积 rows、sources 和 embryo descriptors：
+
+1. 一次选择一个或多个文件；
+2. 逐个 `inspectFile` 并弹出 Column Mapper；
+3. 如映射 embryo 列，完整扫描一次 distinct IDs，默认只选第一个；
+4. 用户确认后再次解析文件，只保留已选 embryo；
+5. 当前文件成功后进入下一文件；
+6. 最后一份文件完成后统一构建 dataset 和 lineage，再原子写入 store。
+
+多文件只强制 `playback` 类型一致，即都为 Time、Frame 或 Static；代码不验证列名、单位、采样间隔或数值范围是否真的可比较。
+
+### 4.2 CSV/TSV 与 XLSX 路径不同
+
+- Delimited 文件：Papa Parse `worker: true` + `step`，逐行扫描；不匹配的 embryo 立即丢弃。但所有保留行仍会累积在内存中，随后再统一建 dataset。
+- XLS/XLSX：动态 import SheetJS，整个 workbook 读入内存，再选 worksheet 和过滤。
+- 文件 inspection 对 delimited 文件只读取前 512 KiB，最多取 200 行解析、50 行 sample。
+
+### 4.3 清洗和去重
+
+`buildDatasetFromRows` 的有效行条件是：
+
+- 非空 `cellId`；
+- AP/LR/VD 都可转换为有限数；
+- 非 Static 模式下 step 可转换为有限数。
+
+重复键为 `(internal embryoId, numeric step, cellId)`，最后一个有效值覆盖之前值。parent 只要非空就写入全局 `parentOverrides[cellId]`，因此不同 embryo/source 对同一 cell 给出冲突 parent 时，最后出现的非空值胜出，目前没有冲突 warning，也不是 embryo-specific lineage。
+
+### 4.4 坐标归一化
+
+原始 `x/y/z` 永远保留。渲染坐标使用所有 observation 的全局中心，并用最大轴跨度计算一个统一比例，使最长轴长度为 16：
+
+```text
+renderAxis = (originalAxis - globalCenterAxis) * 16 / max(AP span, LR span, VD span)
+```
+
+三个轴没有分别拉伸，所以输入的各向异性被保留。多个 embryo 必须预先位于共同 AP/LR/VD 坐标系；应用不做 registration、旋转、翻转或符号推断。
+
+## 5. 时间语义
+
+`mapping.playback` 最终映射为：
+
+- `time → temporalMode: 'time'`
+- `frame → temporalMode: 'frame'`
+- `none → temporalMode: 'generation'`，所有空间 observation 的 step 为 0
+
+时间轴滑块保存的是 `currentFrameIndex`，真正的时间/帧值通过 `dataset.frameValues[index]` 获取。这允许 1、2、5、20 这类不连续 step，但播放每次仍只是前进到下一个 observation step。
+
+播放定时器间隔固定为 `360ms / playbackSpeed`，不会按相邻 time 值的真实差值等待；到末尾后循环到开头。轨迹长度 5/10/25 表示之前多少个 `frameValues`，即使 temporal mode 是 time，界面仍称其为 frames。
+
+分析同样使用 authoritative numeric step：不同 embryo 只有 step 数值完全相同才会进入同一个 cohort 时间切片；不做时间插值、时间配准或 nearest-time pooling。点击分析曲线时，UI 才把所点 series step 映射到 dataset 中最近的 `frameValues` index。
+
+## 6. 多胚胎视图的真实语义
+
+`activeEmbryoIds` 至少保留一个有效 embryo，默认全选。
+
+### Overlay
+
+返回当前 step 中属于 active embryos 的原 observation。同名 cell 可以同时出现多次。轨迹按 embryo 分开；CellInfo 在 hover 时知道具体 observation，只有通过其他视图选中 cell 时，会显示当前可见列表中找到的第一个 embryo observation。
+
+### Mean position
+
+先按 cell 分组，再平均原始坐标和 render 坐标。分母是该 step 实际存在该 cell 的 active embryos 数量，而不是所有 active embryos 数量。结果的 embryo ID 固定为 `__mean__`。
+
+### 谱系树与 active embryos
+
+- 树的拓扑和纵向布局来自整个 imported dataset 的 `cells` 汇总，因此不会随 embryo checkbox 改变。
+- `past/current/future` 状态会重新扫描 active embryos 的 observation range，所以视觉状态会变。
+- 多胚胎的 cell birth/last step 在基础 layout 中是全局最早/最晚值，不代表某一个胚胎的精确 lineage timing。
+
+### Group analysis 与 active embryos
+
+- 分析读取运行按钮被点击当时的 `activeEmbryoIds`，与 3D 面板的 Overlay/Mean 开关无关；
+- 每个 embryo/step 单独建图和计算，绝不先合并 embryo；
+- active embryos 后续改变时，旧结果保留但标记 stale，不自动重算；
+- cohort median/IQR 只汇总在该 exact step 有有效 metric 的 embryo，所以每个时间点的 `n` 可以不同。
+
+## 7. 谱系解析与布局
+
+### 7.1 Canonical 数据
+
+`complete_embryo_lineage_list.csv` 随 bundle 以 raw text 导入。当前表有 1,341 个唯一 cell、一个根 `P0`、无重复 cell ID、无缺失 parent 引用、无 parent cycle。
+
+`canonicalLineage.ts` 还显式覆盖早期非对称关系，包括 `P0/P1/P2/P3/P4`、`AB`、`EMS`、`MS`、`E`、`C`、`D`、`Z2`、`Z3`。因此绝不能用“删除 cell 名最后一个字符”替代当前解析器。
+
+### 7.2 关系优先级
+
+对每个 cell：
+
+```text
+非空 supplied parent > canonical parent > unresolved root
+```
+
+解析器沿 parent 向上补祖先，单条链最多走 64 层，并用 visited 防止解析阶段死循环；然后反向生成 children。后代和祖先查询也有 visited 防护。
+
+注意：布局算法假设最终拓扑无环。当前 canonical 表无环，但 supplied parent 没有显式 cycle validation；若输入造成环，可能没有 root，并可能使递归布局失败。将来自用户的自定义谱系扩展为正式功能前，应先加 parent conflict/cycle/depth validation。
+
+### 7.3 SVG 布局
+
+- 叶节点按 canonical `xPosition/treeOrder` 排序，未知叶按自然字符串顺序；
+- 内部节点 x 是 children x 的平均值；
+- cell lifetime 是竖线，division 是母节点 endY 上的水平线；
+- 上传 Time/Frame 时，represented cell 的 birth/last 来自全局 observation summary；
+- 缺失的连接祖先放在最早 child 前一个最小观测步长；
+- Static 时 canonical cell 使用 canonical minutes；
+- depth 0–5 标签常驻，更深标签 hover 才出现；
+- D3 只管理 zoom/pan transform，不负责谱系计算。
+
+Static 模式下没有 canonical timing 的 custom cell 会退回 observation step 0；若它被 supplied parent 接在 canonical 晚期节点下，可能产生不自然的纵向时间关系。这是自定义谱系正式化前需要修正的另一边界。
+
+## 8. 全局状态与交互同步
+
+`useExplorerStore` 是唯一共享状态，主要分为：
+
+- 数据：`dataset`, `lineage`
+- 播放：`currentFrameIndex`, `playing`, `playbackSpeed`
+- 多胚胎：`activeEmbryoIds`
+- 选择：`selection`, `selectionMeta`, `inspectedCellId`, `hoveredObservation`
+- 外观：`cellColors`, `groups`, `settings`
+- 相机命令：`cameraCommand { type, nonce }`
+
+Analysis 的 UI 状态是一个刻意的例外：drawer open、target、metrics、k、null sample、progress、result 和 stale fingerprint 都保存在 `AnalysisPanel` 本地 React state，不进入 Zustand，也不进入 Session。它只从 store 读取 dataset、lineage、groups、selection、active embryos 和 current frame，并用 `setCurrentFrameIndex` 把图表点击同步回全局时间轴。
+
+典型交互：
+
+```text
+点击 tree branch
+  → setSelection / selectLineage
+  → selection Set 更新
+  → tree、3D、cell list、CellInfo 同时重渲染
+  → applyColor
+  → cellColors 更新，可选创建显式 cellIds group
+```
+
+`toggleCells` 的批量语义是：如果传入 IDs 已全部选中则全部移除，否则全部添加。Command/Control-click lineage 因而可整体添加/移除；Shift-click强制按 lineage 选择。
+
+换帧不修改 `cameraCommand`。Reset/Focus 才递增 `nonce`，避免播放时相机被旧命令反复重置。Focus 只使用当前帧中存在的 selected observations；当前帧没有目标时不会移动。
+
+## 9. 颜色、分组和可见性优先级
+
+颜色规则集中在 `getCellAppearance`，三类视图共用。优先级为：
+
+```text
+最近创建的 visible group 颜色
+  > cellColors 中的持久颜色
+  > 当前 selection 红色
+  > 默认灰色
+```
+
+关键边界：
+
+- 一个 cell 属于多个 visible groups 时，数组中最后一个 group 的颜色胜出。
+- 一个 cell 属于至少一个 group、且它所属的所有 groups 都 hidden 时，它在所有 display modes 中都被隐藏。
+- `Highlight`：visible group、selection 或有 assigned color 的 cell 不透明，其他为 `unselectedOpacity`。
+- `Color groups`：着色/选择 cell 不透明，其他 opacity 为 0.62。
+- `Isolate`：有 group 时只显示 visible groups；只有整个 `groups` 为空时，selection 才可单独显示。
+- `Color by embryo` 只在 3D Overlay 中覆盖 cell/group 颜色；树和列表仍显示 cell/group 颜色，选中 nucleus 仍通过尺寸放大表达。
+
+`setGroupColor` 和 `deleteGroup` 会从现存 groups 重新生成整个 `cellColors`。因此，用“Save colored selection as a group”关闭后创建的 standalone cell color，可能在之后任一 group recolor/delete 时丢失。若后续要强化非 group 着色，应把 standalone colors 与 group-derived colors 分开存储。
+
+## 10. 3D 渲染实现
+
+3D 使用 React Three Fiber：
+
+- nucleus 共用一份低面数 sphere geometry；
+- 当前帧按 opacity 分成 opaque/subdued 两个 `InstancedMesh`；
+- 每帧更新 instance matrix 和 instance color，不为每个 nucleus 建独立 mesh；
+- mesh capacity 使用整个 dataset 的 `maxObservationsPerFrame`，足够容纳 overlay 的最大帧；
+- AP/LR/VD 映射到 Three.js X/Y/Z；
+- OrbitControls 管旋转、平移、缩放和 damping；
+- 标签通过 Drei `Html` 渲染；超过 160 个可见 observation 时只标 selection；
+- 点击 instance 依靠 `instanceId` 反查 observation。
+
+性能风险之一仍在 trajectories：Overlay 路径可直接命中 `trajectoryIndex`，但 Mean 路径对每个 selected cell 都会遍历时间窗口，并在每个 step 重新计算所有 cell mean。大 selection、长时间序列、多 embryo 时会呈乘法增长。它与新的 analysis Worker 是两条独立路径；analysis 没有解决 mean trail 的成本。
+
+## 11. Session 与兼容性
+
+Session schema 当前固定 `version: 1`，保存：
+
+- `datasetName`
+- 第一 source 的顶层 `mapping`
+- `cellColors`
+- `groups`
+- `settings`
+- `activeEmbryoIds`
+
+Session 不保存 analysis target、参数、运行结果或导出的 CSV。刷新页面会丢失分析结果；重新打开数据后必须再次 Run analysis。
+
+导入前必须已有 dataset。代码按当前 `cellIds` 过滤颜色和 group，并按当前 embryo IDs 过滤 active embryos；dataset 名不同只 warning，不阻止导入。保存的 mapping 不会被重新应用或比较。
+
+Session validation 是浅层的：只检查 version、groups 是数组、settings 存在。内部字段不合法时可能在 store import 阶段抛错并由 UI catch。多文件 dataset 名只是类似 `2 files`，所以它不是可靠身份标识。内部 embryo ID 依赖相同导入顺序（`source-1`, `source-2`）；改变文件顺序后 active embryo 恢复可能失效。
+
+若要把 Session 做成长期稳定格式，应增加 schema validation、source fingerprints、每 source mapping、稳定 embryo identity 和 migration。
+
+## 12. Group analysis 实现
+
+完整统计公式和面向使用者的解释见 `docs/群体空间指标.md`。本节强调代码真实行为、生命周期和扩展边界。
+
+### 12.1 Target 与动态成员
+
+Analysis target 可以来自当前 selection 或 saved group：
+
+- selectionMeta 是 `group` 时，重新找到原 saved group，保留其原始 `source/rootCell`；
+- `source === 'lineage'` 且有 `rootCell` 时，分析沿 `parentByCell` 扫描所有后代，再与每帧实际 cell IDs 相交；
+- `manual`、`cell` 和 `group` source 都只使用 explicit `cellIds`，不会自动跟随 division；
+- connecting ancestor 可存在于 parent map，但没有 observation 就不会进入 frame group。
+
+因此 lineage group 是“拓扑规则 + 当前帧存在性”，saved explicit IDs 只是可复现快照和起点。母细胞消失后，已出现的 daughters 会接替它；不存在的母细胞和未来后代不会同时计数。
+
+### 12.2 最小计算单位与主流程
+
+最小单位严格是一个 embryo 的一个真实 step：
+
+```text
+target snapshot + active embryo IDs + metrics/k/null
+  → 从 embryoIndex 抽取原始 x/y/z 最小字段
+  → structured clone 到 analysis.worker
+  → 按 embryoId + NUL + step 分帧并排序
+  → 动态 group membership ∩ frame cells
+  → 当前帧全部 nuclei 建一张 symmetric kNN graph
+  → observed metrics
+  → 同一张 graph 上计算 local size-matched null groups
+  → 一个 AnalysisPoint
+  → GroupAnalysisResult → chart/table/CSV
+```
+
+Analysis 从不使用 `renderX/Y/Z`、mean observation 或 overlay 后的数组。所有 metric 基于每个 embryo 原始 AP/LR/VD。不同 embryo 的 metric 只在计算结束后做 median/IQR 等汇总。
+
+`groupFrames` 会为选中 embryo 中每个有任意 observation 的 step 建 row；即使 group size 为 0 也保留。进度每完成 4 个 frame 或最后一个 frame报告一次。
+
+### 12.3 Symmetric kNN 与四项指标
+
+`buildSymmetricKnnGraph` 对每个 nucleus 找 k 个最近邻，只要 `i → j` 或 `j → i` 任一成立，就在无向图保留 `i—j`。有效 k 会 clamp 到 `0...n-1`，距离并列时按 frame array index 打破平局。实现扫描全部 pair，但只维护长度 k 的 nearest list，适合当前很小的 k。
+
+四项 metric 为：
+
+- `purity = 2E_internal / (2E_internal + E_boundary)`；单 cell 且无 incident edge 返回 0，其他无可用 edge 情况返回 null；
+- `connectedness = largest induced-group component size / group size`；单 cell 定义为 1；
+- `compactness = radius of gyration / 当前 embryo-step 全部 nuclei 的 AP span`；AP span 为 0 时返回 null；
+- `shape = (λ1 - λ3) / λ1`，λ 来自 group 原始坐标 population covariance 的 3×3 Jacobi eigenvalue；少于 2 cells 或 λ1 近 0 时为 null。
+
+Shape 的定义会让细线和薄平面都接近 1；必须结合导出的 `λ1/λ2/λ3` 才能区分 elongation 与 flatness。Compactness 只除以 AP span：对三轴统一缩放不变，但对 axis-specific scaling、未注册 embryo 或 AP span 异常敏感。
+
+### 12.4 Local size-matched null
+
+每个 embryo-step 独立构造 null：
+
+1. 求 observed group centroid；
+2. 用该帧各轴 span 标准化到 centroid 的平方距离；
+3. 候选池大小为 `min(total, max(4n, n+8, 24))`；
+4. 从候选池无放回抽 n 个 cell；
+5. 在同一 kNN graph 上计算相同指标；
+6. UI 可选 50/100/250 次，固定基础 seed 1729，再与 `hash(embryoId:step)` XOR。
+
+所以相同 request 可重复。候选池包含 observed group cells，random group 可与真实 group 重叠；它只局部匹配 size/region，不保持跨时间 identity、lineage、division history、fate 或初始形态。
+
+输出使用 population null SD：
+
+```text
+z = (observed - nullMean) / nullSd
+percentile = (1 + count(null <= observed)) / (validNullCount + 1)
+```
+
+Percentile 始终是 lower-tail empirical percentile，不按 metric 的 favorable direction 翻转，也不是双侧 p-value。Compactness 更紧凑对应负 z/低 percentile；其他指标的正 z 只表示数值高于 null。
+
+### 12.5 Low-n、warnings 与实际展示
+
+`minimumGroupSize` 当前固定为 4，但只生成 `eligible` flag：
+
+- group size 1–3 仍计算 metric 和 null；
+- 时间图、当前 cohort summary、Across-time median 和 descriptive insight 目前都不会过滤 `eligible === false`；
+- CSV 用 `minimum_n_pass` 暴露该标记；解释时必须由使用者过滤或谨慎处理；
+- group size 0 不计算 metric，但 row 仍导出。
+
+Runner 还会警告：所有帧都没有 group、没有任何 eligible frame、AP span 为 0，以及某些帧 group 等于整个 embryo。Purity 在“整个 embryo 都属于 group”时缺少外部对照，即使数值可能为 1。
+
+### 12.6 Worker 与任务生命周期
+
+`startGroupAnalysis` 每次创建一个 module Worker。request 通过 structured clone 发送，Worker 同步运行纯函数并回传 progress/result/error；成功或错误后 terminate。没有 Worker 的测试环境使用 `setTimeout(0)` fallback，此时真正计算仍在主线程。
+
+当前 UI 没有 Cancel 按钮，运行时 Run disabled；收起 drawer 不会取消任务。AnalysisPanel unmount 会 terminate 当前 Worker。真实 Worker 的 `cancel()` 只 terminate、不 resolve/reject 原 promise，所以旧 promise 会保持 pending，但 `jobRef` identity 防止旧任务结果写回当前 UI。
+
+计算复杂度主要来自每 embryo-step 的全 pair kNN（约 O(n²k)）和每个 null sample 对同一 graph 重算所选 metric。Null 不重建 kNN 是关键优化；Worker 保证 UI 不被 CPU 循环直接阻塞，但 structured clone 仍会复制本次 active embryos 的 observation payload。
+
+### 12.7 Result、stale 与可视化语义
+
+Result fingerprint 包含 target ID/cells/source/root、active embryos、metric set、k 和 null sample；不包含 target name/color，因为 rename/recolor 会直接更新 result metadata。输入变化不会自动计算，只显示 stale 提示并保留旧结果。
+
+需要注意，fingerprint 也不包含 dataset identity。替换 dataset 时 AnalysisPanel 的本地 state 可能继续存在，通常因 selection 被清空而显示 stale，但旧结果仍可见和导出；后续应在 dataset identity 变化时显式 cancel/clear result，或把 dataset fingerprint 加入 key。
+
+展示层语义：
+
+- Current summary：当前 exact step 的跨 embryo median、25%/75% quantile 和有效值 n；
+- Trend chart：每个 exact step 单独做跨 embryo median/IQR，无插值；点击跳主时间轴最近 step；
+- Now table：当前 exact step 每 embryo 的 group size 和 raw metric；
+- Across time：每 embryo 在 `groupSize > 0` 的 frames 上取 raw metric median，`n` 是出现帧数；
+- 表格深浅色只是本次 embryo 集合内 raw value 的相对排序，shape 的“高”不天然等于生物学更好；
+- Descriptive readout：先取每 embryo 的跨时间 median z，再在有 valid z 的 embryos 中判断是否至少 60% 超过 `|z| > 1` 的预设方向；它不检查 low-n eligibility，也不是显著性结论；
+- CSV：一行一个 embryo-step，只输出被选 metric，Shape 额外输出三个 eigenvalues，并正确转义逗号/引号/换行。
+
+## 13. 预留 API 与当前未使用路径
+
+`createExplorerDataApi` 暴露 `getGroupCells/getGroupPositions/getCellTrajectory/getDescendants`，但当前仍没有调用方。新的 analysis 层没有使用它，而是直接从 `dataset.embryoIndex` 和 lineage model 构造强类型 Worker request。
+
+旧 API 的 trajectory 会跨所有 embryos 合并，group positions 也返回某 step 的所有 embryo observations，因此不适合作为当前 per-embryo metric 的无修改入口。保留或扩展它之前应先确定 API 的 embryo/view-mode 语义。
+
+`loadDataset` 是单文件 convenience wrapper；主 UI 走 `loadMappedRows + buildDatasetFromRows` 多文件流程，目前没有调用方。
+
+## 14. 已验证内容与测试缺口
+
+在 Node 22.14.0 / npm 10.9.2 下：
+
+- `npm test`：15 个 test files、35 个 tests 全部通过；
+- `npm run build`：TypeScript strict build 和 Vite production build 通过；
+- production build 包含独立 `analysis.worker` chunk（约 6.8 KB）；
+- canonical 表：1,341 unique IDs、1 root、0 missing parent refs、0 cycles；
+- build 唯一告警仍是主 JS 超过 Vite 默认 500 KB chunk 提示；XLSX 和 analysis worker 已分别拆分。
+
+新增测试覆盖：lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、CSV schema/escaping，以及 AnalysisPanel 只有点击 Run 才启动任务。原有 mapping、import、lineage、store、3D 周边交互和 timeline 测试继续通过。
+
+明显测试缺口：
+
+- 浏览器中真实 module Worker 的消息、进度、错误和 termination 路径；
+- Analysis result stale/dataset replacement、运行中改变输入和 malformed result；
+- AnalysisTrendChart 点击、缺 step、单 step 和极端数值；
+- low-n 是否应进入 chart/summary/insight 的产品语义；
+- kNN ties、重复坐标、极小 frame、whole-embryo group、zero AP span 和 null SD=0 的完整边界；
+- 大数据 structured-clone、O(n²) kNN 和 250 null samples 的性能/内存基准；
+- XLS/XLSX worksheet 实际导入、Session malformed input/迁移、多文件 identity；
+- supplied parent conflict/cycle、Mean trajectory 性能与缺测语义；
+- WebGL、分析 drawer overlay、窄/矮 viewport 和可访问性的真实浏览器验收；CSS 仍要求 `body min-width: 1040px`。
+
+本次没有运行需要仓库外真实 TSV 的 `validate:analysis`，因为数据文件不属于当前 workspace；该脚本可端到端验证指定 embryos 的 ABpl/MS/C lineage。当前环境也没有提供浏览器控制执行接口，因此视觉交互结论来自源码、jsdom 和 production build。
+
+## 15. 后续功能应该改哪里
+
+| 需求 | 首选位置 | 同时关注 |
+|---|---|---|
+| 新文件格式/列别名 | `src/data/loaders.ts`, `columnMapping.ts` | `types.ts`, loader tests |
+| 数据校验/去重策略 | `src/data/frameIndex.ts` | 三类 index、warning、parent conflict |
+| embryo 配准/变换 | 新建 registration/analysis 纯函数 | raw 与 render 坐标、metric denominator |
+| 新 overlay/consensus 规则 | `src/data/embryoView.ts` | trails、CellInfo、与 analysis 独立性 |
+| 谱系解析/自定义 parent | `src/lineage/lineageResolver.ts` | cycle/conflict、dynamic membership |
+| 树的时间和布局 | `src/lineage/lineageTree.ts` | active embryo vs global timing |
+| 新 selection/group 行为 | `src/state/explorerStore.ts` | Analysis target source/root 语义 |
+| 新显示模式 | `cellAppearance.ts` | 3D opacity 分桶、tree/list CSS |
+| 3D geometry/interaction | `src/components/Embryo3D.tsx` | InstancedMesh、mean trail 性能 |
+| 新空间指标 | `analysis/types.ts`, `groupMetrics.ts` | runner、result utils、chart、CSV、synthetic test |
+| 新 null model | `analysis/runAnalysis.ts` | deterministic seed、候选池、统计解释 |
+| 分析任务调度/cache | `analysisService.ts`, `AnalysisPanel.tsx` | cancellation、dataset fingerprint、Worker payload |
+| 分析展示 | `AnalysisPanel.tsx`, `AnalysisTrendChart.tsx` | exact-step、low-n、cohort n、direction |
+| Session 稳定化 | `utils/session.ts`, `explorerStore.ts` | schema/migration/source identity、是否保存分析配置 |
+
+继续保持“纯计算先行”：membership、geometry、null、summary 写成不依赖 React/DOM 的纯函数并用小型可解释几何测试；runner 只做编排；Worker 只做传输；组件只处理 snapshot、job lifecycle 和展示。
+
+## 16. 修改前的快速检查清单
+
+1. 功能语义是 entire dataset、active embryos、单 embryo、overlay，还是 mean？Analysis 当前固定为 active embryos 各自独立。
+2. 使用原始 AP/LR/VD 还是 render 坐标？现有 metric 全部使用原始坐标。
+3. `frame` 指 array index 还是 authoritative step value？store 使用 index，dataset/service/analysis row 使用 step value。
+4. 时间是否 exact-match？当前 cohort 不插值、不做 nearest-time pooling。
+5. Group 是 explicit 还是 lineage-dynamic？只有 `source === 'lineage'` 自动补后代。
+6. Low-n 是只标记还是排除？当前只标记，UI 汇总也包含。
+7. 新 metric 的数值方向、null percentile、CSV 字段和 descriptive wording 是否一致？
+8. 是否保持 parent override 全局语义，还是需要 embryo-specific lineage？
+9. 新状态是否应进 Zustand/Session？Analysis result 当前只在组件本地。
+10. dataset/group/embryo/parameter 改变时，旧结果应清除、标 stale 还是可复用？
+11. Worker 是否可取消，payload/结果是否值得 cache 或使用 transferable/增量索引？
+12. 是否会破坏 group overlap、hidden group、standalone color 或播放相机稳定性？
+13. 至少运行 `npm test` 和 `npm run build`；涉及 WebGL、Worker 或 drawer 布局时再做真实浏览器验收。

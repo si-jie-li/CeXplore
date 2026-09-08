@@ -5,6 +5,7 @@ A lightweight local browser application for exploring *C. elegans* embryonic cel
 中文文档：
 
 - [开发与实现说明](docs/开发与实现说明.md)
+- [项目深度理解 4AI 与后续开发地图](docs/项目深度理解4AI.md)
 - [用户使用指南](docs/用户使用指南.md)
 
 ## Install and run
@@ -68,6 +69,7 @@ Use **Explore example** on the opening screen to load the bundled dataset at `pu
 - Use **Color groups**, **Highlight**, or **Isolate** display mode. Several visible groups can be shown together.
 - Turn on trails for selected cells and choose 5, 10, 25, or all previous frames. Labels and AP/LR/VD axes are optional.
 - Hover or click a nucleus to see original coordinates, parent, ancestors, and represented-descendant count.
+- Expand **Group analysis** to calculate selected metrics only when requested. Each selected embryo/time is measured independently with a symmetric kNN graph. The panel shows cohort median/IQR time trends, current and across-time embryo tables, local size-matched random-group comparisons, and full CSV export.
 - Export/import a small session JSON containing mapping, groups, colors, and display settings. The source dataset itself is not duplicated.
 
 ## Architecture
@@ -75,6 +77,7 @@ Use **Explore example** on the opening screen to load the bundled dataset at `pu
 ```text
 src/
   data/          multi-file inspection/loading, validation, embryo views, frame/trajectory indexes
+  analysis/      dynamic lineage membership, kNN metrics, matched null, Worker, CSV summaries
   lineage/       canonical table adapter, resolver, descendants, static tree layout
   state/         shared Zustand state, groups, colors, playback, cell appearance
   components/    loader, mapper, SVG tree, instanced 3D view, lists, controls, info
@@ -102,7 +105,8 @@ Missing IDs, invalid coordinates/time values, and duplicates create import warni
 - Labels are capped to selected cells when a frame contains more than 160 nuclei to protect interaction speed.
 - Overlapping groups use the most recently created visible group’s color for shared cells.
 - Session import expects the source dataset to be loaded first and stores no source observations.
+- Group metrics are exploratory. The current null matches group size and local spatial region separately at each time; it does not preserve a random lineage through time, match division history, or perform multiple-testing correction.
 
 ## Planned extensions
 
-The data/service boundary is ready for group cohesion, neighborhood purity, connectedness, distance, motion-correlation, and symmetry metrics; custom lineages and annotations; subset export; and later embryo registration, variability envelopes, consensus timing, and perturbation comparison. None of those quantitative analyses are implemented in this version.
+The first analysis layer now provides neighborhood purity, largest-component connectedness, AP-normalized radius of gyration, covariance-shape anisotropy, and local matched-null summaries. Planned extensions include persistent-lineage nulls, motion correlation, bilateral symmetry metrics, custom lineages and annotations, subset export, embryo registration, variability envelopes, consensus timing, and perturbation comparison.

@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "validate:sample": "vite-node scripts/validate-supplied.ts",
+    "validate:analysis": "vite-node scripts/validate-analysis.ts",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -91,6 +91,7 @@ export interface EmbryoDataset {
   frameValues: number[]
   observations: Observation[]
   frameIndex: Map<number, Observation[]>
+  embryoIndex: Map<string, Observation[]>
   trajectoryIndex: Map<string, Observation[]>
   maxObservationsPerFrame: number
   cells: Map<string, CellSummary>

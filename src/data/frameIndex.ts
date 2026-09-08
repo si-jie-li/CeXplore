@@ -109,12 +109,16 @@ export function buildDatasetFromRows(
     .sort((a, b) => a.step - b.step || a.embryoId.localeCompare(b.embryoId) || a.cellId.localeCompare(b.cellId))
 
   const frameIndex = new Map<number, Observation[]>()
+  const embryoIndex = new Map<string, Observation[]>()
   const trajectoryIndex = new Map<string, Observation[]>()
   const cells = new Map<string, CellSummary>()
   for (const observation of observations) {
     const frame = frameIndex.get(observation.step) ?? []
     frame.push(observation)
     frameIndex.set(observation.step, frame)
+    const embryoObservations = embryoIndex.get(observation.embryoId) ?? []
+    embryoObservations.push(observation)
+    embryoIndex.set(observation.embryoId, embryoObservations)
     const key = trajectoryKey(observation.embryoId, observation.cellId)
     const trajectory = trajectoryIndex.get(key) ?? []
     trajectory.push(observation)
@@ -167,6 +171,7 @@ export function buildDatasetFromRows(
     frameValues: [...frameIndex.keys()].sort((a, b) => a - b),
     observations,
     frameIndex,
+    embryoIndex,
     trajectoryIndex,
     maxObservationsPerFrame: Math.max(0, ...[...frameIndex.values()].map((frame) => frame.length)),
     cells,
