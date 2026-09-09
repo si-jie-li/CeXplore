@@ -209,6 +209,20 @@ button:disabled, input:disabled, select:disabled { opacity: .42; cursor: not-all
 .frame-count { color: #62706b; border-color: #dbe2df; }
 .mean-cache-status { position: absolute; z-index: 3; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 7px 10px; border: 1px solid #cedbd7; border-radius: 5px; background: rgba(251,253,252,.94); box-shadow: 0 4px 16px rgba(35,52,46,.1); color: #51635d; font-size: 9px; pointer-events: none; }
 .mean-cache-status.error { max-width: 70%; border-color: #e5c9c3; color: #95473d; text-align: center; }
+.view-angle-panel { position: absolute; z-index: 5; right: 10px; top: 62px; width: 250px; padding: 10px; border: 1px solid #d6dfdc; border-radius: 7px; background: rgba(251,252,252,.97); box-shadow: 0 7px 22px rgba(32,48,43,.14); }
+.view-angle-heading { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 9px; }
+.view-angle-heading > div { display: flex; flex-direction: column; }
+.view-angle-heading strong { color: #34433e; font-size: 11px; }
+.view-angle-heading span { margin-top: 2px; color: #7a8783; font-size: 8px; }
+.view-angle-heading > button { border: 0; padding: 1px; background: transparent; color: #76837f; cursor: pointer; }
+.view-angle-fields { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 6px; }
+.view-angle-fields label { min-width: 0; display: flex; flex-direction: column; gap: 3px; color: #65736e; font-size: 8px; }
+.view-angle-fields input { min-width: 0; width: 100%; height: 27px; border: 1px solid #d3dcda; border-radius: 4px; padding: 0 6px; background: white; color: #34433e; font-size: 9px; }
+.view-angle-fields > button { height: 27px; padding: 0 8px; }
+.view-angle-presets { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 8px; }
+.view-angle-presets button { height: 24px; border: 1px solid #d7dfdc; border-radius: 4px; background: white; color: #5d6d67; font-size: 8px; cursor: pointer; }
+.view-angle-presets button:hover { border-color: #9fc0b9; background: #eaf2ef; color: var(--accent); }
+.view-angle-panel > p { margin: 8px 0 0; color: #7a8783; font-size: 7.8px; line-height: 1.35; }
 .axis-label { font: 700 8px/1 Inter, sans-serif; color: #687672; pointer-events: none; }
 .nucleus-label { font: 650 8px/1 Inter, sans-serif; white-space: nowrap; color: #33413d; text-shadow: 0 1px 2px white, 0 -1px 2px white; pointer-events: none; }
 .embryo-selector { position: absolute; z-index: 3; right: 10px; top: 62px; width: 224px; max-height: calc(100% - 102px); display: flex; flex-direction: column; padding: 10px; border: 1px solid #d6dfdc; border-radius: 7px; background: rgba(251,252,252,.96); box-shadow: 0 7px 22px rgba(32,48,43,.12); }

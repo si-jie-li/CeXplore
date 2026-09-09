@@ -3,11 +3,12 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { Html, Line, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
-import { Focus, RotateCcw } from 'lucide-react'
+import { Compass, Focus, RotateCcw, X } from 'lucide-react'
 import type { Observation } from '../data/types'
 import { getCellTrajectories, getDivisionConnections, getFrameObservations } from '../data/embryoView'
 import { getCellAppearance } from '../state/cellAppearance'
 import { useExplorerStore } from '../state/explorerStore'
+import { cameraOffsetFromAngles, clampElevation, type CameraAngle } from '../state/camera'
 import { resolveTrailCellIds, resolveTrailGroups, resolveTrailStepRange, trailVertexColor } from '../state/trails'
 import { EmbryoPanel } from './EmbryoPanel'
 
@@ -217,6 +218,64 @@ function CellLabels({ observations }: { observations: Observation[] }) {
   )
 }
 
+const VIEW_PRESETS: Array<{ label: string; title: string; angle: CameraAngle }> = [
+  { label: '+AP', title: 'Look from positive AP', angle: { azimuthDegrees: 90, elevationDegrees: 0 } },
+  { label: '−AP', title: 'Look from negative AP', angle: { azimuthDegrees: -90, elevationDegrees: 0 } },
+  { label: '+LR', title: 'Look from positive LR', angle: { azimuthDegrees: 0, elevationDegrees: 89.9 } },
+  { label: '−LR', title: 'Look from negative LR', angle: { azimuthDegrees: 0, elevationDegrees: -89.9 } },
+  { label: '+VD', title: 'Look from positive VD', angle: { azimuthDegrees: 0, elevationDegrees: 0 } },
+  { label: '−VD', title: 'Look from negative VD', angle: { azimuthDegrees: 180, elevationDegrees: 0 } },
+]
+
+function ViewAnglePanel({ onClose }: { onClose: () => void }) {
+  const setCameraAngle = useExplorerStore((state) => state.setCameraAngle)
+  const [azimuth, setAzimuth] = useState('42')
+  const [elevation, setElevation] = useState('26')
+  const parsedAzimuth = Number(azimuth)
+  const parsedElevation = Number(elevation)
+  const valid = Number.isFinite(parsedAzimuth) && Number.isFinite(parsedElevation)
+
+  const applyAngle = (angle: CameraAngle) => {
+    const clamped = { ...angle, elevationDegrees: clampElevation(angle.elevationDegrees) }
+    setAzimuth(String(clamped.azimuthDegrees))
+    setElevation(String(clamped.elevationDegrees))
+    setCameraAngle(clamped)
+  }
+
+  return (
+    <aside className="view-angle-panel" aria-label="Numeric view angle">
+      <div className="view-angle-heading">
+        <div><strong>View angle</strong><span>Degrees · current zoom preserved</span></div>
+        <button type="button" onClick={onClose} aria-label="Close view angle"><X size={13} /></button>
+      </div>
+      <div className="view-angle-fields">
+        <label>
+          <span>Azimuth</span>
+          <input type="number" step="1" value={azimuth} onChange={(event) => setAzimuth(event.target.value)} />
+        </label>
+        <label>
+          <span>Elevation</span>
+          <input type="number" min="-89.9" max="89.9" step="1" value={elevation} onChange={(event) => setElevation(event.target.value)} />
+        </label>
+        <button
+          type="button"
+          className="button primary compact"
+          disabled={!valid}
+          onClick={() => applyAngle({ azimuthDegrees: parsedAzimuth, elevationDegrees: parsedElevation })}
+        >Apply</button>
+      </div>
+      <div className="view-angle-presets">
+        {VIEW_PRESETS.map((preset) => (
+          <button key={preset.label} type="button" title={preset.title} onClick={() => applyAngle(preset.angle)}>
+            {preset.label}
+          </button>
+        ))}
+      </div>
+      <p>Azimuth rotates around LR; elevation tilts above or below the AP–VD plane.</p>
+    </aside>
+  )
+}
+
 function CameraController({ observations }: { observations: Observation[] }) {
   const controls = useRef<OrbitControlsImpl>(null)
   const { camera } = useThree()
@@ -232,7 +291,7 @@ function CameraController({ observations }: { observations: Observation[] }) {
     if (command.type === 'reset') {
       camera.position.set(17, 13, 19)
       controls.current.target.set(0, 0, 0)
-    } else {
+    } else if (command.type === 'focus') {
       const targets = observationsRef.current.filter((observation) => selectionRef.current.has(observation.cellId))
       if (targets.length) {
         const center = targets.reduce(
@@ -244,6 +303,14 @@ function CameraController({ observations }: { observations: Observation[] }) {
         controls.current.target.copy(center)
         camera.position.copy(center.clone().add(direction.multiplyScalar(distance)))
       }
+    } else {
+      const distance = Math.max(camera.position.distanceTo(controls.current.target), 0.001)
+      const [x, y, z] = cameraOffsetFromAngles(
+        command.azimuthDegrees,
+        command.elevationDegrees,
+        distance,
+      )
+      camera.position.copy(controls.current.target).add(new THREE.Vector3(x, y, z))
     }
     camera.updateProjectionMatrix()
     controls.current.update()
@@ -316,6 +383,7 @@ export function Embryo3D() {
   const meanPositionCacheStatus = useExplorerStore((state) => state.meanPositionCacheStatus)
   const meanPositionCacheError = useExplorerStore((state) => state.meanPositionCacheError)
   const [showEmbryos, setShowEmbryos] = useState(dataset.embryos.length > 1)
+  const [showViewAngle, setShowViewAngle] = useState(false)
   const step = dataset.frameValues[currentFrameIndex] ?? dataset.frameValues[0] ?? 0
   const observations = useMemo(
     () => getFrameObservations(dataset, step, activeEmbryoIds, settings.embryoViewMode, meanPositionCache),
@@ -332,9 +400,16 @@ export function Embryo3D() {
           <h2>3D embryo</h2>
         </div>
         <div className="canvas-actions">
-          <button className={`tool-button ${showEmbryos ? 'active' : ''}`} onClick={() => setShowEmbryos((value) => !value)}>
+          <button className={`tool-button ${showEmbryos ? 'active' : ''}`} onClick={() => {
+            setShowViewAngle(false)
+            setShowEmbryos((value) => !value)
+          }}>
             Embryos {activeEmbryoIds.size}/{dataset.embryos.length}
           </button>
+          <button className={`tool-button ${showViewAngle ? 'active' : ''}`} onClick={() => {
+            setShowEmbryos(false)
+            setShowViewAngle((value) => !value)
+          }} title="Enter an exact camera angle"><Compass size={15} /> Angle</button>
           <button className="tool-button" onClick={focusSelection} disabled={!selectionSize} title="Center camera on selected cells"><Focus size={15} /> Focus</button>
           <button className="tool-button" onClick={resetCamera} title="Reset camera"><RotateCcw size={15} /> Reset</button>
         </div>
@@ -354,6 +429,7 @@ export function Embryo3D() {
         {settings.embryoViewMode === 'mean' && meanPositionCacheStatus === 'error' && (
           <div className="mean-cache-status error">{meanPositionCacheError}</div>
         )}
+        {showViewAngle && <ViewAnglePanel onClose={() => setShowViewAngle(false)} />}
         {showEmbryos && <EmbryoPanel onClose={() => setShowEmbryos(false)} />}
         <div className="canvas-hint">Drag to rotate · Right-drag to pan · Scroll to zoom</div>
         <div className="frame-count">{observations.length} {settings.embryoViewMode === 'mean' ? 'mean nuclei' : 'nuclei'}</div>

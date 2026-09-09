@@ -252,7 +252,7 @@ Frame 模式中，`mapping.frameIntervalSeconds` 是大于 0 的用户输入，�
 - 多胚胎：`activeEmbryoIds`
 - 选择：`selection`, `selectionMeta`, `inspectedCellId`, `hoveredObservation`
 - 外观：`cellColors`, `groups`, `settings`
-- 相机命令：`cameraCommand { type, nonce }`
+- 相机命令：`cameraCommand` discriminated union，包含 `reset | focus | angle` 和递增 `nonce`
 
 Analysis 的 UI 状态是一个刻意的例外：drawer open、target、metrics、k、null sample、progress、result 和 stale fingerprint 都保存在 `AnalysisPanel` 本地 React state，不进入 Zustand，也不进入 Session。它只从 store 读取 dataset、lineage、groups、selection、active embryos 和 current frame，并用 `setCurrentFrameIndex` 把图表点击同步回全局时间轴。
 
@@ -271,7 +271,7 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 
 `toggleCells` 的批量语义是：如果传入 IDs 已全部选中则全部移除，否则全部添加。Command/Control-click lineage 因而可整体添加/移除；Shift-click强制按 lineage 选择。
 
-换帧不修改 `cameraCommand`。Reset/Focus 才递增 `nonce`，避免播放时相机被旧命令反复重置。Focus 只使用当前帧中存在的 selected observations；当前帧没有目标时不会移动。
+换帧不修改 `cameraCommand`。Reset/Focus/Angle 才递增 `nonce`，避免播放时相机被旧命令反复重置。Focus 只使用当前帧中存在的 selected observations；当前帧没有目标时不会移动。Angle 使用 `cameraOffsetFromAngles` 围绕当前 Orbit target 旋转：LR/Y 为 up，azimuth 0° 从 +VD 看、90° 从 +AP 看，elevation 限制为 ±89.9°；camera-target distance 保持，因此输入角度不改变 zoom。±AP/±LR/±VD presets 与数值输入走同一个 command。
 
 ## 9. 颜色、分组和可见性优先级
 
@@ -475,13 +475,13 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 
 在 Node 22.14.0 / npm 10.9.2 下：
 
-- `npm test`：17 个 test files、44 个 tests 全部通过；
+- `npm test`：18 个 test files、46 个 tests 全部通过；
 - `npm run build`：TypeScript strict build 和 Vite production build 通过；
 - production build 包含独立 `meanPosition.worker`（约 1.4 KB）和 `analysis.worker`（约 6.8 KB）chunks；
 - canonical 表：1,341 unique IDs、1 root、0 missing parent refs、0 cycles；
 - build 唯一告警仍是主 JS 超过 Vite 默认 500 KB chunk 提示；XLSX、Mean worker 和 analysis worker 已分别拆分。
 
-新增测试覆盖：lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、CSV schema/escaping、AnalysisPanel 只有点击 Run 才启动任务，Mean 全帧预计算/缓存读取/embryo list 变化重算/dataset 关闭清理，trails 默认全部 saved groups/显式 group filter/selection fallback/custom frame range/未来帧截断/时间视觉渐变，Overlay 和 Mean 的 mother→daughter connections，unique-time 升序帧索引，frame interval seconds 导入/minute 纵轴换算，以及 Time/Frame partial-stage 起点对齐。原有 mapping、import、lineage、store、3D 周边交互和 timeline 测试继续通过。
+新增测试覆盖：lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、CSV schema/escaping、AnalysisPanel 只有点击 Run 才启动任务，Mean 全帧预计算/缓存读取/embryo list 变化重算/dataset 关闭清理，精确 camera angle/cardinal axes/elevation clamp，trails 默认全部 saved groups/显式 group filter/selection fallback/custom frame range/未来帧截断/时间视觉渐变，Overlay 和 Mean 的 mother→daughter connections，unique-time 升序帧索引，frame interval seconds 导入/minute 纵轴换算，以及 Time/Frame partial-stage 起点对齐。原有 mapping、import、lineage、store、3D 周边交互和 timeline 测试继续通过。
 
 真实 326 MB `01_wt_truncated_axis_aligned.tsv` 也以 Time 模式重新跑通：`ctr_emb1` 保留 20,926/20,926 个有效 observations，识别 185 个升序 time frames（range 1–185）、722 cells、0 warnings；lineage y 轴从第一个 observed value `1` 开始。
 

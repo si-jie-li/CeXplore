@@ -3,11 +3,16 @@ import type { EmbryoDataset, Observation } from '../data/types'
 import { hydrateMeanPositionCache, type EmbryoViewMode, type MeanPositionCache } from '../data/embryoView'
 import { startMeanPositionPrecomputation, type MeanPositionJob } from '../data/meanPositionService'
 import { getDescendants, type LineageModel } from '../lineage/lineageResolver'
+import type { CameraAngle } from './camera'
 import type { TrailGroupSelection, TrailRangeMode } from './trails'
 
 export type DisplayMode = 'color' | 'isolate' | 'highlight'
 export type SelectionKind = 'manual' | 'cell' | 'lineage' | 'group'
 export type MeanPositionCacheStatus = 'idle' | 'loading' | 'ready' | 'error'
+export type CameraCommand =
+  | { type: 'reset'; nonce: number }
+  | { type: 'focus'; nonce: number }
+  | ({ type: 'angle'; nonce: number } & CameraAngle)
 
 export interface SelectionMeta {
   kind: SelectionKind
@@ -60,7 +65,7 @@ interface ExplorerState {
   meanPositionCacheKey?: string
   meanPositionCacheStatus: MeanPositionCacheStatus
   meanPositionCacheError?: string
-  cameraCommand: { type: 'reset' | 'focus'; nonce: number }
+  cameraCommand: CameraCommand
   setDataset: (dataset: EmbryoDataset, lineage: LineageModel) => void
   clearDataset: () => void
   setCurrentFrameIndex: (index: number) => void
@@ -87,6 +92,7 @@ interface ExplorerState {
   toggleEmbryo: (embryoId: string) => void
   resetCamera: () => void
   focusSelection: () => void
+  setCameraAngle: (angle: CameraAngle) => void
   importConfiguration: (config: SessionConfiguration) => string[]
 }
 
@@ -360,6 +366,15 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     set((state) => ({ cameraCommand: { type: 'reset', nonce: state.cameraCommand.nonce + 1 } })),
   focusSelection: () =>
     set((state) => ({ cameraCommand: { type: 'focus', nonce: state.cameraCommand.nonce + 1 } })),
+  setCameraAngle: ({ azimuthDegrees, elevationDegrees }) =>
+    set((state) => ({
+      cameraCommand: {
+        type: 'angle',
+        nonce: state.cameraCommand.nonce + 1,
+        azimuthDegrees,
+        elevationDegrees,
+      },
+    })),
   importConfiguration: (config) => {
     const dataset = get().dataset
     if (!dataset) return ['Load the source dataset before importing its configuration.']

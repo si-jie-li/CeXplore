@@ -61,5 +61,13 @@ describe('shared explorer state', () => {
 
     useExplorerStore.getState().resetCamera()
     expect(useExplorerStore.getState().cameraCommand.nonce).toBe(before.nonce + 1)
+
+    useExplorerStore.getState().setCameraAngle({ azimuthDegrees: 90, elevationDegrees: 20 })
+    expect(useExplorerStore.getState().cameraCommand).toMatchObject({
+      type: 'angle',
+      azimuthDegrees: 90,
+      elevationDegrees: 20,
+      nonce: before.nonce + 2,
+    })
   })
 })
