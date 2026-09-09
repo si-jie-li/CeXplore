@@ -5,6 +5,28 @@ export type EmbryoViewMode = 'overlay' | 'mean'
 
 export const MEAN_EMBRYO_ID = '__mean__'
 
+export interface MeanPositionSerializedCache {
+  frameEntries: Array<[number, Observation[]]>
+  trajectoryEntries: Array<[string, Observation[]]>
+}
+
+export interface MeanPositionCache {
+  key: string
+  frameIndex: Map<number, Observation[]>
+  trajectoryIndex: Map<string, Observation[]>
+}
+
+export function hydrateMeanPositionCache(
+  key: string,
+  serialized: MeanPositionSerializedCache,
+): MeanPositionCache {
+  return {
+    key,
+    frameIndex: new Map(serialized.frameEntries),
+    trajectoryIndex: new Map(serialized.trajectoryEntries),
+  }
+}
+
 export interface DivisionConnection {
   embryoId: string
   parentCellId: string
@@ -17,40 +39,10 @@ export function getFrameObservations(
   step: number,
   activeEmbryoIds: Set<string>,
   mode: EmbryoViewMode,
+  meanCache?: MeanPositionCache,
 ): Observation[] {
-  const active = (dataset.frameIndex.get(step) ?? []).filter((row) => activeEmbryoIds.has(row.embryoId))
-  if (mode === 'overlay') return active
-
-  const byCell = new Map<string, Observation[]>()
-  for (const observation of active) {
-    const rows = byCell.get(observation.cellId) ?? []
-    rows.push(observation)
-    byCell.set(observation.cellId, rows)
-  }
-  return [...byCell.entries()].map(([cellId, rows]) => {
-    const divisor = rows.length
-    const sum = rows.reduce((result, row) => ({
-      x: result.x + row.x,
-      y: result.y + row.y,
-      z: result.z + row.z,
-      renderX: result.renderX + row.renderX,
-      renderY: result.renderY + row.renderY,
-      renderZ: result.renderZ + row.renderZ,
-    }), { x: 0, y: 0, z: 0, renderX: 0, renderY: 0, renderZ: 0 })
-    return {
-      cellId,
-      embryoId: MEAN_EMBRYO_ID,
-      step,
-      x: sum.x / divisor,
-      y: sum.y / divisor,
-      z: sum.z / divisor,
-      renderX: sum.renderX / divisor,
-      renderY: sum.renderY / divisor,
-      renderZ: sum.renderZ / divisor,
-      parentId: rows.find((row) => row.parentId)?.parentId,
-      contributingEmbryoIds: rows.map((row) => row.embryoId),
-    }
-  }).sort((a, b) => a.cellId.localeCompare(b.cellId, undefined, { numeric: true }))
+  if (mode === 'mean') return meanCache?.frameIndex.get(step) ?? []
+  return (dataset.frameIndex.get(step) ?? []).filter((row) => activeEmbryoIds.has(row.embryoId))
 }
 
 export function getCellTrajectories(
@@ -60,6 +52,7 @@ export function getCellTrajectories(
   mode: EmbryoViewMode,
   earliestStep: number,
   currentStep: number,
+  meanCache?: MeanPositionCache,
 ): Array<{ embryoId: string; points: Observation[] }> {
   if (mode === 'overlay') {
     return [...activeEmbryoIds].map((embryoId) => ({
@@ -69,10 +62,8 @@ export function getCellTrajectories(
     })).filter((trajectory) => trajectory.points.length > 1)
   }
 
-  const points = dataset.frameValues
-    .filter((step) => step >= earliestStep && step <= currentStep)
-    .flatMap((step) => getFrameObservations(dataset, step, activeEmbryoIds, 'mean'))
-    .filter((point) => point.cellId === cellId)
+  const points = (meanCache?.trajectoryIndex.get(cellId) ?? [])
+    .filter((point) => point.step >= earliestStep && point.step <= currentStep)
   return points.length > 1 ? [{ embryoId: MEAN_EMBRYO_ID, points }] : []
 }
 
@@ -84,6 +75,7 @@ export function getDivisionConnections(
   mode: EmbryoViewMode,
   earliestStep: number,
   currentStep: number,
+  meanCache?: MeanPositionCache,
 ): DivisionConnection[] {
   const children = [...trailCellIds].flatMap((childCellId) => {
     const parentCellId = parentByCell.get(childCellId)
@@ -109,21 +101,13 @@ export function getDivisionConnections(
       }
     }
   } else {
-    const pointsByCell = new Map<string, Observation[]>()
-    for (const step of dataset.frameValues) {
-      if (step < earliestStep || step > currentStep) continue
-      for (const point of getFrameObservations(dataset, step, activeEmbryoIds, 'mean')) {
-        if (!trailCellIds.has(point.cellId)) continue
-        const points = pointsByCell.get(point.cellId) ?? []
-        points.push(point)
-        pointsByCell.set(point.cellId, points)
-      }
-    }
     for (const { parentCellId, childCellId } of children) {
-      const childPoint = pointsByCell.get(childCellId)?.[0]
+      const childPoint = meanCache?.trajectoryIndex.get(childCellId)
+        ?.find((point) => point.step >= earliestStep && point.step <= currentStep)
       if (!childPoint) continue
-      const parentPoint = pointsByCell.get(parentCellId)
+      const parentPoint = meanCache?.trajectoryIndex.get(parentCellId)
         ?.filter((point) => point.step <= childPoint.step)
+        .filter((point) => point.step >= earliestStep)
         .at(-1)
       if (parentPoint) {
         connections.push({

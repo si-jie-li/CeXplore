@@ -1,5 +1,5 @@
 import { Axis3D, Eye, Route, Tags } from 'lucide-react'
-import { useExplorerStore, type DisplayMode, type TrailLength } from '../state/explorerStore'
+import { useExplorerStore, type DisplayMode } from '../state/explorerStore'
 import { resolveTrailGroups } from '../state/trails'
 
 export function DisplayControls() {
@@ -7,7 +7,11 @@ export function DisplayControls() {
   const setSettings = useExplorerStore((state) => state.setSettings)
   const selectionSize = useExplorerStore((state) => state.selection.size)
   const groups = useExplorerStore((state) => state.groups)
+  const dataset = useExplorerStore((state) => state.dataset)
   const selectedTrailGroups = resolveTrailGroups(groups, settings.trailGroupIds)
+  const firstStep = dataset?.frameValues[0] ?? 0
+  const lastStep = dataset?.frameValues.at(-1) ?? firstStep
+  const stepName = dataset?.temporalMode === 'time' ? 'time' : 'frame'
 
   const toggleTrailGroup = (groupId: string) => {
     const currentIds = settings.trailGroupIds === 'all'
@@ -64,16 +68,49 @@ export function DisplayControls() {
           disabled={!selectionSize && !groups.length}
         ><Route size={15} /> Trails</button>
         <select
-          value={settings.trailLength}
-          onChange={(event) => setSettings({ trailLength: event.target.value === 'all' ? 'all' : Number(event.target.value) as TrailLength })}
+          value={settings.trailRangeMode}
+          onChange={(event) => setSettings(event.target.value === 'all'
+            ? { trailRangeMode: 'all' }
+            : {
+                trailRangeMode: 'custom',
+                trailRangeStart: settings.trailRangeStart ?? firstStep,
+                trailRangeEnd: settings.trailRangeEnd ?? lastStep,
+              })}
           disabled={!settings.showTrajectories}
-          aria-label="Trail length"
+          aria-label="Trail range mode"
         >
-          <option value={5}>5 frames</option>
-          <option value={10}>10 frames</option>
-          <option value={25}>25 frames</option>
           <option value="all">All previous</option>
+          <option value="custom">{dataset?.temporalMode === 'time' ? 'Time range' : 'Frame range'}</option>
         </select>
+        {settings.showTrajectories && settings.trailRangeMode === 'custom' && (
+          <div className="trail-range-inputs">
+            <input
+              type="number"
+              min={firstStep}
+              max={lastStep}
+              step="any"
+              value={settings.trailRangeStart ?? firstStep}
+              aria-label={`Trail start ${stepName}`}
+              title={`Trail start ${stepName}`}
+              onChange={(event) => {
+                if (event.target.value !== '') setSettings({ trailRangeStart: Number(event.target.value) })
+              }}
+            />
+            <span>–</span>
+            <input
+              type="number"
+              min={firstStep}
+              max={lastStep}
+              step="any"
+              value={settings.trailRangeEnd ?? lastStep}
+              aria-label={`Trail end ${stepName}`}
+              title={`Trail end ${stepName}`}
+              onChange={(event) => {
+                if (event.target.value !== '') setSettings({ trailRangeEnd: Number(event.target.value) })
+              }}
+            />
+          </div>
+        )}
         {settings.showTrajectories && groups.length > 0 && (
           <details className="trail-group-picker">
             <summary>

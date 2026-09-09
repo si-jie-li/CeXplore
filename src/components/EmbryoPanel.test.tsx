@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { buildDatasetFromRows } from '../data/frameIndex'
 import type { ColumnMapping, EmbryoDescriptor } from '../data/types'
@@ -21,8 +21,8 @@ const dataset = buildDatasetFromRows([
 beforeEach(() => useExplorerStore.getState().setDataset(dataset, resolveLineage(dataset.cells)))
 
 describe('embryo display selector', () => {
-  it('selects displayed embryos and switches between overlay and mean', () => {
-    render(<EmbryoPanel onClose={vi.fn()} />)
+  it('precomputes and refreshes the mean cache when displayed embryos change', async () => {
+    const view = render(<EmbryoPanel onClose={vi.fn()} />)
     expect(useExplorerStore.getState().activeEmbryoIds.size).toBe(2)
     fireEvent.click(screen.getByRole('checkbox', { name: /embryo 2/ }))
     expect([...useExplorerStore.getState().activeEmbryoIds]).toEqual(['e1'])
@@ -31,5 +31,19 @@ describe('embryo display selector', () => {
     expect(useExplorerStore.getState().settings.colorByEmbryo).toBe(true)
     fireEvent.click(screen.getByRole('button', { name: 'Mean position' }))
     expect(useExplorerStore.getState().settings).toMatchObject({ embryoViewMode: 'mean', colorByEmbryo: false })
+    expect(useExplorerStore.getState().meanPositionCacheStatus).toBe('loading')
+    await waitFor(() => expect(useExplorerStore.getState().meanPositionCacheStatus).toBe('ready'))
+    expect(useExplorerStore.getState().meanPositionCache?.frameIndex.get(1)?.[0].x).toBe(0)
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /embryo 2/ }))
+    expect(useExplorerStore.getState().meanPositionCache).toBeUndefined()
+    expect(useExplorerStore.getState().meanPositionCacheStatus).toBe('loading')
+    await waitFor(() => expect(useExplorerStore.getState().meanPositionCacheStatus).toBe('ready'))
+    expect(useExplorerStore.getState().meanPositionCache?.frameIndex.get(1)?.[0].x).toBe(0.5)
+
+    view.unmount()
+    useExplorerStore.getState().clearDataset()
+    expect(useExplorerStore.getState().meanPositionCache).toBeUndefined()
+    expect(useExplorerStore.getState().meanPositionCacheStatus).toBe('idle')
   })
 })

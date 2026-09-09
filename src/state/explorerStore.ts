@@ -1,12 +1,13 @@
 import { create } from 'zustand'
 import type { EmbryoDataset, Observation } from '../data/types'
-import type { EmbryoViewMode } from '../data/embryoView'
+import { hydrateMeanPositionCache, type EmbryoViewMode, type MeanPositionCache } from '../data/embryoView'
+import { startMeanPositionPrecomputation, type MeanPositionJob } from '../data/meanPositionService'
 import { getDescendants, type LineageModel } from '../lineage/lineageResolver'
-import type { TrailGroupSelection } from './trails'
+import type { TrailGroupSelection, TrailRangeMode } from './trails'
 
 export type DisplayMode = 'color' | 'isolate' | 'highlight'
-export type TrailLength = 5 | 10 | 25 | 'all'
 export type SelectionKind = 'manual' | 'cell' | 'lineage' | 'group'
+export type MeanPositionCacheStatus = 'idle' | 'loading' | 'ready' | 'error'
 
 export interface SelectionMeta {
   kind: SelectionKind
@@ -32,7 +33,9 @@ export interface ExplorerSettings {
   showLabels: boolean
   showAxes: boolean
   showTrajectories: boolean
-  trailLength: TrailLength
+  trailRangeMode: TrailRangeMode
+  trailRangeStart?: number
+  trailRangeEnd?: number
   trailGroupIds: TrailGroupSelection
   trailWidth: number
   embryoViewMode: EmbryoViewMode
@@ -53,6 +56,10 @@ interface ExplorerState {
   inspectedCellId?: string
   hoveredObservation?: Observation
   settings: ExplorerSettings
+  meanPositionCache?: MeanPositionCache
+  meanPositionCacheKey?: string
+  meanPositionCacheStatus: MeanPositionCacheStatus
+  meanPositionCacheError?: string
   cameraCommand: { type: 'reset' | 'focus'; nonce: number }
   setDataset: (dataset: EmbryoDataset, lineage: LineageModel) => void
   clearDataset: () => void
@@ -74,6 +81,8 @@ interface ExplorerState {
   selectGroup: (id: string) => void
   focusGroup: (id: string) => void
   setSettings: (patch: Partial<ExplorerSettings>) => void
+  prepareMeanPositions: () => void
+  clearMeanPositionCache: () => void
   setActiveEmbryos: (embryoIds: Iterable<string>) => void
   toggleEmbryo: (embryoId: string) => void
   resetCamera: () => void
@@ -98,7 +107,9 @@ const defaultSettings: ExplorerSettings = {
   showLabels: false,
   showAxes: true,
   showTrajectories: false,
-  trailLength: 'all',
+  trailRangeMode: 'all',
+  trailRangeStart: undefined,
+  trailRangeEnd: undefined,
   trailGroupIds: 'all',
   trailWidth: 1.1,
   embryoViewMode: 'overlay',
@@ -109,6 +120,9 @@ const groupId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
     : `group-${Date.now()}-${Math.random().toString(36).slice(2)}`
+
+const meanPositionKey = (embryoIds: Iterable<string>) => [...embryoIds].sort().join('\u0000')
+let activeMeanPositionJob: MeanPositionJob | undefined
 
 const colorsFromGroups = (groups: CellGroup[]) => {
   const colors: Record<string, string> = {}
@@ -126,9 +140,11 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   cellColors: {},
   groups: [],
   settings: defaultSettings,
+  meanPositionCacheStatus: 'idle',
   cameraCommand: { type: 'reset', nonce: 0 },
 
-  setDataset: (dataset, lineage) =>
+  setDataset: (dataset, lineage) => {
+    get().clearMeanPositionCache()
     set({
       dataset,
       lineage,
@@ -142,8 +158,11 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       inspectedCellId: undefined,
       hoveredObservation: undefined,
       cameraCommand: { type: 'reset', nonce: get().cameraCommand.nonce + 1 },
-    }),
-  clearDataset: () =>
+    })
+    if (get().settings.embryoViewMode === 'mean') get().prepareMeanPositions()
+  },
+  clearDataset: () => {
+    get().clearMeanPositionCache()
     set({
       dataset: undefined,
       lineage: undefined,
@@ -154,7 +173,8 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       cellColors: {},
       groups: [],
       inspectedCellId: undefined,
-    }),
+    })
+  },
   setCurrentFrameIndex: (index) => {
     const last = Math.max((get().dataset?.frameValues.length ?? 1) - 1, 0)
     set({ currentFrameIndex: Math.max(0, Math.min(Math.round(index), last)) })
@@ -254,20 +274,87 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     get().selectGroup(id)
     set((state) => ({ cameraCommand: { type: 'focus', nonce: state.cameraCommand.nonce + 1 } }))
   },
-  setSettings: (patch) => set((state) => ({ settings: { ...state.settings, ...patch } })),
+  setSettings: (patch) => {
+    set((state) => ({
+      settings: { ...state.settings, ...patch },
+      hoveredObservation: patch.embryoViewMode ? undefined : state.hoveredObservation,
+    }))
+    if (patch.embryoViewMode === 'mean') get().prepareMeanPositions()
+  },
+  prepareMeanPositions: () => {
+    const state = get()
+    const dataset = state.dataset
+    if (!dataset) return
+    const key = meanPositionKey(state.activeEmbryoIds)
+    if (state.meanPositionCache?.key === key) return
+    if (state.meanPositionCacheStatus === 'loading' && state.meanPositionCacheKey === key) return
+
+    activeMeanPositionJob?.cancel()
+    const datasetAtStart = dataset
+    const job = startMeanPositionPrecomputation({
+      observations: dataset.observations,
+      activeEmbryoIds: [...state.activeEmbryoIds],
+    })
+    activeMeanPositionJob = job
+    set({
+      meanPositionCache: undefined,
+      meanPositionCacheKey: key,
+      meanPositionCacheStatus: 'loading',
+      meanPositionCacheError: undefined,
+    })
+    void job.promise.then((serialized) => {
+      if (activeMeanPositionJob !== job) return
+      const current = get()
+      if (current.dataset !== datasetAtStart || meanPositionKey(current.activeEmbryoIds) !== key) return
+      activeMeanPositionJob = undefined
+      set({
+        meanPositionCache: hydrateMeanPositionCache(key, serialized),
+        meanPositionCacheKey: key,
+        meanPositionCacheStatus: 'ready',
+        meanPositionCacheError: undefined,
+      })
+    }).catch((error: unknown) => {
+      if (activeMeanPositionJob !== job) return
+      activeMeanPositionJob = undefined
+      set({
+        meanPositionCache: undefined,
+        meanPositionCacheStatus: 'error',
+        meanPositionCacheError: error instanceof Error ? error.message : 'Mean-position precomputation failed.',
+      })
+    })
+  },
+  clearMeanPositionCache: () => {
+    activeMeanPositionJob?.cancel()
+    activeMeanPositionJob = undefined
+    set({
+      meanPositionCache: undefined,
+      meanPositionCacheKey: undefined,
+      meanPositionCacheStatus: 'idle',
+      meanPositionCacheError: undefined,
+    })
+  },
   setActiveEmbryos: (embryoIds) => {
+    const shouldRecomputeMean = get().settings.embryoViewMode === 'mean'
+      || get().meanPositionCacheStatus !== 'idle'
     const valid = new Set(get().dataset?.embryos.map((embryo) => embryo.id) ?? [])
     const activeEmbryoIds = new Set([...embryoIds].filter((id) => valid.has(id)))
     if (!activeEmbryoIds.size && valid.size) return
+    if (meanPositionKey(activeEmbryoIds) === meanPositionKey(get().activeEmbryoIds)) return
     set({ activeEmbryoIds, hoveredObservation: undefined })
+    get().clearMeanPositionCache()
+    if (shouldRecomputeMean) get().prepareMeanPositions()
   },
   toggleEmbryo: (embryoId) => {
+    const shouldRecomputeMean = get().settings.embryoViewMode === 'mean'
+      || get().meanPositionCacheStatus !== 'idle'
     const active = new Set(get().activeEmbryoIds)
     if (active.has(embryoId)) {
       if (active.size === 1) return
       active.delete(embryoId)
     } else active.add(embryoId)
     set({ activeEmbryoIds: active, hoveredObservation: undefined })
+    get().clearMeanPositionCache()
+    if (shouldRecomputeMean) get().prepareMeanPositions()
   },
   resetCamera: () =>
     set((state) => ({ cameraCommand: { type: 'reset', nonce: state.cameraCommand.nonce + 1 } })),
@@ -290,12 +377,14 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       (config.activeEmbryoIds ?? dataset.embryos.map((embryo) => embryo.id))
         .filter((id) => dataset.embryos.some((embryo) => embryo.id === id)),
     )
+    get().clearMeanPositionCache()
     set({
       groups,
       cellColors,
       settings: { ...defaultSettings, ...config.settings },
       activeEmbryoIds: activeEmbryoIds.size ? activeEmbryoIds : new Set(dataset.embryos.map((embryo) => embryo.id)),
     })
+    if (get().settings.embryoViewMode === 'mean') get().prepareMeanPositions()
     return warnings
   },
 }))

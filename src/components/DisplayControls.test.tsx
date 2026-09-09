@@ -17,7 +17,14 @@ const dataset = buildDatasetFromRows([
 beforeEach(() => {
   const store = useExplorerStore.getState()
   store.setDataset(dataset, resolveLineage(dataset.cells))
-  store.setSettings({ showTrajectories: false, trailLength: 'all', trailGroupIds: 'all', trailWidth: 1.1 })
+  store.setSettings({
+    showTrajectories: false,
+    trailRangeMode: 'all',
+    trailRangeStart: undefined,
+    trailRangeEnd: undefined,
+    trailGroupIds: 'all',
+    trailWidth: 1.1,
+  })
   store.setSelection(['AB'])
   useExplorerStore.getState().applyColor('#3978c5', true)
   useExplorerStore.getState().clearSelection()
@@ -28,7 +35,7 @@ describe('trail display controls', () => {
     render(<DisplayControls />)
     const trails = screen.getByRole('button', { name: /Trails/ })
     expect(trails).toBeEnabled()
-    expect(screen.getByRole('combobox', { name: 'Trail length' })).toHaveValue('all')
+    expect(screen.getByRole('combobox', { name: 'Trail range mode' })).toHaveValue('all')
 
     fireEvent.click(trails)
     expect(useExplorerStore.getState().settings.showTrajectories).toBe(true)
@@ -38,6 +45,18 @@ describe('trail display controls', () => {
     expect(width).toBeEnabled()
     fireEvent.change(width, { target: { value: '2.4' } })
     expect(useExplorerStore.getState().settings.trailWidth).toBe(2.4)
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Trail range mode' }), {
+      target: { value: 'custom' },
+    })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Trail start frame' }), {
+      target: { value: '2' },
+    })
+    expect(useExplorerStore.getState().settings).toMatchObject({
+      trailRangeMode: 'custom',
+      trailRangeStart: 2,
+      trailRangeEnd: 2,
+    })
 
     fireEvent.click(screen.getByRole('checkbox', { name: 'AB' }))
     expect(useExplorerStore.getState().settings.trailGroupIds).toEqual([])

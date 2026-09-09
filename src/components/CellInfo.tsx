@@ -12,9 +12,16 @@ export function CellInfo() {
   const hovered = useExplorerStore((state) => state.hoveredObservation)
   const activeEmbryoIds = useExplorerStore((state) => state.activeEmbryoIds)
   const settings = useExplorerStore((state) => state.settings)
+  const meanPositionCache = useExplorerStore((state) => state.meanPositionCache)
   const currentStep = dataset.frameValues[frameIndex] ?? 0
   const cellId = hovered?.cellId ?? inspected
-  const visibleObservations = getFrameObservations(dataset, currentStep, activeEmbryoIds, settings.embryoViewMode)
+  const visibleObservations = getFrameObservations(
+    dataset,
+    currentStep,
+    activeEmbryoIds,
+    settings.embryoViewMode,
+    meanPositionCache,
+  )
   const currentObservation = hovered ?? (cellId
     ? visibleObservations.find((row) => row.cellId === cellId)
     : undefined)

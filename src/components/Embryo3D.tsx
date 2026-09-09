@@ -8,7 +8,7 @@ import type { Observation } from '../data/types'
 import { getCellTrajectories, getDivisionConnections, getFrameObservations } from '../data/embryoView'
 import { getCellAppearance } from '../state/cellAppearance'
 import { useExplorerStore } from '../state/explorerStore'
-import { resolveTrailCellIds, resolveTrailGroups, trailVertexColor } from '../state/trails'
+import { resolveTrailCellIds, resolveTrailGroups, resolveTrailStepRange, trailVertexColor } from '../state/trails'
 import { EmbryoPanel } from './EmbryoPanel'
 
 interface RenderNucleus {
@@ -98,8 +98,8 @@ function Trajectories({ currentStep }: { currentStep: number }) {
   const cellColors = useExplorerStore((state) => state.cellColors)
   const settings = useExplorerStore((state) => state.settings)
   const activeEmbryoIds = useExplorerStore((state) => state.activeEmbryoIds)
+  const meanPositionCache = useExplorerStore((state) => state.meanPositionCache)
   const frameValues = dataset.frameValues
-  const frameIndex = frameValues.indexOf(currentStep)
   const trailGroups = useMemo(
     () => resolveTrailGroups(groups, settings.trailGroupIds),
     [groups, settings.trailGroupIds],
@@ -113,10 +113,15 @@ function Trajectories({ currentStep }: { currentStep: number }) {
     [lineage.nodes],
   )
   if (!settings.showTrajectories || trailCellIds.size === 0) return null
-  const earliest =
-    settings.trailLength === 'all'
-      ? frameValues[0]
-      : frameValues[Math.max(0, frameIndex - settings.trailLength + 1)]
+  const visibleRange = resolveTrailStepRange(
+    frameValues,
+    currentStep,
+    settings.trailRangeMode,
+    settings.trailRangeStart,
+    settings.trailRangeEnd,
+  )
+  if (!visibleRange) return null
+  const { start: earliest, end: latest } = visibleRange
   const colorFor = (cellId: string, embryoId: string) => {
     const groupColor = trailGroups.filter((group) => group.cellIds.includes(cellId)).at(-1)?.color
     const embryoColor = dataset.embryos.find((embryo) => embryo.id === embryoId)?.color
@@ -125,7 +130,7 @@ function Trajectories({ currentStep }: { currentStep: number }) {
       : groupColor ?? cellColors[cellId] ?? '#d34f3f'
   }
   const vertexColorsFor = (points: Observation[], color: string) => {
-    return points.map((point) => trailVertexColor(color, point.step, earliest, currentStep))
+    return points.map((point) => trailVertexColor(color, point.step, earliest, latest))
   }
   const divisionConnections = getDivisionConnections(
     dataset,
@@ -134,7 +139,8 @@ function Trajectories({ currentStep }: { currentStep: number }) {
     activeEmbryoIds,
     settings.embryoViewMode,
     earliest,
-    currentStep,
+    latest,
+    meanPositionCache,
   )
   return (
     <>
@@ -144,7 +150,8 @@ function Trajectories({ currentStep }: { currentStep: number }) {
           activeEmbryoIds,
           settings.embryoViewMode,
           earliest,
-          currentStep,
+          latest,
+          meanPositionCache,
         ).map((trajectory) => {
           const points = trajectory.points.map((point) => [point.renderX, point.renderY, point.renderZ] as [number, number, number])
           const color = colorFor(cellId, trajectory.embryoId)
@@ -305,11 +312,14 @@ export function Embryo3D() {
   const selectionSize = useExplorerStore((state) => state.selection.size)
   const activeEmbryoIds = useExplorerStore((state) => state.activeEmbryoIds)
   const settings = useExplorerStore((state) => state.settings)
+  const meanPositionCache = useExplorerStore((state) => state.meanPositionCache)
+  const meanPositionCacheStatus = useExplorerStore((state) => state.meanPositionCacheStatus)
+  const meanPositionCacheError = useExplorerStore((state) => state.meanPositionCacheError)
   const [showEmbryos, setShowEmbryos] = useState(dataset.embryos.length > 1)
   const step = dataset.frameValues[currentFrameIndex] ?? dataset.frameValues[0] ?? 0
   const observations = useMemo(
-    () => getFrameObservations(dataset, step, activeEmbryoIds, settings.embryoViewMode),
-    [activeEmbryoIds, dataset, settings.embryoViewMode, step],
+    () => getFrameObservations(dataset, step, activeEmbryoIds, settings.embryoViewMode, meanPositionCache),
+    [activeEmbryoIds, dataset, meanPositionCache, settings.embryoViewMode, step],
   )
 
   useEffect(() => setShowEmbryos(dataset.embryos.length > 1), [dataset])
@@ -338,6 +348,12 @@ export function Embryo3D() {
         >
           <Scene observations={observations} />
         </Canvas>
+        {settings.embryoViewMode === 'mean' && meanPositionCacheStatus === 'loading' && (
+          <div className="mean-cache-status">Calculating mean positions for all frames…</div>
+        )}
+        {settings.embryoViewMode === 'mean' && meanPositionCacheStatus === 'error' && (
+          <div className="mean-cache-status error">{meanPositionCacheError}</div>
+        )}
         {showEmbryos && <EmbryoPanel onClose={() => setShowEmbryos(false)} />}
         <div className="canvas-hint">Drag to rotate · Right-drag to pan · Scroll to zoom</div>
         <div className="frame-count">{observations.length} {settings.embryoViewMode === 'mean' ? 'mean nuclei' : 'nuclei'}</div>

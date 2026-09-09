@@ -1,6 +1,12 @@
 import { Color } from 'three'
 
 export type TrailGroupSelection = 'all' | string[]
+export type TrailRangeMode = 'all' | 'custom'
+
+export interface TrailStepRange {
+  start: number
+  end: number
+}
 
 export const TRAIL_OLD_OPACITY = 0.04
 export const TRAIL_NEW_OPACITY = 1
@@ -11,6 +17,27 @@ const TRAIL_MAX_NEW_LIGHTNESS = 0.48
 interface TrailGroupLike {
   id: string
   cellIds: string[]
+}
+
+export function resolveTrailStepRange(
+  frameValues: number[],
+  currentStep: number,
+  mode: TrailRangeMode,
+  requestedStart?: number,
+  requestedEnd?: number,
+): TrailStepRange | undefined {
+  if (!frameValues.length || !Number.isFinite(currentStep)) return undefined
+  if (mode === 'all') return { start: frameValues[0], end: currentStep }
+
+  const fallbackStart = frameValues[0]
+  const fallbackEnd = frameValues.at(-1) ?? currentStep
+  const start = Number.isFinite(requestedStart) ? requestedStart! : fallbackStart
+  const end = Number.isFinite(requestedEnd) ? requestedEnd! : fallbackEnd
+  const lower = Math.min(start, end)
+  const upper = Math.min(Math.max(start, end), currentStep)
+  const visibleValues = frameValues.filter((value) => value >= lower && value <= upper)
+  if (!visibleValues.length) return undefined
+  return { start: visibleValues[0], end: visibleValues.at(-1)! }
 }
 
 export function resolveTrailGroups<T extends TrailGroupLike>(

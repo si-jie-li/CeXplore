@@ -1,10 +1,10 @@
 # CeXplore 项目深度理解 4AI 与后续开发地图
 
-> 这是一份面向 AI/开发者后续续建的源码级心智模型，不替代用户手册或指标方法文档。结论以当前工作区（`HEAD ca1e23c` 加尚未提交的 group-analysis、group trails、division connection 和 temporal-axis 更新）源码、测试和生产构建为准，最后复核于 2026-09-08。
+> 这是一份面向 AI/开发者后续续建的源码级心智模型，不替代用户手册或指标方法文档。结论以当前工作区（`HEAD ca1e23c` 加尚未提交的 group-analysis、group trails、division connection、temporal-axis 和 Mean Worker cache 更新）源码、测试和生产构建为准，最后复核于 2026-09-09。
 
 ## 1. 项目本质与边界
 
-CeXplore 是一个纯浏览器端的 *C. elegans* 胚胎细胞谱系、3D 核位置和群体空间指标探索器。它把多个来源文件标准化为一个内存数据集，让谱系树、3D 胚胎、细胞列表、分组、颜色和时间轴共享同一个 Zustand 状态；新增的分析抽屉再按需把当前 group 与 displayed embryos 转成独立 Worker 请求。
+CeXplore 是一个纯浏览器端的 *C. elegans* 胚胎细胞谱系、3D 核位置和群体空间指标探索器。它把多个来源文件标准化为一个内存数据集，让谱系树、3D 胚胎、细胞列表、分组、颜色和时间轴共享同一个 Zustand 状态；Mean position 与分析任务分别使用独立 Worker，前者预计算显示缓存，后者按需计算群体指标。
 
 当前产品边界很明确：
 
@@ -47,6 +47,12 @@ main.tsx
   → 从 embryoIndex 复制选中 embryo 的 cellId/step/AP/LR/VD
   → Web Worker：dynamic membership → per-embryo/time kNN → metrics + null
   → GroupAnalysisResult：趋势图、当前汇总、胚胎表、CSV
+
+用户首次选择 Mean position / 改变 active embryos
+  → observations + activeEmbryoIds structured clone 到 meanPosition.worker
+  → 一次聚合全部 step/cell
+  → mean frameIndex + mean trajectoryIndex 写回 store cache
+  → 播放、CellInfo、Mean trails 和 division links 只读缓存
 ```
 
 项目的关键设计不是某一个组件，而是四条稳定边界：
@@ -54,7 +60,8 @@ main.tsx
 1. `RawMappedRow → EmbryoDataset`：文件格式在此之后不再影响业务代码。
 2. `EmbryoDataset → LineageModel`：空间观测与谱系拓扑分离。
 3. Zustand store：所有交互只改一份 authoritative state，视图不各存一份 selection。
-4. `GroupAnalysisRequest → GroupAnalysisResult`：分析是可序列化纯数据合同，计算层不依赖 React、Three.js 或 Zustand。
+4. `MeanPositionRequest → MeanPositionSerializedCache`：平均位置是可取消、可按 embryo selection 失效的 derived cache。
+5. `GroupAnalysisRequest → GroupAnalysisResult`：分析是可序列化纯数据合同，计算层不依赖 React、Three.js 或 Zustand。
 
 ## 3. 核心数据模型
 
@@ -173,7 +180,7 @@ renderAxis = (originalAxis - globalCenterAxis) * 16 / max(AP span, LR span, VD s
 
 Frame 模式中，`mapping.frameIntervalSeconds` 是大于 0 的用户输入，默认建议值为 1。它不改变 observation.step、`frameValues`、播放速度或 analysis step；只在 lineage y 轴上通过 `lineageAxisValue = frame × intervalSeconds / 60` 换算为 elapsed minutes。Time 模式的原 time 值则直接按 minutes 解释。
 
-播放定时器间隔固定为 `360ms / playbackSpeed`，不会按相邻 time 值的真实差值等待；到末尾后循环到开头。轨迹默认 `All previous`；可选 5/10/25，表示当前点在内的最近多少个 `frameValues`，即使 temporal mode 是 time，界面仍称其为 frames。
+播放定时器间隔固定为 `360ms / playbackSpeed`，不会按相邻 time 值的真实差值等待；到末尾后循环到开头。轨迹范围默认 `All previous`；也可输入 start/end frame，Time 模式则输入 start/end time。custom 范围会吸附到实际存在的 `frameValues`，且 end 始终被当前播放 step 截断，因此不会提前显示未来位置。
 
 分析同样使用 authoritative numeric step：不同 embryo 只有 step 数值完全相同才会进入同一个 cohort 时间切片；不做时间插值、时间配准或 nearest-time pooling。点击分析曲线时，UI 才把所点 series step 映射到 dataset 中最近的 `frameValues` index。
 
@@ -187,7 +194,9 @@ Frame 模式中，`mapping.frameIntervalSeconds` 是大于 0 的用户输入，�
 
 ### Mean position
 
-先按 cell 分组，再平均原始坐标和 render 坐标。分母是该 step 实际存在该 cell 的 active embryos 数量，而不是所有 active embryos 数量。结果的 embryo ID 固定为 `__mean__`。
+数值语义仍是按 step/cell 平均原始坐标和 render 坐标。分母是该 step 实际存在该 cell 的 active embryos 数量，而不是所有 active embryos 数量；结果 embryo ID 固定为 `__mean__`。但该计算不再发生在每次 render：第一次选择 Mean 时由 `meanPosition.worker.ts` 一次预计算全部 frames，得到 `frameIndex` 和 `trajectoryIndex` 两个缓存，播放时直接读取。
+
+缓存由 `explorerStore` 管理，key 是排序后的 active embryo IDs，状态为 `idle/loading/ready/error`。active embryo list 改变会取消旧 job、清缓存并自动重算；Overlay 可继续保留有效缓存；关闭/替换 dataset 会取消 job 并释放缓存。Session 只保存用户设置，不保存这份可重建的 derived data。
 
 ### 谱系树与 active embryos
 
@@ -247,7 +256,7 @@ Frame 模式中，`mapping.frameIntervalSeconds` 是大于 0 的用户输入，�
 
 Analysis 的 UI 状态是一个刻意的例外：drawer open、target、metrics、k、null sample、progress、result 和 stale fingerprint 都保存在 `AnalysisPanel` 本地 React state，不进入 Zustand，也不进入 Session。它只从 store 读取 dataset、lineage、groups、selection、active embryos 和 current frame，并用 `setCurrentFrameIndex` 把图表点击同步回全局时间轴。
 
-Trails 的目标选择则是全局 `settings` 的一部分，会跟 Session 导出：`trailGroupIds` 为 `'all' | string[]`，默认 `'all'`；`trailLength` 默认 `'all'`。当存在 saved groups 时，trail targets 只来自这个 group filter，与 live `selection` 解耦；所有 saved groups 被删除后才回退到 live selection。
+Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Session 导出：`trailGroupIds` 为 `'all' | string[]`，默认 `'all'`；`trailRangeMode` 为 `'all' | 'custom'`，默认 `'all'`，custom 数值保存在 `trailRangeStart/trailRangeEnd`。当存在 saved groups 时，trail targets 只来自 group filter，与 live `selection` 解耦；所有 saved groups 被删除后才回退到 live selection。
 
 典型交互：
 
@@ -309,8 +318,9 @@ Trails 的目标选择则是全局 `settings` 的一部分，会跟 Session 导�
 - 轨迹颜色取最后一个包含该 cell 的已选 trail group 颜色；Overlay + `Color by embryo` 时 embryo 颜色优先。
 - 每个轨迹点使用 RGBA vertex color：`trailProgressAtStep` 把当前 trail window 归一化为 0–1；`trailVertexColor` 让 alpha 从 0.04 非线性增加到 1，同时从高明度/低饱和过渡到较深/高饱和，因此时间方向比单独改变透明度更明显。Drei `Line` 在 GPU 内插值这些通道，不增加逐 segment React object。
 - `settings.trailWidth` 是持久化 display setting，DisplayControls 暴露 0.5–4 px slider，默认 1.1 px。宽度在每条 line 内保持一致；这是有意的性能取舍，避免在数百个 cells × 多 embryo 时为了逐段宽度变化成倍增加 draw calls。
+- `resolveTrailStepRange` 负责显示范围：all 模式为 `[firstFrame, currentStep]`；custom 模式将 start/end 排序，取范围内首尾两个实际 `frameValues`，并以 `currentStep` 截断上界。播放尚未进入 custom range 时返回 `undefined`，`Trajectories` 不渲染。
 
-普通轨迹仍由 `getCellTrajectories` 在每个 `(embryoId, cellId)` 内连续连点。跨 cell ID 的分裂不在该 index 内，所以由 `getDivisionConnections` 另外补线：当 mother 和 child 都在 trail targets 中，将时间窗口内 mother 的最后观测连到 child 的最早观测。两个 daughters 各产生一条连线；Overlay 严格限于同一 embryo，Mean 先计算每个 cell-step 的 mean position 再以同样规则连接。Division line 的 mother/child 端点同样使用各自 step 的 alpha。不插值，也不会把 target 以外的 mother/child 强行加入。
+普通轨迹仍由 `getCellTrajectories` 在每个 `(embryoId, cellId)` 内连续连点。跨 cell ID 的分裂不在该 index 内，所以由 `getDivisionConnections` 另外补线：当 mother 和 child 都在 trail targets 中，将时间窗口内 mother 的最后观测连到 child 的最早观测。两个 daughters 各产生一条连线；Overlay 严格限于同一 embryo，Mean 则直接读取 Worker 预建的 cell trajectory cache，再以相同规则连接。Division line 的 mother/child 端点同样使用各自 step 的 alpha。不插值，也不会把 target 以外的 mother/child 强行加入。
 
 ### 10.2 DOM/WebGL overlay 层级
 
@@ -326,7 +336,7 @@ App header / Open datasets trigger context: z-index 20
 
 因此 labels 无法跨出 embryo panel 压住已展开 analysis drawer 或 Open datasets modal。收起的 analysis drawer 宽 164px、靠右并留 10px 外边距，不再横跨整个底部遮住左下颜色选择；展开时才恢复全宽。
 
-性能风险之一仍在 trajectories：Overlay 路径可直接命中 `trajectoryIndex`，但 Mean 路径对每个 trail target 都会遍历时间窗口，并在每个 step 重新计算所有 cell mean；division connections 还会再生成一次窗口内的 mean points。大 group、`All previous`、长时间序列、多 embryo 时会呈乘法增长。它与 analysis Worker 是两条独立路径；analysis 没有解决 mean trail 的成本。
+Mean trajectory 原有的乘法型重复计算已移除：Mean nuclei、trails 和 division connections 共用同一个 Worker 预计算 cache。剩余成本主要是第一次选择/embryo list 改变时向 Worker structured-clone observations、后台线性聚合，以及大 group 实际提交给 WebGL 的 line 数量；这些不会再随每个播放 frame 重复执行。
 
 ## 11. Session 与兼容性
 
@@ -465,13 +475,13 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 
 在 Node 22.14.0 / npm 10.9.2 下：
 
-- `npm test`：17 个 test files、43 个 tests 全部通过；
+- `npm test`：17 个 test files、44 个 tests 全部通过；
 - `npm run build`：TypeScript strict build 和 Vite production build 通过；
-- production build 包含独立 `analysis.worker` chunk（约 6.8 KB）；
+- production build 包含独立 `meanPosition.worker`（约 1.4 KB）和 `analysis.worker`（约 6.8 KB）chunks；
 - canonical 表：1,341 unique IDs、1 root、0 missing parent refs、0 cycles；
-- build 唯一告警仍是主 JS 超过 Vite 默认 500 KB chunk 提示；XLSX 和 analysis worker 已分别拆分。
+- build 唯一告警仍是主 JS 超过 Vite 默认 500 KB chunk 提示；XLSX、Mean worker 和 analysis worker 已分别拆分。
 
-新增测试覆盖：lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、CSV schema/escaping、AnalysisPanel 只有点击 Run 才启动任务，trails 默认全部 saved groups/显式 group filter/selection fallback/时间 alpha 渐变，Overlay 和 Mean 的 mother→daughter connections，unique-time 升序帧索引，frame interval seconds 导入/minute 纵轴换算，以及 Time/Frame partial-stage 起点对齐。原有 mapping、import、lineage、store、3D 周边交互和 timeline 测试继续通过。
+新增测试覆盖：lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、CSV schema/escaping、AnalysisPanel 只有点击 Run 才启动任务，Mean 全帧预计算/缓存读取/embryo list 变化重算/dataset 关闭清理，trails 默认全部 saved groups/显式 group filter/selection fallback/custom frame range/未来帧截断/时间视觉渐变，Overlay 和 Mean 的 mother→daughter connections，unique-time 升序帧索引，frame interval seconds 导入/minute 纵轴换算，以及 Time/Frame partial-stage 起点对齐。原有 mapping、import、lineage、store、3D 周边交互和 timeline 测试继续通过。
 
 真实 326 MB `01_wt_truncated_axis_aligned.tsv` 也以 Time 模式重新跑通：`ctr_emb1` 保留 20,926/20,926 个有效 observations，识别 185 个升序 time frames（range 1–185）、722 cells、0 warnings；lineage y 轴从第一个 observed value `1` 开始。
 
@@ -484,7 +494,7 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 - kNN ties、重复坐标、极小 frame、whole-embryo group、zero AP span 和 null SD=0 的完整边界；
 - 大数据 structured-clone、O(n²) kNN 和 250 null samples 的性能/内存基准；
 - XLS/XLSX worksheet 实际导入、Session malformed input/迁移、多文件 identity；
-- supplied parent conflict/cycle、Mean trajectory 性能与缺测语义；
+- supplied parent conflict/cycle、Mean 缺测语义与大型 Worker payload 性能；
 - WebGL 中实际 trail/division line 渲染、labels/drawer/modal 层级、收起标签的实际占位、窄/矮 viewport 和可访问性的真实浏览器验收；CSS 仍要求 `body min-width: 1040px`。
 
 本次没有运行 `validate:analysis`（它用于验证指定 embryos 的 ABpl/MS/C analysis）。当前环境没有提供浏览器控制执行接口，因此视觉交互结论来自源码、jsdom 和 production build。
@@ -502,7 +512,7 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 | 树的时间和布局 | `src/lineage/lineageTree.ts` | active embryo vs global timing |
 | 新 selection/group 行为 | `src/state/explorerStore.ts` | `state/trails.ts`、Analysis target source/root 语义 |
 | 新显示模式 | `cellAppearance.ts` | 3D opacity 分桶、tree/list CSS |
-| 3D geometry/interaction | `src/components/Embryo3D.tsx` | `embryoView.ts` division connectors、InstancedMesh、mean trail 性能 |
+| 3D geometry/interaction | `src/components/Embryo3D.tsx` | `embryoView.ts` division connectors、InstancedMesh、Mean Worker cache |
 | Overlay 层级/drawer 占位 | `src/styles.css` | Drei `Html.zIndexRange`、stacking context、modal |
 | 新空间指标 | `analysis/types.ts`, `groupMetrics.ts` | runner、result utils、chart、CSV、synthetic test |
 | 新 null model | `analysis/runAnalysis.ts` | deterministic seed、候选池、统计解释 |

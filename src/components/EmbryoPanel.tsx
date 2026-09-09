@@ -5,7 +5,10 @@ export function EmbryoPanel({ onClose }: { onClose: () => void }) {
   const dataset = useExplorerStore((state) => state.dataset)!
   const active = useExplorerStore((state) => state.activeEmbryoIds)
   const settings = useExplorerStore((state) => state.settings)
+  const meanPositionCacheStatus = useExplorerStore((state) => state.meanPositionCacheStatus)
+  const meanPositionCacheError = useExplorerStore((state) => state.meanPositionCacheError)
   const setSettings = useExplorerStore((state) => state.setSettings)
+  const prepareMeanPositions = useExplorerStore((state) => state.prepareMeanPositions)
   const setActiveEmbryos = useExplorerStore((state) => state.setActiveEmbryos)
   const toggleEmbryo = useExplorerStore((state) => state.toggleEmbryo)
 
@@ -56,7 +59,13 @@ export function EmbryoPanel({ onClose }: { onClose: () => void }) {
         })}
       </div>
       {settings.embryoViewMode === 'mean' && (
-        <p>Each cell is averaged across the selected embryos available at the current time.</p>
+        <p>
+          {meanPositionCacheStatus === 'loading'
+            ? 'Calculating and caching all frames in the background…'
+            : meanPositionCacheStatus === 'error'
+              ? <>{meanPositionCacheError} <button type="button" onClick={prepareMeanPositions}>Retry</button></>
+              : 'All frames are cached. Each cell is averaged across selected embryos available at that time.'}
+        </p>
       )}
     </aside>
   )
