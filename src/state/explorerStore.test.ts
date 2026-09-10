@@ -44,13 +44,66 @@ describe('shared explorer state', () => {
     expect(useExplorerStore.getState().groups).toHaveLength(0)
   })
 
-  it('adds and removes whole lineages without replacing an existing selection', () => {
+  it('only adds whole lineages without replacing or toggling the existing selection', () => {
     const state = useExplorerStore.getState()
     state.setSelection(['ABpl'])
-    state.selectLineage('ABpr', true)
+    state.selectLineage('ABpr')
     expect([...useExplorerStore.getState().selection]).toEqual(expect.arrayContaining(['ABpl', 'ABpr']))
-    useExplorerStore.getState().selectLineage('ABpr', true)
-    expect([...useExplorerStore.getState().selection]).toEqual(['ABpl'])
+    useExplorerStore.getState().selectLineage('ABpr')
+    expect([...useExplorerStore.getState().selection]).toEqual(['ABpl', 'ABpr'])
+  })
+
+  it('merges repeated color assignments and supports explicit group additions and removals', () => {
+    const state = useExplorerStore.getState()
+    state.setSelection(['ABpl'])
+    useExplorerStore.getState().applyColor('#3978c5', true)
+    useExplorerStore.getState().setSelection(['ABpr'])
+    useExplorerStore.getState().applyColor('#3978c5', true)
+
+    let group = useExplorerStore.getState().groups[0]
+    expect(useExplorerStore.getState().groups).toHaveLength(1)
+    expect(group.cellIds).toEqual(['ABpl', 'ABpr'])
+
+    useExplorerStore.getState().addCellsToGroup(group.id, ['ABp'])
+    group = useExplorerStore.getState().groups[0]
+    expect(group.cellIds).toEqual(['ABpl', 'ABpr', 'ABp'])
+    expect(useExplorerStore.getState().cellColors.ABp).toBe('#3978c5')
+
+    useExplorerStore.getState().removeCellsFromGroup(group.id, ['ABpr'])
+    group = useExplorerStore.getState().groups[0]
+    expect(group).toMatchObject({ cellIds: ['ABpl', 'ABp'], source: 'manual', rootCell: undefined })
+    expect(useExplorerStore.getState().cellColors.ABpr).toBeUndefined()
+
+    useExplorerStore.getState().setSelection(['ABpr'])
+    useExplorerStore.getState().applyColor('#df7844', true)
+    const second = useExplorerStore.getState().groups[1]
+    useExplorerStore.getState().setGroupColor(second.id, '#3978c5')
+    expect(useExplorerStore.getState().groups).toHaveLength(1)
+    expect(useExplorerStore.getState().groups[0].cellIds).toEqual(['ABpr', 'ABpl', 'ABp'])
+  })
+
+  it('imports readable group entries by cell name and merges matching colors', () => {
+    const state = useExplorerStore.getState()
+    state.setSelection(['ABpl'])
+    useExplorerStore.getState().applyColor('#3978c5', true)
+    const warnings = useExplorerStore.getState().importGroupList('another.tsv', [
+      {
+        name: 'Imported blue', color: '#3978c5', cells: ['ABpr', 'missing'],
+        visible: true, source: 'manual',
+      },
+      {
+        name: 'Green root', color: '#3f966c', cells: ['ABp'],
+        visible: false, source: 'lineage', rootCell: 'ABp',
+      },
+    ])
+
+    expect(warnings.join(' ')).toMatch(/another\.tsv.*unknown cell/)
+    expect(useExplorerStore.getState().groups).toHaveLength(2)
+    expect(useExplorerStore.getState().groups[0].cellIds).toEqual(['ABpl', 'ABpr'])
+    expect(useExplorerStore.getState().groups[1]).toMatchObject({
+      name: 'Green root', color: '#3f966c', cellIds: ['ABp'], visible: false,
+      source: 'lineage', rootCell: 'ABp',
+    })
   })
 
   it('does not issue a camera reset when playback moves to another frame', () => {
@@ -62,11 +115,12 @@ describe('shared explorer state', () => {
     useExplorerStore.getState().resetCamera()
     expect(useExplorerStore.getState().cameraCommand.nonce).toBe(before.nonce + 1)
 
-    useExplorerStore.getState().setCameraAngle({ azimuthDegrees: 90, elevationDegrees: 20 })
+    useExplorerStore.getState().setCameraAngle({ azimuthDegrees: 90, elevationDegrees: 20, rollDegrees: 35 })
     expect(useExplorerStore.getState().cameraCommand).toMatchObject({
       type: 'angle',
       azimuthDegrees: 90,
       elevationDegrees: 20,
+      rollDegrees: 35,
       nonce: before.nonce + 2,
     })
   })

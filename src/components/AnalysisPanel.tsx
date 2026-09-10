@@ -252,7 +252,7 @@ export function AnalysisPanel() {
 
   return (
     <section className={`analysis-drawer ${open ? 'open' : ''}`} aria-label="Cell-group spatial analysis">
-      <button className="analysis-drawer-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
+      <button className="analysis-drawer-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open} title={open ? 'Collapse Group analysis' : 'Open Group analysis'}>
         <span><BarChart3 size={15} /><strong>Group analysis</strong>{result && <em>{result.group.name} · {result.embryoIds.length} embryos</em>}</span>
         {open ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
       </button>

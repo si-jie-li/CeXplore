@@ -110,7 +110,7 @@ export function LineageTree() {
   const clickBranch = (cellId: string, shiftKey: boolean, additive: boolean) => {
     const node = lineage.nodes.get(cellId)
     if (clickMode === 'lineage' || shiftKey || !node?.represented) {
-      selectLineage(cellId, additive)
+      selectLineage(cellId)
     } else if (additive) {
       toggleCell(cellId)
     } else {

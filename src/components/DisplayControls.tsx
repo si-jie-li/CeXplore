@@ -69,19 +69,36 @@ export function DisplayControls() {
         ><Route size={15} /> Trails</button>
         <select
           value={settings.trailRangeMode}
-          onChange={(event) => setSettings(event.target.value === 'all'
-            ? { trailRangeMode: 'all' }
-            : {
+          onChange={(event) => setSettings(event.target.value === 'custom'
+            ? {
                 trailRangeMode: 'custom',
                 trailRangeStart: settings.trailRangeStart ?? firstStep,
                 trailRangeEnd: settings.trailRangeEnd ?? lastStep,
-              })}
+              }
+            : { trailRangeMode: event.target.value as 'all' | 'previous' })}
           disabled={!settings.showTrajectories}
           aria-label="Trail range mode"
         >
           <option value="all">All previous</option>
+          <option value="previous">Previous N frames</option>
           <option value="custom">{dataset?.temporalMode === 'time' ? 'Time range' : 'Frame range'}</option>
         </select>
+        {settings.showTrajectories && settings.trailRangeMode === 'previous' && (
+          <label className="trail-previous-input">
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={settings.trailPreviousFrames}
+              aria-label="Previous frame count"
+              onChange={(event) => {
+                const value = Number(event.target.value)
+                if (Number.isFinite(value)) setSettings({ trailPreviousFrames: Math.max(1, Math.floor(value)) })
+              }}
+            />
+            <span>frames</span>
+          </label>
+        )}
         {settings.showTrajectories && settings.trailRangeMode === 'custom' && (
           <div className="trail-range-inputs">
             <input

@@ -1,7 +1,7 @@
 import { Color } from 'three'
 
 export type TrailGroupSelection = 'all' | string[]
-export type TrailRangeMode = 'all' | 'custom'
+export type TrailRangeMode = 'all' | 'previous' | 'custom'
 
 export interface TrailStepRange {
   start: number
@@ -25,9 +25,23 @@ export function resolveTrailStepRange(
   mode: TrailRangeMode,
   requestedStart?: number,
   requestedEnd?: number,
+  previousFrameCount?: number,
 ): TrailStepRange | undefined {
   if (!frameValues.length || !Number.isFinite(currentStep)) return undefined
   if (mode === 'all') return { start: frameValues[0], end: currentStep }
+
+  if (mode === 'previous') {
+    let currentIndex = frameValues.length - 1
+    while (currentIndex >= 0 && frameValues[currentIndex] > currentStep) currentIndex -= 1
+    if (currentIndex < 0) return undefined
+    const count = Number.isFinite(previousFrameCount)
+      ? Math.max(1, Math.floor(previousFrameCount!))
+      : 10
+    return {
+      start: frameValues[Math.max(0, currentIndex - count + 1)],
+      end: frameValues[currentIndex],
+    }
+  }
 
   const fallbackStart = frameValues[0]
   const fallbackEnd = frameValues.at(-1) ?? currentStep

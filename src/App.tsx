@@ -6,6 +6,7 @@ import { LineageTree } from './components/LineageTree'
 import { ListPanel } from './components/ListPanel'
 import { ControlDeck } from './components/ControlDeck'
 import { AnalysisPanel } from './components/AnalysisPanel'
+import { TrailProjectionPanel } from './components/TrailProjectionPanel'
 import { createSessionConfiguration, useExplorerStore } from './state/explorerStore'
 import { formatBytes } from './utils/format'
 import { downloadJson, readSessionFile } from './utils/session'
@@ -95,6 +96,7 @@ function LoadedWorkspace() {
         <ListPanel />
         <ControlDeck />
         <AnalysisPanel />
+        <TrailProjectionPanel />
       </main>
     </div>
   )

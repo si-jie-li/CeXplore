@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cameraOffsetFromAngles, clampElevation } from './camera'
+import { cameraOffsetFromAngles, cameraUpFromAngles, clampElevation } from './camera'
 
 describe('numeric camera angles', () => {
   it('maps cardinal azimuths onto the AP/VD axes while preserving distance', () => {
@@ -15,5 +15,13 @@ describe('numeric camera angles', () => {
     expect(clampElevation(-120)).toBe(-89.9)
     const upperLr = cameraOffsetFromAngles(0, 90, 8)
     expect(upperLr[1]).toBeCloseTo(8, 4)
+  })
+
+  it('rolls the camera up-vector around the current viewing direction', () => {
+    expect(cameraUpFromAngles(0, 0, 0)).toEqual([0, 1, 0])
+    const rolled = cameraUpFromAngles(0, 0, 90)
+    expect(rolled[0]).toBeCloseTo(1)
+    expect(rolled[1]).toBeCloseTo(0)
+    expect(rolled[2]).toBeCloseTo(0)
   })
 })

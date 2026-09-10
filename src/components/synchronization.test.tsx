@@ -37,6 +37,10 @@ describe('linked interactions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Cell groups/ }))
     fireEvent.change(screen.getByRole('textbox', { name: 'Group name' }), { target: { value: 'ABp family' } })
+    fireEvent.click(screen.getByTitle('View group cells'))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ABpr' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove selected (1)' }))
+    expect(useExplorerStore.getState().groups[0].cellIds).not.toContain('ABpr')
     fireEvent.click(screen.getByTitle('Hide group'))
     expect(useExplorerStore.getState().groups[0]).toMatchObject({ name: 'ABp family', visible: false })
   })

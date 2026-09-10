@@ -54,8 +54,8 @@ export function CellList() {
               </label>
               <button
                 className="row-action"
-                onClick={(event) => selectLineage(cellId, event.metaKey || event.ctrlKey)}
-                title={`Select ${cellId} and represented descendants`}
+                onClick={() => selectLineage(cellId)}
+                title={`Add ${cellId} and represented descendants to selection`}
               ><GitBranch size={14} /></button>
             </div>
           )

@@ -31,6 +31,8 @@ describe('trail group selection', () => {
   it('resolves all-previous or explicit playback ranges without exposing future frames', () => {
     const frames = [10, 20, 30, 40]
     expect(resolveTrailStepRange(frames, 30, 'all')).toEqual({ start: 10, end: 30 })
+    expect(resolveTrailStepRange(frames, 40, 'previous', undefined, undefined, 2)).toEqual({ start: 30, end: 40 })
+    expect(resolveTrailStepRange(frames, 20, 'previous', undefined, undefined, 20)).toEqual({ start: 10, end: 20 })
     expect(resolveTrailStepRange(frames, 40, 'custom', 15, 35)).toEqual({ start: 20, end: 30 })
     expect(resolveTrailStepRange(frames, 30, 'custom', 10, 40)).toEqual({ start: 10, end: 30 })
     expect(resolveTrailStepRange(frames, 10, 'custom', 20, 40)).toBeUndefined()

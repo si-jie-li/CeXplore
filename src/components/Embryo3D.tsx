@@ -8,7 +8,7 @@ import type { Observation } from '../data/types'
 import { getCellTrajectories, getDivisionConnections, getFrameObservations } from '../data/embryoView'
 import { getCellAppearance } from '../state/cellAppearance'
 import { useExplorerStore } from '../state/explorerStore'
-import { cameraOffsetFromAngles, clampElevation, type CameraAngle } from '../state/camera'
+import { cameraOffsetFromAngles, cameraUpFromAngles, clampElevation, type CameraAngle } from '../state/camera'
 import { resolveTrailCellIds, resolveTrailGroups, resolveTrailStepRange, trailVertexColor } from '../state/trails'
 import { EmbryoPanel } from './EmbryoPanel'
 
@@ -120,6 +120,7 @@ function Trajectories({ currentStep }: { currentStep: number }) {
     settings.trailRangeMode,
     settings.trailRangeStart,
     settings.trailRangeEnd,
+    settings.trailPreviousFrames,
   )
   if (!visibleRange) return null
   const { start: earliest, end: latest } = visibleRange
@@ -219,26 +220,29 @@ function CellLabels({ observations }: { observations: Observation[] }) {
 }
 
 const VIEW_PRESETS: Array<{ label: string; title: string; angle: CameraAngle }> = [
-  { label: '+AP', title: 'Look from positive AP', angle: { azimuthDegrees: 90, elevationDegrees: 0 } },
-  { label: '−AP', title: 'Look from negative AP', angle: { azimuthDegrees: -90, elevationDegrees: 0 } },
-  { label: '+LR', title: 'Look from positive LR', angle: { azimuthDegrees: 0, elevationDegrees: 89.9 } },
-  { label: '−LR', title: 'Look from negative LR', angle: { azimuthDegrees: 0, elevationDegrees: -89.9 } },
-  { label: '+VD', title: 'Look from positive VD', angle: { azimuthDegrees: 0, elevationDegrees: 0 } },
-  { label: '−VD', title: 'Look from negative VD', angle: { azimuthDegrees: 180, elevationDegrees: 0 } },
+  { label: '+AP', title: 'Look from positive AP', angle: { azimuthDegrees: 90, elevationDegrees: 0, rollDegrees: 0 } },
+  { label: '−AP', title: 'Look from negative AP', angle: { azimuthDegrees: -90, elevationDegrees: 0, rollDegrees: 0 } },
+  { label: '+LR', title: 'Look from positive LR', angle: { azimuthDegrees: 0, elevationDegrees: 89.9, rollDegrees: 0 } },
+  { label: '−LR', title: 'Look from negative LR', angle: { azimuthDegrees: 0, elevationDegrees: -89.9, rollDegrees: 0 } },
+  { label: '+VD', title: 'Look from positive VD', angle: { azimuthDegrees: 0, elevationDegrees: 0, rollDegrees: 0 } },
+  { label: '−VD', title: 'Look from negative VD', angle: { azimuthDegrees: 180, elevationDegrees: 0, rollDegrees: 0 } },
 ]
 
 function ViewAnglePanel({ onClose }: { onClose: () => void }) {
   const setCameraAngle = useExplorerStore((state) => state.setCameraAngle)
   const [azimuth, setAzimuth] = useState('42')
   const [elevation, setElevation] = useState('26')
+  const [roll, setRoll] = useState('0')
   const parsedAzimuth = Number(azimuth)
   const parsedElevation = Number(elevation)
-  const valid = Number.isFinite(parsedAzimuth) && Number.isFinite(parsedElevation)
+  const parsedRoll = Number(roll)
+  const valid = Number.isFinite(parsedAzimuth) && Number.isFinite(parsedElevation) && Number.isFinite(parsedRoll)
 
   const applyAngle = (angle: CameraAngle) => {
     const clamped = { ...angle, elevationDegrees: clampElevation(angle.elevationDegrees) }
     setAzimuth(String(clamped.azimuthDegrees))
     setElevation(String(clamped.elevationDegrees))
+    setRoll(String(clamped.rollDegrees))
     setCameraAngle(clamped)
   }
 
@@ -257,11 +261,15 @@ function ViewAnglePanel({ onClose }: { onClose: () => void }) {
           <span>Elevation</span>
           <input type="number" min="-89.9" max="89.9" step="1" value={elevation} onChange={(event) => setElevation(event.target.value)} />
         </label>
+        <label>
+          <span>Roll</span>
+          <input type="number" step="1" value={roll} onChange={(event) => setRoll(event.target.value)} />
+        </label>
         <button
           type="button"
           className="button primary compact"
           disabled={!valid}
-          onClick={() => applyAngle({ azimuthDegrees: parsedAzimuth, elevationDegrees: parsedElevation })}
+          onClick={() => applyAngle({ azimuthDegrees: parsedAzimuth, elevationDegrees: parsedElevation, rollDegrees: parsedRoll })}
         >Apply</button>
       </div>
       <div className="view-angle-presets">
@@ -271,7 +279,7 @@ function ViewAnglePanel({ onClose }: { onClose: () => void }) {
           </button>
         ))}
       </div>
-      <p>Azimuth rotates around LR; elevation tilts above or below the AP–VD plane.</p>
+      <p>Azimuth rotates around LR; elevation tilts above the AP–VD plane; roll rotates the image around the viewing direction.</p>
     </aside>
   )
 }
@@ -290,6 +298,7 @@ function CameraController({ observations }: { observations: Observation[] }) {
     if (!controls.current) return
     if (command.type === 'reset') {
       camera.position.set(17, 13, 19)
+      camera.up.set(0, 1, 0)
       controls.current.target.set(0, 0, 0)
     } else if (command.type === 'focus') {
       const targets = observationsRef.current.filter((observation) => selectionRef.current.has(observation.cellId))
@@ -311,6 +320,11 @@ function CameraController({ observations }: { observations: Observation[] }) {
         distance,
       )
       camera.position.copy(controls.current.target).add(new THREE.Vector3(x, y, z))
+      camera.up.fromArray(cameraUpFromAngles(
+        command.azimuthDegrees,
+        command.elevationDegrees,
+        command.rollDegrees,
+      ))
     }
     camera.updateProjectionMatrix()
     controls.current.update()

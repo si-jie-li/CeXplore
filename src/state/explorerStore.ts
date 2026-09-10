@@ -5,6 +5,7 @@ import { startMeanPositionPrecomputation, type MeanPositionJob } from '../data/m
 import { getDescendants, type LineageModel } from '../lineage/lineageResolver'
 import type { CameraAngle } from './camera'
 import type { TrailGroupSelection, TrailRangeMode } from './trails'
+import type { GroupListEntry } from '../utils/groupList'
 
 export type DisplayMode = 'color' | 'isolate' | 'highlight'
 export type SelectionKind = 'manual' | 'cell' | 'lineage' | 'group'
@@ -41,6 +42,7 @@ export interface ExplorerSettings {
   trailRangeMode: TrailRangeMode
   trailRangeStart?: number
   trailRangeEnd?: number
+  trailPreviousFrames: number
   trailGroupIds: TrailGroupSelection
   trailWidth: number
   embryoViewMode: EmbryoViewMode
@@ -75,13 +77,15 @@ interface ExplorerState {
   setSelection: (cellIds: Iterable<string>, meta?: SelectionMeta) => void
   toggleCells: (cellIds: Iterable<string>) => void
   toggleCell: (cellId: string) => void
-  selectLineage: (cellId: string, additive?: boolean) => void
+  selectLineage: (cellId: string) => void
   clearSelection: () => void
   applyColor: (color: string, saveAsGroup?: boolean) => void
   setInspectedCell: (cellId?: string) => void
   setHoveredObservation: (observation?: Observation) => void
   updateGroup: (id: string, patch: Partial<Pick<CellGroup, 'name' | 'visible'>>) => void
   setGroupColor: (id: string, color: string) => void
+  addCellsToGroup: (id: string, cellIds: Iterable<string>) => void
+  removeCellsFromGroup: (id: string, cellIds: Iterable<string>) => void
   deleteGroup: (id: string) => void
   selectGroup: (id: string) => void
   focusGroup: (id: string) => void
@@ -93,6 +97,7 @@ interface ExplorerState {
   resetCamera: () => void
   focusSelection: () => void
   setCameraAngle: (angle: CameraAngle) => void
+  importGroupList: (sourceDataset: string, groups: GroupListEntry[]) => string[]
   importConfiguration: (config: SessionConfiguration) => string[]
 }
 
@@ -116,6 +121,7 @@ const defaultSettings: ExplorerSettings = {
   trailRangeMode: 'all',
   trailRangeStart: undefined,
   trailRangeEnd: undefined,
+  trailPreviousFrames: 10,
   trailGroupIds: 'all',
   trailWidth: 1.1,
   embryoViewMode: 'overlay',
@@ -134,6 +140,36 @@ const colorsFromGroups = (groups: CellGroup[]) => {
   const colors: Record<string, string> = {}
   for (const group of groups) for (const id of group.cellIds) colors[id] = group.color
   return colors
+}
+
+const reconcileAffectedCellColors = (
+  previous: Record<string, string>,
+  groups: CellGroup[],
+  affectedCellIds: Iterable<string>,
+) => {
+  const affected = new Set(affectedCellIds)
+  const colors = { ...previous }
+  affected.forEach((cellId) => { delete colors[cellId] })
+  for (const group of groups) {
+    for (const cellId of group.cellIds) {
+      if (affected.has(cellId)) colors[cellId] = group.color
+    }
+  }
+  return colors
+}
+
+const normalizedColor = (color: string) => color.toLowerCase()
+
+const withoutTrailGroupIds = (
+  settings: ExplorerSettings,
+  removedIds: Set<string>,
+  replacementId?: string,
+): ExplorerSettings => {
+  if (settings.trailGroupIds === 'all' || !removedIds.size) return settings
+  const ids = settings.trailGroupIds.flatMap((id) => (
+    removedIds.has(id) ? (replacementId ? [replacementId] : []) : [id]
+  ))
+  return { ...settings, trailGroupIds: [...new Set(ids)] }
 }
 
 export const useExplorerStore = create<ExplorerState>((set, get) => ({
@@ -214,17 +250,18 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     })
   },
   toggleCell: (cellId) => get().toggleCells([cellId]),
-  selectLineage: (cellId, additive = false) => {
+  selectLineage: (cellId) => {
     const lineage = get().lineage
     if (!lineage) return
     const descendants = getDescendants(lineage, cellId, true)
-    if (additive) {
-      get().toggleCells(descendants)
-      return
-    }
+    const previous = get().selection
+    const selection = new Set(previous)
+    descendants.forEach((id) => selection.add(id))
     set({
-      selection: new Set(descendants),
-      selectionMeta: { kind: 'lineage', rootCell: cellId },
+      selection,
+      selectionMeta: previous.size
+        ? { kind: 'manual' }
+        : { kind: 'lineage', rootCell: cellId },
       inspectedCellId: cellId,
     })
   },
@@ -246,6 +283,21 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
         : ids.length === 1
           ? ids[0]
           : `Cell group ${state.groups.length + 1}`
+    const matchingGroups = state.groups.filter((group) => normalizedColor(group.color) === normalizedColor(color))
+    if (matchingGroups.length) {
+      const target = matchingGroups[0]
+      const removedIds = new Set(matchingGroups.slice(1).map((group) => group.id))
+      const mergedCellIds = [...new Set([...matchingGroups.flatMap((group) => group.cellIds), ...ids])]
+      const groups = state.groups
+        .filter((group) => !removedIds.has(group.id))
+        .map((group) => group.id === target.id ? { ...group, color, cellIds: mergedCellIds } : group)
+      set({
+        groups,
+        cellColors,
+        settings: withoutTrailGroupIds(state.settings, removedIds, target.id),
+      })
+      return
+    }
     const group: CellGroup = {
       id: groupId(),
       name: baseName,
@@ -264,13 +316,63 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     set((state) => ({ groups: state.groups.map((group) => (group.id === id ? { ...group, ...patch } : group)) })),
   setGroupColor: (id, color) =>
     set((state) => {
-      const groups = state.groups.map((group) => (group.id === id ? { ...group, color } : group))
-      return { groups, cellColors: colorsFromGroups(groups) }
+      const target = state.groups.find((group) => group.id === id)
+      if (!target) return state
+      const matching = state.groups.filter((group) =>
+        group.id !== id && normalizedColor(group.color) === normalizedColor(color))
+      const removedIds = new Set(matching.map((group) => group.id))
+      const mergedCellIds = [...new Set([...target.cellIds, ...matching.flatMap((group) => group.cellIds)])]
+      const groups = state.groups
+        .filter((group) => !removedIds.has(group.id))
+        .map((group) => group.id === id ? { ...group, color, cellIds: mergedCellIds } : group)
+      return {
+        groups,
+        cellColors: reconcileAffectedCellColors(state.cellColors, groups, mergedCellIds),
+        settings: withoutTrailGroupIds(state.settings, removedIds, id),
+      }
+    }),
+  addCellsToGroup: (id, cellIds) =>
+    set((state) => {
+      const valid = state.dataset?.cells
+      const additions = [...cellIds].filter((cellId) => valid?.has(cellId))
+      const target = state.groups.find((group) => group.id === id)
+      if (!target || !additions.length) return state
+      const merged = [...new Set([...target.cellIds, ...additions])]
+      const groups = state.groups.map((group) => group.id === id ? { ...group, cellIds: merged } : group)
+      const cellColors = { ...state.cellColors }
+      additions.forEach((cellId) => { cellColors[cellId] = target.color })
+      return { groups, cellColors }
+    }),
+  removeCellsFromGroup: (id, cellIds) =>
+    set((state) => {
+      const removals = new Set(cellIds)
+      if (!removals.size) return state
+      const target = state.groups.find((group) => group.id === id)
+      if (!target) return state
+      const remaining = target.cellIds.filter((cellId) => !removals.has(cellId))
+      const removeGroup = remaining.length === 0
+      const groups = removeGroup
+        ? state.groups.filter((group) => group.id !== id)
+        : state.groups.map((group) => group.id === id
+          ? { ...group, cellIds: remaining, source: 'manual' as const, rootCell: undefined }
+          : group)
+      return {
+        groups,
+        cellColors: reconcileAffectedCellColors(state.cellColors, groups, target.cellIds),
+        settings: removeGroup
+          ? withoutTrailGroupIds(state.settings, new Set([id]))
+          : state.settings,
+      }
     }),
   deleteGroup: (id) =>
     set((state) => {
+      const target = state.groups.find((group) => group.id === id)
       const groups = state.groups.filter((group) => group.id !== id)
-      return { groups, cellColors: colorsFromGroups(groups) }
+      return {
+        groups,
+        cellColors: reconcileAffectedCellColors(state.cellColors, groups, target?.cellIds ?? []),
+        settings: withoutTrailGroupIds(state.settings, new Set([id])),
+      }
     }),
   selectGroup: (id) => {
     const group = get().groups.find((item) => item.id === id)
@@ -366,15 +468,64 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     set((state) => ({ cameraCommand: { type: 'reset', nonce: state.cameraCommand.nonce + 1 } })),
   focusSelection: () =>
     set((state) => ({ cameraCommand: { type: 'focus', nonce: state.cameraCommand.nonce + 1 } })),
-  setCameraAngle: ({ azimuthDegrees, elevationDegrees }) =>
+  setCameraAngle: ({ azimuthDegrees, elevationDegrees, rollDegrees }) =>
     set((state) => ({
       cameraCommand: {
         type: 'angle',
         nonce: state.cameraCommand.nonce + 1,
         azimuthDegrees,
         elevationDegrees,
+        rollDegrees,
       },
     })),
+  importGroupList: (sourceDataset, importedGroups) => {
+    const dataset = get().dataset
+    if (!dataset) return ['Load the source dataset before importing groups.']
+    const warnings: string[] = []
+    if (sourceDataset && sourceDataset !== dataset.name) {
+      warnings.push(`Group list was exported for “${sourceDataset}”; imported matching cell names only.`)
+    }
+    const validIds = new Set(dataset.cellIds)
+    set((state) => {
+      let groups = [...state.groups]
+      let settings = state.settings
+      for (const imported of importedGroups) {
+        const cellIds = [...new Set(imported.cells.filter((cellId) => validIds.has(cellId)))]
+        const ignored = imported.cells.length - cellIds.length
+        if (ignored) warnings.push(`${imported.name}: ignored ${ignored} unknown cell${ignored === 1 ? '' : 's'}.`)
+        if (!cellIds.length) {
+          warnings.push(`${imported.name}: skipped because no cells exist in this dataset.`)
+          continue
+        }
+        const sameColor = groups.filter((group) => normalizedColor(group.color) === normalizedColor(imported.color))
+        if (sameColor.length) {
+          const target = sameColor[0]
+          const duplicateIds = new Set(sameColor.slice(1).map((group) => group.id))
+          const merged = [...new Set([...sameColor.flatMap((group) => group.cellIds), ...cellIds])]
+          groups = groups
+            .filter((group) => !duplicateIds.has(group.id))
+            .map((group) => group.id === target.id ? { ...group, cellIds: merged } : group)
+          settings = withoutTrailGroupIds(settings, duplicateIds, target.id)
+        } else {
+          const rootCell = imported.rootCell && validIds.has(imported.rootCell)
+            ? imported.rootCell
+            : undefined
+          groups.push({
+            id: groupId(),
+            name: imported.name,
+            color: imported.color,
+            cellIds,
+            visible: imported.visible,
+            source: imported.source === 'lineage' && rootCell ? 'lineage' : 'manual',
+            rootCell,
+            createdAt: Date.now() + groups.length,
+          })
+        }
+      }
+      return { groups, cellColors: { ...state.cellColors, ...colorsFromGroups(groups) }, settings }
+    })
+    return warnings
+  },
   importConfiguration: (config) => {
     const dataset = get().dataset
     if (!dataset) return ['Load the source dataset before importing its configuration.']

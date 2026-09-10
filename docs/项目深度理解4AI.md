@@ -1,6 +1,6 @@
 # CeXplore 项目深度理解 4AI 与后续开发地图
 
-> 这是一份面向 AI/开发者后续续建的源码级心智模型，不替代用户手册或指标方法文档。结论以当前工作区（`HEAD ca1e23c` 加尚未提交的 group-analysis、group trails、division connection、temporal-axis 和 Mean Worker cache 更新）源码、测试和生产构建为准，最后复核于 2026-09-09。
+> 这是一份面向 AI/开发者后续续建的源码级心智模型，不替代用户手册或指标方法文档。结论以当前工作区（`HEAD ca1e23c` 加尚未提交的 group-analysis、group trails、division connection、temporal-axis、Mean Worker cache、完整三自由度视角、group-centroid projected motion 和 group membership/I/O 更新）源码、测试和生产构建为准，最后复核于 2026-09-10。
 
 ## 1. 项目本质与边界
 
@@ -180,7 +180,7 @@ renderAxis = (originalAxis - globalCenterAxis) * 16 / max(AP span, LR span, VD s
 
 Frame 模式中，`mapping.frameIntervalSeconds` 是大于 0 的用户输入，默认建议值为 1。它不改变 observation.step、`frameValues`、播放速度或 analysis step；只在 lineage y 轴上通过 `lineageAxisValue = frame × intervalSeconds / 60` 换算为 elapsed minutes。Time 模式的原 time 值则直接按 minutes 解释。
 
-播放定时器间隔固定为 `360ms / playbackSpeed`，不会按相邻 time 值的真实差值等待；到末尾后循环到开头。轨迹范围默认 `All previous`；也可输入 start/end frame，Time 模式则输入 start/end time。custom 范围会吸附到实际存在的 `frameValues`，且 end 始终被当前播放 step 截断，因此不会提前显示未来位置。
+播放定时器间隔固定为 `360ms / playbackSpeed`，不会按相邻 time 值的真实差值等待；到末尾后循环到开头。轨迹范围默认 `All previous`；也可选择按 `frameValues` 索引计算的 `Previous N frames`，或输入 start/end frame（Time 模式输入 time）。custom 范围会吸附到实际存在的 `frameValues`，且 end 始终被当前播放 step 截断，因此不会提前显示未来位置。
 
 分析同样使用 authoritative numeric step：不同 embryo 只有 step 数值完全相同才会进入同一个 cohort 时间切片；不做时间插值、时间配准或 nearest-time pooling。点击分析曲线时，UI 才把所点 series step 映射到 dataset 中最近的 `frameValues` index。
 
@@ -256,7 +256,7 @@ Frame 模式中，`mapping.frameIntervalSeconds` 是大于 0 的用户输入，�
 
 Analysis 的 UI 状态是一个刻意的例外：drawer open、target、metrics、k、null sample、progress、result 和 stale fingerprint 都保存在 `AnalysisPanel` 本地 React state，不进入 Zustand，也不进入 Session。它只从 store 读取 dataset、lineage、groups、selection、active embryos 和 current frame，并用 `setCurrentFrameIndex` 把图表点击同步回全局时间轴。
 
-Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Session 导出：`trailGroupIds` 为 `'all' | string[]`，默认 `'all'`；`trailRangeMode` 为 `'all' | 'custom'`，默认 `'all'`，custom 数值保存在 `trailRangeStart/trailRangeEnd`。当存在 saved groups 时，trail targets 只来自 group filter，与 live `selection` 解耦；所有 saved groups 被删除后才回退到 live selection。
+Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Session 导出：`trailGroupIds` 为 `'all' | string[]`，默认 `'all'`；`trailRangeMode` 为 `'all' | 'previous' | 'custom'`，默认 `'all'`，previous 数量在 `trailPreviousFrames`（默认 10），custom 数值在 `trailRangeStart/trailRangeEnd`。当存在 saved groups 时，trail targets 只来自 group filter，与 live `selection` 解耦；所有 saved groups 被删除后才回退到 live selection。
 
 典型交互：
 
@@ -269,9 +269,9 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
   → cellColors 更新，可选创建显式 cellIds group
 ```
 
-`toggleCells` 的批量语义是：如果传入 IDs 已全部选中则全部移除，否则全部添加。Command/Control-click lineage 因而可整体添加/移除；Shift-click强制按 lineage 选择。
+`toggleCells` 的批量语义是：如果传入 IDs 已全部选中则全部移除，否则全部添加，它只用于 Cell 级选择。`selectLineage` 的语义不同：lineage branch、Shift-click 和 CellList 的 lineage 按钮始终把 represented descendants union 到已有 selection，从不清空或 toggle 旧选择。已有 selection 时 `selectionMeta` 转为 manual，避免后续保存时误把混合选择标成单一 lineage。
 
-换帧不修改 `cameraCommand`。Reset/Focus/Angle 才递增 `nonce`，避免播放时相机被旧命令反复重置。Focus 只使用当前帧中存在的 selected observations；当前帧没有目标时不会移动。Angle 使用 `cameraOffsetFromAngles` 围绕当前 Orbit target 旋转：LR/Y 为 up，azimuth 0° 从 +VD 看、90° 从 +AP 看，elevation 限制为 ±89.9°；camera-target distance 保持，因此输入角度不改变 zoom。±AP/±LR/±VD presets 与数值输入走同一个 command。
+换帧不修改 `cameraCommand`。Reset/Focus/Angle 才递增 `nonce`。Angle 使用 `cameraOffsetFromAngles` 设置 azimuth/elevation，并由 `cameraUpFromAngles` 将 up-vector 绕当前视线旋转 roll：LR/Y 为基准 up，azimuth 0° 从 +VD 看、90° 从 +AP 看，elevation 限制为 ±89.9°；camera-target distance 保持，因此三个姿态角都不改变 zoom。±AP/±LR/±VD presets 使用 roll=0。
 
 ## 9. 颜色、分组和可见性优先级
 
@@ -293,7 +293,11 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 - `Isolate`：有 group 时只显示 visible groups；只有整个 `groups` 为空时，selection 才可单独显示。
 - `Color by embryo` 只在 3D Overlay 中覆盖 cell/group 颜色；树和列表仍显示 cell/group 颜色，选中 nucleus 仍通过尺寸放大表达。
 
-`setGroupColor` 和 `deleteGroup` 会从现存 groups 重新生成整个 `cellColors`。因此，用“Save colored selection as a group”关闭后创建的 standalone cell color，可能在之后任一 group recolor/delete 时丢失。若后续要强化非 group 着色，应把 standalone colors 与 group-derived colors 分开存储。
+同色是 group identity 的用户级规则：`applyColor` 给两次不同 selection 分配相同颜色时会 union 到已有组；`setGroupColor` 撞到已有颜色时也会合并，并把 `trailGroupIds` 中被移除的 group id 重定向到保留组。`addCellsToGroup` 提供显式加入；`removeCellsFromGroup` 删除成员，空组自动删除。lineage group 被手工删减后必须转成 manual/root undefined，否则 analysis 的动态 lineage membership 会把被删 descendants 再补回来。
+
+颜色回收使用 `reconcileAffectedCellColors`：只重算受 group 改色、删成员或删除影响的 cells，因此关闭 “Save colored selection as a group” 得到的无关 standalone colors 不再被整表覆盖。重叠异色 groups 仍按数组中最后一个 visible group 决定显示色。
+
+`src/utils/groupList.ts` 定义独立于 Session 的可读 `cexplore-group-list` v1。导出刻意省略内部随机 id、createdAt 和显示 settings，只保留 dataset/exportedAt 与 name/color/cells/visible/source/rootCell。导入先严格校验 format/version/hex color/cell array，再按当前 dataset 的 cell 名过滤；文件名不同和未知 cell 只产生提示，同色 entry 合并到已有组。这个格式适合人工检查、版本控制和跨同类数据集复用；完整 UI 状态恢复仍使用 Session JSON。
 
 ## 10. 3D 渲染实现
 
@@ -318,9 +322,13 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 - 轨迹颜色取最后一个包含该 cell 的已选 trail group 颜色；Overlay + `Color by embryo` 时 embryo 颜色优先。
 - 每个轨迹点使用 RGBA vertex color：`trailProgressAtStep` 把当前 trail window 归一化为 0–1；`trailVertexColor` 让 alpha 从 0.04 非线性增加到 1，同时从高明度/低饱和过渡到较深/高饱和，因此时间方向比单独改变透明度更明显。Drei `Line` 在 GPU 内插值这些通道，不增加逐 segment React object。
 - `settings.trailWidth` 是持久化 display setting，DisplayControls 暴露 0.5–4 px slider，默认 1.1 px。宽度在每条 line 内保持一致；这是有意的性能取舍，避免在数百个 cells × 多 embryo 时为了逐段宽度变化成倍增加 draw calls。
-- `resolveTrailStepRange` 负责显示范围：all 模式为 `[firstFrame, currentStep]`；custom 模式将 start/end 排序，取范围内首尾两个实际 `frameValues`，并以 `currentStep` 截断上界。播放尚未进入 custom range 时返回 `undefined`，`Trajectories` 不渲染。
+- `resolveTrailStepRange` 负责显示范围：all 模式为 `[firstFrame, currentStep]`；previous 模式从有序 `frameValues` 截取包含当前帧的最后 N 个实际帧；custom 模式将 start/end 排序，取范围内首尾实际值，并以 `currentStep` 截断上界。播放尚未进入 custom range 时返回 `undefined`。
 
 普通轨迹仍由 `getCellTrajectories` 在每个 `(embryoId, cellId)` 内连续连点。跨 cell ID 的分裂不在该 index 内，所以由 `getDivisionConnections` 另外补线：当 mother 和 child 都在 trail targets 中，将时间窗口内 mother 的最后观测连到 child 的最早观测。两个 daughters 各产生一条连线；Overlay 严格限于同一 embryo，Mean 则直接读取 Worker 预建的 cell trajectory cache，再以相同规则连接。Division line 的 mother/child 端点同样使用各自 step 的 alpha。不插值，也不会把 target 以外的 mother/child 强行加入。
+
+`TrailProjectionPanel` 和 Group analysis 是左侧中部上下排列的 36 px 纯图标入口（hover `title` 提示名称）。展开态都限定为 `grid-column: 1; grid-row: 1 / -1`，只覆盖 workspace 左列的 lineage/list 两行并在内部纵向滚动，不遮挡右侧 Spatial view。Projection z-index 15、Analysis z-index 14，都高于左侧基础 panel；关闭态不再占用左下颜色选择区域。
+
+`trailProjection.ts` 对每个 selected group/step 先求该帧所有显式 group cell observations 的 raw AP/LR/VD centroid，再以该 group 在窗口内的首个有效 centroid 为原点计算三轴绝对 pixel displacement。每个 group×axis 一条 path：stroke 取 group color；AP 为 solid；LR 使用 `stroke-dasharray="1 6"` 加 round linecap 形成圆点；VD 使用 `14 7` long dash。x 以 range start 为 0；Time 和带 interval 的 Frame 显示 minutes，无 interval 的 Frame 显示 frame。
 
 ### 10.2 DOM/WebGL overlay 层级
 
@@ -334,7 +342,7 @@ App header / Open datasets trigger context: z-index 20
   └─ modal backdrop: z-index 100
 ```
 
-因此 labels 无法跨出 embryo panel 压住已展开 analysis drawer 或 Open datasets modal。收起的 analysis drawer 宽 164px、靠右并留 10px 外边距，不再横跨整个底部遮住左下颜色选择；展开时才恢复全宽。
+因此 labels 无法跨出 embryo panel 压住 drawer 或 Open datasets modal。两个 drawer 展开后也只存在于左列，Spatial view 不依赖层级竞争即可保持完全可见。
 
 Mean trajectory 原有的乘法型重复计算已移除：Mean nuclei、trails 和 division connections 共用同一个 Worker 预计算 cache。剩余成本主要是第一次选择/embryo list 改变时向 Worker structured-clone observations、后台线性聚合，以及大 group 实际提交给 WebGL 的 line 数量；这些不会再随每个播放 frame 重复执行。
 
@@ -475,13 +483,13 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 
 在 Node 22.14.0 / npm 10.9.2 下：
 
-- `npm test`：18 个 test files、46 个 tests 全部通过；
+- `npm test`：21 个 test files、55 个 tests 全部通过；
 - `npm run build`：TypeScript strict build 和 Vite production build 通过；
 - production build 包含独立 `meanPosition.worker`（约 1.4 KB）和 `analysis.worker`（约 6.8 KB）chunks；
 - canonical 表：1,341 unique IDs、1 root、0 missing parent refs、0 cycles；
 - build 唯一告警仍是主 JS 超过 Vite 默认 500 KB chunk 提示；XLSX、Mean worker 和 analysis worker 已分别拆分。
 
-新增测试覆盖：lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、CSV schema/escaping、AnalysisPanel 只有点击 Run 才启动任务，Mean 全帧预计算/缓存读取/embryo list 变化重算/dataset 关闭清理，精确 camera angle/cardinal axes/elevation clamp，trails 默认全部 saved groups/显式 group filter/selection fallback/custom frame range/未来帧截断/时间视觉渐变，Overlay 和 Mean 的 mother→daughter connections，unique-time 升序帧索引，frame interval seconds 导入/minute 纵轴换算，以及 Time/Frame partial-stage 起点对齐。原有 mapping、import、lineage、store、3D 周边交互和 timeline 测试继续通过。
+新增测试覆盖：lineage additive selection、同色 group 合并、显式成员增删、可读 group-list round trip/校验/导入、完整 camera azimuth/elevation/roll、previous-N trail range、AP/LR/VD 投影位移首点归零/平均/minute 换算、lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、CSV schema/escaping、Mean 全帧缓存、trail 时间渐变、Overlay/Mean mother→daughter connections、unique-time 升序帧索引、frame interval minute 纵轴，以及 partial-stage 起点对齐。原有 mapping、import、analysis、3D 周边交互和 timeline 测试继续通过。
 
 真实 326 MB `01_wt_truncated_axis_aligned.tsv` 也以 Time 模式重新跑通：`ctr_emb1` 保留 20,926/20,926 个有效 observations，识别 185 个升序 time frames（range 1–185）、722 cells、0 warnings；lineage y 轴从第一个 observed value `1` 开始。
 

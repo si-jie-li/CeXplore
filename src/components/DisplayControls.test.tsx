@@ -22,6 +22,7 @@ beforeEach(() => {
     trailRangeMode: 'all',
     trailRangeStart: undefined,
     trailRangeEnd: undefined,
+    trailPreviousFrames: 10,
     trailGroupIds: 'all',
     trailWidth: 1.1,
   })
@@ -45,6 +46,17 @@ describe('trail display controls', () => {
     expect(width).toBeEnabled()
     fireEvent.change(width, { target: { value: '2.4' } })
     expect(useExplorerStore.getState().settings.trailWidth).toBe(2.4)
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Trail range mode' }), {
+      target: { value: 'previous' },
+    })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Previous frame count' }), {
+      target: { value: '7' },
+    })
+    expect(useExplorerStore.getState().settings).toMatchObject({
+      trailRangeMode: 'previous',
+      trailPreviousFrames: 7,
+    })
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Trail range mode' }), {
       target: { value: 'custom' },
