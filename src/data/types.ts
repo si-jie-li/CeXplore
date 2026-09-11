@@ -10,6 +10,8 @@ export interface ColumnMapping {
   playback: TemporalMode
   /** Seconds represented by one frame; used to scale the lineage-tree y-axis. */
   frameIntervalSeconds?: number
+  /** Target number of uniformly sampled frames; undefined keeps every frame. */
+  frameSampleCount?: number
   parent?: string
   embryo?: string
   embryoValues?: string[]

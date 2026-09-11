@@ -15,10 +15,17 @@ export interface ProjectionFrame {
   observations: Observation[]
 }
 
-export function calculateGroupProjectedDisplacement(
+export interface ProjectionExportSeries {
+  groupId: string
+  groupName: string
+  groupColor: string
+  cellId?: string
+  points: ProjectionPoint[]
+}
+
+export function calculateGroupProjectedPosition(
   frames: ProjectionFrame[],
   cellIds: Iterable<string>,
-  rangeStart?: number,
 ): ProjectionPoint[] {
   const targets = new Set(cellIds)
   const centroids = frames.flatMap(({ step, observations }) => {
@@ -37,18 +44,40 @@ export function calculateGroupProjectedDisplacement(
       sampleCount: members.length,
     }]
   }).sort((a, b) => a.step - b.step)
-  const origin = centroids[0]
-  const result = origin ? centroids.map((centroid) => ({
+  return centroids.map((centroid) => ({
     step: centroid.step,
-    AP: Math.abs(centroid.x - origin.x),
-    LR: Math.abs(centroid.y - origin.y),
-    VD: Math.abs(centroid.z - origin.z),
+    AP: centroid.x,
+    LR: centroid.y,
+    VD: centroid.z,
     sampleCount: centroid.sampleCount,
-  })) : []
-  if (Number.isFinite(rangeStart) && (!result.length || result[0].step > rangeStart!)) {
-    result.unshift({ step: rangeStart!, AP: 0, LR: 0, VD: 0, sampleCount: 0 })
-  }
-  return result
+  }))
+}
+
+const escapeCsv = (value: string | number | undefined) => {
+  if (value === undefined) return ''
+  const text = String(value)
+  return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
+}
+
+export function projectionSeriesToCsv(
+  series: ProjectionExportSeries[],
+  axes: ProjectionAxis[],
+  rangeStart: number,
+  temporalMode: 'time' | 'frame',
+  frameIntervalSeconds?: number,
+) {
+  const header = [
+    'group_id', 'group_name', 'group_color', 'cell_id', 'axis', temporalMode,
+    'elapsed', 'elapsed_unit', 'axis_position_px', 'sample_count',
+  ]
+  const rows = series.flatMap((item) => axes.flatMap((axis) => item.points.map((point) => {
+    const elapsed = projectionElapsedValue(point.step, rangeStart, temporalMode, frameIntervalSeconds)
+    return [
+      item.groupId, item.groupName, item.groupColor, item.cellId, axis, point.step,
+      elapsed.value, elapsed.unit, point[axis], point.sampleCount,
+    ].map(escapeCsv).join(',')
+  })))
+  return [header.join(','), ...rows].join('\n')
 }
 
 export function projectionElapsedValue(

@@ -47,6 +47,7 @@ export interface ExplorerSettings {
   trailWidth: number
   embryoViewMode: EmbryoViewMode
   colorByEmbryo: boolean
+  interpolateMeanPositions: boolean
 }
 
 interface ExplorerState {
@@ -126,6 +127,7 @@ const defaultSettings: ExplorerSettings = {
   trailWidth: 1.1,
   embryoViewMode: 'overlay',
   colorByEmbryo: false,
+  interpolateMeanPositions: false,
 }
 
 const groupId = () =>
@@ -133,7 +135,8 @@ const groupId = () =>
     ? crypto.randomUUID()
     : `group-${Date.now()}-${Math.random().toString(36).slice(2)}`
 
-const meanPositionKey = (embryoIds: Iterable<string>) => [...embryoIds].sort().join('\u0000')
+const meanPositionKey = (embryoIds: Iterable<string>, interpolate = false) =>
+  `${interpolate ? 'hold' : 'exact'}\u0000${[...embryoIds].sort().join('\u0000')}`
 let activeMeanPositionJob: MeanPositionJob | undefined
 
 const colorsFromGroups = (groups: CellGroup[]) => {
@@ -383,17 +386,23 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     set((state) => ({ cameraCommand: { type: 'focus', nonce: state.cameraCommand.nonce + 1 } }))
   },
   setSettings: (patch) => {
+    const interpolationChanged = patch.interpolateMeanPositions !== undefined
+      && patch.interpolateMeanPositions !== get().settings.interpolateMeanPositions
     set((state) => ({
       settings: { ...state.settings, ...patch },
       hoveredObservation: patch.embryoViewMode ? undefined : state.hoveredObservation,
     }))
+    if (interpolationChanged) get().clearMeanPositionCache()
     if (patch.embryoViewMode === 'mean') get().prepareMeanPositions()
+    else if (interpolationChanged && get().settings.embryoViewMode === 'mean') get().prepareMeanPositions()
   },
   prepareMeanPositions: () => {
     const state = get()
     const dataset = state.dataset
     if (!dataset) return
-    const key = meanPositionKey(state.activeEmbryoIds)
+    const interpolate = dataset.mapping.frameSampleCount === undefined
+      && state.settings.interpolateMeanPositions
+    const key = meanPositionKey(state.activeEmbryoIds, interpolate)
     if (state.meanPositionCache?.key === key) return
     if (state.meanPositionCacheStatus === 'loading' && state.meanPositionCacheKey === key) return
 
@@ -402,6 +411,8 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     const job = startMeanPositionPrecomputation({
       observations: dataset.observations,
       activeEmbryoIds: [...state.activeEmbryoIds],
+      frameValues: dataset.frameValues,
+      holdLastFrame: interpolate,
     })
     activeMeanPositionJob = job
     set({
@@ -413,7 +424,9 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     void job.promise.then((serialized) => {
       if (activeMeanPositionJob !== job) return
       const current = get()
-      if (current.dataset !== datasetAtStart || meanPositionKey(current.activeEmbryoIds) !== key) return
+      const currentInterpolation = current.dataset?.mapping.frameSampleCount === undefined
+        && current.settings.interpolateMeanPositions
+      if (!current.dataset || current.dataset !== datasetAtStart || meanPositionKey(current.activeEmbryoIds, currentInterpolation) !== key) return
       activeMeanPositionJob = undefined
       set({
         meanPositionCache: hydrateMeanPositionCache(key, serialized),

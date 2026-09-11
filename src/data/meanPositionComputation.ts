@@ -4,6 +4,8 @@ import { MEAN_EMBRYO_ID, type MeanPositionSerializedCache } from './embryoView'
 export interface MeanPositionRequest {
   observations: Observation[]
   activeEmbryoIds: string[]
+  frameValues?: number[]
+  holdLastFrame?: boolean
 }
 
 interface MeanAccumulator {
@@ -25,7 +27,11 @@ export function computeMeanPositions(request: MeanPositionRequest): MeanPosition
   const active = new Set(request.activeEmbryoIds)
   const accumulators = new Map<string, MeanAccumulator>()
 
-  for (const observation of request.observations) {
+  const observations = request.holdLastFrame && request.frameValues?.length
+    ? heldFrameObservations(request.observations, request.activeEmbryoIds, request.frameValues)
+    : request.observations
+
+  for (const observation of observations) {
     if (!active.has(observation.embryoId)) continue
     const key = accumulatorKey(observation.step, observation.cellId)
     const accumulator = accumulators.get(key)
@@ -54,7 +60,7 @@ export function computeMeanPositions(request: MeanPositionRequest): MeanPosition
     }
   }
 
-  const observations = [...accumulators.values()].map((sum): Observation => {
+  const meanObservations = [...accumulators.values()].map((sum): Observation => {
     const divisor = sum.contributingEmbryoIds.length
     return {
       cellId: sum.cellId,
@@ -73,7 +79,7 @@ export function computeMeanPositions(request: MeanPositionRequest): MeanPosition
 
   const frameIndex = new Map<number, Observation[]>()
   const trajectoryIndex = new Map<string, Observation[]>()
-  for (const observation of observations) {
+  for (const observation of meanObservations) {
     const frame = frameIndex.get(observation.step) ?? []
     frame.push(observation)
     frameIndex.set(observation.step, frame)
@@ -86,4 +92,33 @@ export function computeMeanPositions(request: MeanPositionRequest): MeanPosition
     frameEntries: [...frameIndex.entries()],
     trajectoryEntries: [...trajectoryIndex.entries()],
   }
+}
+
+function heldFrameObservations(
+  observations: Observation[],
+  embryoIds: string[],
+  frameValues: number[],
+) {
+  const framesByEmbryo = new Map<string, Map<number, Observation[]>>()
+  for (const observation of observations) {
+    const frames = framesByEmbryo.get(observation.embryoId) ?? new Map<number, Observation[]>()
+    const frame = frames.get(observation.step) ?? []
+    frame.push(observation)
+    frames.set(observation.step, frame)
+    framesByEmbryo.set(observation.embryoId, frames)
+  }
+  return embryoIds.flatMap((embryoId) => {
+    const frames = framesByEmbryo.get(embryoId)
+    if (!frames) return []
+    const embryoSteps = [...frames.keys()].sort((a, b) => a - b)
+    let previousIndex = -1
+    return frameValues.flatMap((targetStep) => {
+      while (previousIndex + 1 < embryoSteps.length && embryoSteps[previousIndex + 1] <= targetStep) previousIndex += 1
+      if (previousIndex < 0) return []
+      const source = frames.get(targetStep) ?? frames.get(embryoSteps[previousIndex]) ?? []
+      return source.map((observation) => observation.step === targetStep
+        ? observation
+        : { ...observation, step: targetStep })
+    })
+  })
 }

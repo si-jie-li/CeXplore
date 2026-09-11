@@ -1,6 +1,6 @@
 # CeXplore 项目深度理解 4AI 与后续开发地图
 
-> 这是一份面向 AI/开发者后续续建的源码级心智模型，不替代用户手册或指标方法文档。结论以当前工作区（`HEAD ca1e23c` 加尚未提交的 group-analysis、group trails、division connection、temporal-axis、Mean Worker cache、完整三自由度视角、group-centroid projected motion 和 group membership/I/O 更新）源码、测试和生产构建为准，最后复核于 2026-09-10。
+> 这是一份面向 AI/开发者后续续建的源码级心智模型，不替代用户手册或指标方法文档。结论以当前工作区（`HEAD ca1e23c` 加尚未提交的 group-analysis、group trails、division connection、temporal-axis、Mean Worker cache、完整三自由度视角、group/individual projected motion、group membership/I/O 和 import-time frame sampling 更新）源码、测试和生产构建为准，最后复核于 2026-09-10。
 
 ## 1. 项目本质与边界
 
@@ -10,8 +10,9 @@ CeXplore 是一个纯浏览器端的 *C. elegans* 胚胎细胞谱系、3D 核位
 
 - 输入是 CSV、TSV/TXT 或 XLS/XLSX；没有后端、数据库、账号或云同步。
 - 每次导入必须选 Time 或 Frame；canonical 表只解析 lineage topology，不提供纵轴时间。
-- 位置只展示输入观测，不插值、不配准、不推断坐标轴方向。
-- 多胚胎 `Mean position` 是当前时间点、当前选中胚胎中“存在该 cell 的观测”的算术平均。
+- 不做坐标线性插值、不配准、不推断坐标轴方向；但默认抽帧和可选 Mean 缺帧模式会做上一完整 embryo frame 的 zero-order hold。
+- 导入默认把所有 selected embryos 的 union time grid 均匀压缩到 185 个目标帧，并为 cell coverage 添加必要帧；选择 All 才保留原始 exact frame grid。
+- 多胚胎 `Mean position` 对当前工作数据集中同 step/cell 的可用坐标求平均；All import 可在 exact-only 和 hold-last 之间切换。
 - 谱系来自仓库内 canonical 表，输入的非空 parent 可以覆盖 canonical parent。
 - Session 只保存映射、颜色、分组和显示设置，不保存 observation。
 - Group analysis 已接入 UI，但只在用户点击 Run analysis 后计算；它不使用 3D Mean position，而是逐 embryo、逐真实 time/frame 独立测量。
@@ -37,6 +38,7 @@ main.tsx
   → ColumnMapper：列映射，并扫描 embryo ID
   → loadMappedRows：按已选 embryo 解析所需行
   → FileLoader：给 source/embryo 建内部 ID，顺序合并多个文件
+  → sampleRowsByFrame：可选 union-time 抽样、cell coverage、上一完整 embryo frame 保持
   → buildDatasetFromRows：清洗、去重、归一化、建索引
   → resolveLineage：canonical + supplied parent，补连接祖先
   → useExplorerStore.setDataset
@@ -48,16 +50,16 @@ main.tsx
   → Web Worker：dynamic membership → per-embryo/time kNN → metrics + null
   → GroupAnalysisResult：趋势图、当前汇总、胚胎表、CSV
 
-用户首次选择 Mean position / 改变 active embryos
-  → observations + activeEmbryoIds structured clone 到 meanPosition.worker
+用户首次选择 Mean position / 改变 active embryos / 切换 All-import 缺帧模式
+  → observations + activeEmbryoIds + frameValues + holdLastFrame structured clone 到 meanPosition.worker
   → 一次聚合全部 step/cell
   → mean frameIndex + mean trajectoryIndex 写回 store cache
   → 播放、CellInfo、Mean trails 和 division links 只读缓存
 ```
 
-项目的关键设计不是某一个组件，而是四条稳定边界：
+项目的关键设计不是某一个组件，而是五条稳定边界：
 
-1. `RawMappedRow → EmbryoDataset`：文件格式在此之后不再影响业务代码。
+1. `RawMappedRow → sampled RawMappedRow → EmbryoDataset`：文件格式和原始超大时间网格在此之后不再影响业务代码。
 2. `EmbryoDataset → LineageModel`：空间观测与谱系拓扑分离。
 3. Zustand store：所有交互只改一份 authoritative state，视图不各存一份 selection。
 4. `MeanPositionRequest → MeanPositionSerializedCache`：平均位置是可取消、可按 embryo selection 失效的 derived cache。
@@ -67,7 +69,7 @@ main.tsx
 
 ### 3.1 `ColumnMapping`
 
-保存用户为某个 source 选择的列：cell、AP/LR/VD、Time 或 Frame、parent、embryo 和 worksheet。Frame 模式还保存 `frameIntervalSeconds`。`embryoValues` 是当前多选字段；单值 `embryoValue` 只为读取 v0.1 session 保留。
+保存用户为某个 source 选择的列：cell、AP/LR/VD、Time 或 Frame、parent、embryo 和 worksheet。Frame 模式还保存 `frameIntervalSeconds`。`frameSampleCount` 为正整数时启用共享帧抽样（`DEFAULT_FRAME_SAMPLE_COUNT` 与 UI 默认均为 185），为 `undefined` 时表示 All。`embryoValues` 是当前多选字段；单值 `embryoValue` 只为读取 v0.1 session 保留。
 
 多文件数据集同时保留：
 
@@ -176,13 +178,15 @@ renderAxis = (originalAxis - globalCenterAxis) * 16 / max(AP span, LR span, VD s
 - `time → temporalMode: 'time'`
 - `frame → temporalMode: 'frame'`
 
-时间轴滑块保存的是 `currentFrameIndex`，真正的时间/帧值通过 `dataset.frameValues[index]` 获取。`frameValues` 是全部有效 step 去重后的升序列表：Time 模式中相同 time 值的所有 cells 同属一帧，不同 time 值按数值顺序逐帧播放。这也允许 1、2、5、20 这类不连续 step，不插入虚构中间帧。
+时间轴滑块保存的是 `currentFrameIndex`，真正的时间/帧值通过 `dataset.frameValues[index]` 获取。All import 时，`frameValues` 是全部有效 step 去重后的升序列表；Time 模式中相同 time 值的所有 cells 同属一帧，不同 time 值按数值顺序逐帧播放。这也允许 1、2、5、20 这类不连续 step。
+
+默认 Sample import 先在所有 selected embryos 的 union steps 上按索引均匀取目标数，检查所有 valid cell IDs 是否至少在一个 exact selected step 出现，并以 greedy coverage 加入遗漏细胞所需帧，所以 185 是目标而非绝对上限。随后每个 embryo 在每个目标 step 使用 exact frame，否则复制其最近上一完整 frame；首个 embryo frame 以前不补。得到的 rows 才进入 `buildDatasetFromRows`，所以 dataset 的 observations/indexes/cells/bounds，以及所有 projection、metric、Mean、trail 和 lineage summary，都只认识抽样后的帧。这是 piecewise-constant hold，不是两个位置间的线性插值。
 
 Frame 模式中，`mapping.frameIntervalSeconds` 是大于 0 的用户输入，默认建议值为 1。它不改变 observation.step、`frameValues`、播放速度或 analysis step；只在 lineage y 轴上通过 `lineageAxisValue = frame × intervalSeconds / 60` 换算为 elapsed minutes。Time 模式的原 time 值则直接按 minutes 解释。
 
 播放定时器间隔固定为 `360ms / playbackSpeed`，不会按相邻 time 值的真实差值等待；到末尾后循环到开头。轨迹范围默认 `All previous`；也可选择按 `frameValues` 索引计算的 `Previous N frames`，或输入 start/end frame（Time 模式输入 time）。custom 范围会吸附到实际存在的 `frameValues`，且 end 始终被当前播放 step 截断，因此不会提前显示未来位置。
 
-分析同样使用 authoritative numeric step：不同 embryo 只有 step 数值完全相同才会进入同一个 cohort 时间切片；不做时间插值、时间配准或 nearest-time pooling。点击分析曲线时，UI 才把所点 series step 映射到 dataset 中最近的 `frameValues` index。
+分析同样使用当前 dataset 的 authoritative numeric step：不同 embryo 只有 step 数值完全相同才会进入同一个 cohort 时间切片；它不额外做时间配准、线性插值或 nearest-time pooling。Sample import 已经固化的 hold-last observations 会正常进入 metric。点击分析曲线时，UI 才把所点 series step 映射到 dataset 中最近的 `frameValues` index。
 
 ## 6. 多胚胎视图的真实语义
 
@@ -194,9 +198,11 @@ Frame 模式中，`mapping.frameIntervalSeconds` 是大于 0 的用户输入，�
 
 ### Mean position
 
-数值语义仍是按 step/cell 平均原始坐标和 render 坐标。分母是该 step 实际存在该 cell 的 active embryos 数量，而不是所有 active embryos 数量；结果 embryo ID 固定为 `__mean__`。但该计算不再发生在每次 render：第一次选择 Mean 时由 `meanPosition.worker.ts` 一次预计算全部 frames，得到 `frameIndex` 和 `trajectoryIndex` 两个缓存，播放时直接读取。
+数值语义是按 step/cell 平均原始坐标和 render 坐标；结果 embryo ID 固定为 `__mean__`。Sample import 的 input 已包含抽样时生成的 hold-last observations。All import 默认 exact-only，分母是该 step 实际存在该 cell 的 active embryos 数量；用户勾选 `Hold each embryo's last frame at missing times` 后，Worker 在 union `frameValues` 上为每个 embryo 取 exact 或最近上一完整 frame，尚未开始的 embryo 和该完整帧不存在的 cell 不进入分母。两者都不读取未来帧。
 
-缓存由 `explorerStore` 管理，key 是排序后的 active embryo IDs，状态为 `idle/loading/ready/error`。active embryo list 改变会取消旧 job、清缓存并自动重算；Overlay 可继续保留有效缓存；关闭/替换 dataset 会取消 job 并释放缓存。Session 只保存用户设置，不保存这份可重建的 derived data。
+该计算不发生在每次 render：第一次选择 Mean 时由 `meanPosition.worker.ts` 一次预计算全部 frames，得到 `frameIndex` 和 `trajectoryIndex` 两个缓存，播放时直接读取。
+
+缓存由 `explorerStore` 管理，key 是排序后的 active embryo IDs 加 `exact/hold` 模式，状态为 `idle/loading/ready/error`。active embryo list 或 All-import 缺帧选项改变会取消旧 job、清缓存并自动重算；Overlay 可继续保留有效缓存；关闭/替换 dataset 会取消 job 并释放缓存。Session 只保存用户设置，不保存这份可重建的 derived data。
 
 ### 谱系树与 active embryos
 
@@ -271,6 +277,8 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 
 `toggleCells` 的批量语义是：如果传入 IDs 已全部选中则全部移除，否则全部添加，它只用于 Cell 级选择。`selectLineage` 的语义不同：lineage branch、Shift-click 和 CellList 的 lineage 按钮始终把 represented descendants union 到已有 selection，从不清空或 toggle 旧选择。已有 selection 时 `selectionMeta` 转为 manual，避免后续保存时误把混合选择标成单一 lineage。
 
+`GroupPanel` 展开成员不再保存局部 marked state；每个 checkbox 直接读 `selection.has(cellId)` 并调用 `toggleCell`。因此树上选中的 lineage 会同时勾选 Cells list 和相应 group members，`Remove selected` 用 `group.cellIds ∩ selection` 删除，可从任何视图建立待删集合。
+
 换帧不修改 `cameraCommand`。Reset/Focus/Angle 才递增 `nonce`。Angle 使用 `cameraOffsetFromAngles` 设置 azimuth/elevation，并由 `cameraUpFromAngles` 将 up-vector 绕当前视线旋转 roll：LR/Y 为基准 up，azimuth 0° 从 +VD 看、90° 从 +AP 看，elevation 限制为 ±89.9°；camera-target distance 保持，因此三个姿态角都不改变 zoom。±AP/±LR/±VD presets 使用 roll=0。
 
 ## 9. 颜色、分组和可见性优先级
@@ -324,11 +332,15 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 - `settings.trailWidth` 是持久化 display setting，DisplayControls 暴露 0.5–4 px slider，默认 1.1 px。宽度在每条 line 内保持一致；这是有意的性能取舍，避免在数百个 cells × 多 embryo 时为了逐段宽度变化成倍增加 draw calls。
 - `resolveTrailStepRange` 负责显示范围：all 模式为 `[firstFrame, currentStep]`；previous 模式从有序 `frameValues` 截取包含当前帧的最后 N 个实际帧；custom 模式将 start/end 排序，取范围内首尾实际值，并以 `currentStep` 截断上界。播放尚未进入 custom range 时返回 `undefined`。
 
-普通轨迹仍由 `getCellTrajectories` 在每个 `(embryoId, cellId)` 内连续连点。跨 cell ID 的分裂不在该 index 内，所以由 `getDivisionConnections` 另外补线：当 mother 和 child 都在 trail targets 中，将时间窗口内 mother 的最后观测连到 child 的最早观测。两个 daughters 各产生一条连线；Overlay 严格限于同一 embryo，Mean 则直接读取 Worker 预建的 cell trajectory cache，再以相同规则连接。Division line 的 mother/child 端点同样使用各自 step 的 alpha。不插值，也不会把 target 以外的 mother/child 强行加入。
+普通轨迹仍由 `getCellTrajectories` 在每个 `(embryoId, cellId)` 内连续连点。跨 cell ID 的分裂不在该 index 内，所以由 `getDivisionConnections` 另外补线：当 mother 和 child 都在 trail targets 中，将时间窗口内 mother 的最后观测连到 child 的最早观测。两个 daughters 各产生一条连线；Overlay 严格限于同一 embryo，Mean 则直接读取 Worker 预建的 cell trajectory cache，再以相同规则连接。Division line 的 mother/child 端点同样使用各自 step 的 alpha。这里不会额外做坐标插值，也不会把 target 以外的 mother/child 强行加入。
 
 `TrailProjectionPanel` 和 Group analysis 是左侧中部上下排列的 36 px 纯图标入口（hover `title` 提示名称）。展开态都限定为 `grid-column: 1; grid-row: 1 / -1`，只覆盖 workspace 左列的 lineage/list 两行并在内部纵向滚动，不遮挡右侧 Spatial view。Projection z-index 15、Analysis z-index 14，都高于左侧基础 panel；关闭态不再占用左下颜色选择区域。
 
-`trailProjection.ts` 对每个 selected group/step 先求该帧所有显式 group cell observations 的 raw AP/LR/VD centroid，再以该 group 在窗口内的首个有效 centroid 为原点计算三轴绝对 pixel displacement。每个 group×axis 一条 path：stroke 取 group color；AP 为 solid；LR 使用 `stroke-dasharray="1 6"` 加 round linecap 形成圆点；VD 使用 `14 7` long dash。x 以 range start 为 0；Time 和带 interval 的 Frame 显示 minutes，无 interval 的 Frame 显示 frame。
+`trailProjection.ts` 默认对每个 selected group/step 求该帧所有显式 group cell observations 的 raw AP/LR/VD centroid，并直接输出三个轴坐标，不再以首个位置归零，也不插入 range-start 人工零点。Individual checkbox 打开后，组件对每个 explicit cell ID 单独计算；如果当前 frame observations 来自多个 displayed embryos，则同名 cell 先跨 embryo 求 mean。组件从 lineage model 找组内 parent/child，把 parent series 末点直连每个 daughter series 首点，因此两个 daughters 显示为 fork。
+
+Multiple axis mode 中，每个 group×cell×axis 一条 path：stroke 取 group color；AP 为 solid；LR 使用 `stroke-dasharray="1 6"` 加 round linecap 形成圆点；VD 使用 `14 7` long dash。Single mode 用 radio 选择 AP/LR/VD，所有 series 和 fork connectors 强制 solid。x 以 range start 为 0；Time 和带 interval 的 Frame 显示 minutes，无 interval 的 Frame 显示 frame。
+
+交互仍留在 `TrailProjectionPanel` local state，不进入 Zustand/Session：透明宽 hit paths 在 hover 时寻找该 series 最近 observation，显示 individual cell/group、axis、elapsed x 和 exact coordinate；pointer rectangle 与 wheel修改 x/coordinate display domain，clipPath 裁剪并可 Reset。`projectionSeriesToCsv` 导出当前选择的完整 Trails-range series（zoom 只改变视窗）以及 group/cell/axis/step/elapsed/unit/axis position/sample count。
 
 ### 10.2 DOM/WebGL overlay 层级
 
@@ -483,15 +495,15 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 
 在 Node 22.14.0 / npm 10.9.2 下：
 
-- `npm test`：21 个 test files、55 个 tests 全部通过；
+- `npm test`：23 个 test files、63 个 tests 全部通过；
 - `npm run build`：TypeScript strict build 和 Vite production build 通过；
 - production build 包含独立 `meanPosition.worker`（约 1.4 KB）和 `analysis.worker`（约 6.8 KB）chunks；
 - canonical 表：1,341 unique IDs、1 root、0 missing parent refs、0 cycles；
 - build 唯一告警仍是主 JS 超过 Vite 默认 500 KB chunk 提示；XLSX、Mean worker 和 analysis worker 已分别拆分。
 
-新增测试覆盖：lineage additive selection、同色 group 合并、显式成员增删、可读 group-list round trip/校验/导入、完整 camera azimuth/elevation/roll、previous-N trail range、AP/LR/VD 投影位移首点归零/平均/minute 换算、lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、CSV schema/escaping、Mean 全帧缓存、trail 时间渐变、Overlay/Mean mother→daughter connections、unique-time 升序帧索引、frame interval minute 纵轴，以及 partial-stage 起点对齐。原有 mapping、import、analysis、3D 周边交互和 timeline 测试继续通过。
+新增测试覆盖：可关闭 import warning、默认 185/All import、union-time frame sampling、hold-last、短暂 cell coverage、All-import Mean exact/hold 缓存、tree/list/group-member checkbox 双向同步、direct axis positions、无人工零点、single-axis solid、zoom、individual tooltip/forks 和 projection CSV，以及 lineage additive selection、同色 group 合并、显式成员增删、可读 group-list round trip/校验/导入、完整 camera azimuth/elevation/roll、previous-N trail range、lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、analysis CSV schema/escaping、trail 时间渐变、Overlay/Mean mother→daughter connections、unique-time 升序帧索引、frame interval minute 纵轴，以及 partial-stage 起点对齐。原有 mapping、analysis、3D 周边交互和 timeline 测试继续通过。
 
-真实 326 MB `01_wt_truncated_axis_aligned.tsv` 也以 Time 模式重新跑通：`ctr_emb1` 保留 20,926/20,926 个有效 observations，识别 185 个升序 time frames（range 1–185）、722 cells、0 warnings；lineage y 轴从第一个 observed value `1` 开始。
+此前在引入 frame sampling 前，真实 326 MB `01_wt_truncated_axis_aligned.tsv` 曾以 Time/All 等价路径跑通：`ctr_emb1` 保留 20,926/20,926 个有效 observations，识别 185 个升序 time frames（range 1–185）、722 cells、0 warnings；lineage y 轴从第一个 observed value `1` 开始。当前默认 Sample 185 路径已有 synthetic integration test，但尚未对这份 326 MB 文件重新做真实浏览器性能验收。
 
 明显测试缺口：
 
@@ -502,7 +514,7 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 - kNN ties、重复坐标、极小 frame、whole-embryo group、zero AP span 和 null SD=0 的完整边界；
 - 大数据 structured-clone、O(n²) kNN 和 250 null samples 的性能/内存基准；
 - XLS/XLSX worksheet 实际导入、Session malformed input/迁移、多文件 identity；
-- supplied parent conflict/cycle、Mean 缺测语义与大型 Worker payload 性能；
+- supplied parent conflict/cycle，以及 Sample/All + Mean hold 在大型多 embryo Worker payload 下的性能；
 - WebGL 中实际 trail/division line 渲染、labels/drawer/modal 层级、收起标签的实际占位、窄/矮 viewport 和可访问性的真实浏览器验收；CSS 仍要求 `body min-width: 1040px`。
 
 本次没有运行 `validate:analysis`（它用于验证指定 embryos 的 ABpl/MS/C analysis）。当前环境没有提供浏览器控制执行接口，因此视觉交互结论来自源码、jsdom 和 production build。
@@ -514,6 +526,7 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 | 新文件格式/列别名 | `src/data/loaders.ts`, `columnMapping.ts` | `types.ts`, loader tests |
 | 数据校验/去重策略 | `src/data/frameIndex.ts` | 三类 index、warning、parent conflict |
 | Time/Frame 映射或 interval | `src/data/columnMapping.ts`, `ColumnMapper.tsx` | `types.ts`、多文件一致性、lineage axis |
+| 抽帧数量/覆盖/缺帧保持 | `src/data/frameSampling.ts`, `FileLoader.tsx` | 多文件 union steps、下游 index/metric 语义、内存峰值 |
 | embryo 配准/变换 | 新建 registration/analysis 纯函数 | raw 与 render 坐标、metric denominator |
 | 新 overlay/consensus 规则 | `src/data/embryoView.ts` | trails、CellInfo、与 analysis 独立性 |
 | 谱系解析/自定义 parent | `src/lineage/lineageResolver.ts` | cycle/conflict、dynamic membership |
@@ -535,7 +548,7 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 1. 功能语义是 entire dataset、active embryos、单 embryo、overlay，还是 mean？Analysis 当前固定为 active embryos 各自独立。
 2. 使用原始 AP/LR/VD 还是 render 坐标？现有 metric 全部使用原始坐标。
 3. `frame` 指 array index 还是 authoritative step value？store 使用 index，dataset/service/analysis row 使用原 step value，只有 lineage frame axis 使用 `step × intervalSeconds`。
-4. 时间是否 exact-match？当前 cohort 不插值、不做 nearest-time pooling。
+4. 时间来自 All exact grid 还是 Sample grid？Sample 已把上一完整 embryo frame 固化为目标 step；All 的 analysis 仍 exact-only，只有 Mean 可选 hold-last。两者都不做坐标线性插值或 nearest-time pooling。
 5. Group 是 explicit 还是 lineage-dynamic？只有 `source === 'lineage'` 自动补后代。
 6. Low-n 是只标记还是排除？当前只标记，UI 汇总也包含。
 7. 新 metric 的数值方向、null percentile、CSV 字段和 descriptive wording 是否一致？
@@ -545,4 +558,5 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 11. Worker 是否可取消，payload/结果是否值得 cache 或使用 transferable/增量索引？
 12. 是否会破坏 group overlap、hidden group、standalone color 或播放相机稳定性？
 13. Trails 应跟 saved group filter 还是 live selection？是否需要跨 division cell ID？目前有 groups 时固定为前者，且只连接 target 内的 mother/child。
-14. 至少运行 `npm test` 和 `npm run build`；涉及 WebGL、Worker 或 drawer 布局时再做真实浏览器验收。
+14. 新增 cell 是否只在短时间存在？修改 sampling 后必须验证 requested frame target 之外的 coverage frame 规则。
+15. 至少运行 `npm test` 和 `npm run build`；涉及 WebGL、Worker 或 drawer 布局时再做真实浏览器验收。

@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { Database, FileUp } from 'lucide-react'
 import { buildDatasetFromRows, makeEmbryoId } from '../data/frameIndex'
+import { DEFAULT_FRAME_SAMPLE_COUNT, sampleRowsByFrame } from '../data/frameSampling'
 import { inspectFile, listEmbryoIds, loadMappedRows } from '../data/loaders'
 import type {
   ColumnMapping,
@@ -110,6 +111,10 @@ export function FileLoader({ compact = false }: FileLoaderProps) {
       ) {
         throw new Error('All Frame files in one import must use the same frame interval.')
       }
+      const firstSampleCount = accumulatedSources.current[0]?.mapping.frameSampleCount
+      if (accumulatedSources.current.length > 0 && firstSampleCount !== mapping.frameSampleCount) {
+        throw new Error('All files in one import must use the same frame sampling setting.')
+      }
       const rows = await loadMappedRows(file, inspection, mapping, ({ processedRows, retainedRows }) => {
         setProgress(`${fileIndex + 1}/${files.length} · ${processedRows.toLocaleString()} rows scanned · ${retainedRows.toLocaleString()} retained`)
       })
@@ -156,13 +161,21 @@ export function FileLoader({ compact = false }: FileLoaderProps) {
 
       const sources = accumulatedSources.current
       const embryos = accumulatedEmbryos.current
-      const dataset = buildDatasetFromRows(accumulatedRows.current, {
+      const sampling = sources[0].mapping.frameSampleCount === undefined
+        ? undefined
+        : sampleRowsByFrame(accumulatedRows.current, sources[0].mapping.frameSampleCount)
+      const dataset = buildDatasetFromRows(sampling?.rows ?? accumulatedRows.current, {
         name: files.length === 1 ? file.name : `${files.length} files`,
         sourceSize: files.reduce((sum, item) => sum + item.size, 0),
         mapping: sources[0].mapping,
         sources,
         embryos,
       })
+      if (sampling) {
+        dataset.warnings.unshift(
+          `Displayed ${sampling.selectedSteps.length.toLocaleString()} sampled frames from the union time range${sampling.coverageFramesAdded ? ` (${sampling.coverageFramesAdded} extra required for complete cell coverage)` : ''}. Missing embryo frames use the latest earlier position.`,
+        )
+      }
       if (!dataset.observations.length) throw new Error(dataset.warnings.at(-1) ?? 'No valid observations were found.')
       setDataset(dataset, resolveLineage(dataset.cells, dataset.parentOverrides))
       resetImport()
@@ -210,6 +223,9 @@ export function FileLoader({ compact = false }: FileLoaderProps) {
           progressLabel={progress}
           fileIndex={fileIndex}
           fileCount={files.length}
+          initialFrameSampleCount={accumulatedSources.current.length
+            ? accumulatedSources.current[0].mapping.frameSampleCount ?? 'all'
+            : DEFAULT_FRAME_SAMPLE_COUNT}
           onDiscoverEmbryos={discoverEmbryos}
           onCancel={() => { resetImport(); setError('') }}
           onConfirm={(mapping) => void confirm(mapping)}

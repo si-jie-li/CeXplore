@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, ArrowRight, Check, X } from 'lucide-react'
 import { suggestMapping, validateMapping } from '../data/columnMapping'
+import { DEFAULT_FRAME_SAMPLE_COUNT } from '../data/frameSampling'
 import type { ColumnMapping, SourceInspection } from '../data/types'
 
 interface ColumnMapperProps {
@@ -12,6 +13,7 @@ interface ColumnMapperProps {
   onDiscoverEmbryos: (column: string, sheet: string | undefined, onProgress: (rows: number) => void) => Promise<string[]>
   fileIndex?: number
   fileCount?: number
+  initialFrameSampleCount?: number | 'all'
 }
 
 function FieldSelect({
@@ -74,9 +76,13 @@ export function ColumnMapper({
   onDiscoverEmbryos,
   fileIndex = 0,
   fileCount = 1,
+  initialFrameSampleCount = DEFAULT_FRAME_SAMPLE_COUNT,
 }: ColumnMapperProps) {
   const [activeInspection, setActiveInspection] = useState(inspection)
-  const [mapping, setMapping] = useState<ColumnMapping>(() => suggestMapping(inspection))
+  const [mapping, setMapping] = useState<ColumnMapping>(() => ({
+    ...suggestMapping(inspection),
+    frameSampleCount: initialFrameSampleCount === 'all' ? undefined : initialFrameSampleCount,
+  }))
   const [submitted, setSubmitted] = useState(false)
   const [embryoIds, setEmbryoIds] = useState<string[]>([])
   const [discovering, setDiscovering] = useState(false)
@@ -124,7 +130,7 @@ export function ColumnMapper({
       headers: activeInspection.headersBySheet?.[sheet] ?? [],
     }
     setActiveInspection(nextInspection)
-    setMapping({ ...suggestMapping(nextInspection), sheet })
+    setMapping({ ...suggestMapping(nextInspection), sheet, frameSampleCount: mapping.frameSampleCount })
   }
 
   const submit = () => {
@@ -180,6 +186,36 @@ export function ColumnMapper({
               />
             )}
             <FieldSelect label="Parent cell" value={mapping.parent} headers={headers} onChange={(v) => update('parent', v)} />
+          </div>
+
+          <div className="mapping-section-label">Playback frame sampling</div>
+          <div className="frame-sampling-control">
+            <div className="temporal-choice" role="radiogroup" aria-label="Frame sampling mode">
+              <button
+                type="button"
+                className={mapping.frameSampleCount !== undefined ? 'active' : ''}
+                onClick={() => update('frameSampleCount', mapping.frameSampleCount ?? DEFAULT_FRAME_SAMPLE_COUNT)}
+              >{mapping.frameSampleCount !== undefined && <Check size={14} />} Sample</button>
+              <button
+                type="button"
+                className={mapping.frameSampleCount === undefined ? 'active' : ''}
+                onClick={() => update('frameSampleCount', undefined)}
+              >{mapping.frameSampleCount === undefined && <Check size={14} />} All</button>
+            </div>
+            {mapping.frameSampleCount !== undefined && (
+              <label className="mapping-field">
+                <span>Frames to display</span>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={mapping.frameSampleCount}
+                  aria-label="Frames to display"
+                  onChange={(event) => update('frameSampleCount', Number(event.target.value))}
+                />
+              </label>
+            )}
+            <p>Default 185. Frames are sampled across the union time range; prior embryo frames are held when exact times are missing. All keeps the original frame grid.</p>
           </div>
 
           <div className="mapping-section-label">Dataset filter</div>

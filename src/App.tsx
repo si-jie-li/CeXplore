@@ -7,6 +7,7 @@ import { ListPanel } from './components/ListPanel'
 import { ControlDeck } from './components/ControlDeck'
 import { AnalysisPanel } from './components/AnalysisPanel'
 import { TrailProjectionPanel } from './components/TrailProjectionPanel'
+import { ImportWarnings } from './components/ImportWarnings'
 import { createSessionConfiguration, useExplorerStore } from './state/explorerStore'
 import { formatBytes } from './utils/format'
 import { downloadJson, readSessionFile } from './utils/session'
@@ -84,12 +85,7 @@ function LoadedWorkspace() {
   return (
     <div className="app-shell">
       <AppHeader />
-      {dataset.warnings.length > 0 && (
-        <details className="warning-strip">
-          <summary><AlertTriangle size={14} /> Imported with {dataset.warnings.length} warning{dataset.warnings.length === 1 ? '' : 's'}</summary>
-          <div>{dataset.warnings.map((warning) => <span key={warning}>{warning}</span>)}</div>
-        </details>
-      )}
+      <ImportWarnings warnings={dataset.warnings} resetKey={dataset} />
       <main className="workspace">
         <LineageTree />
         <Embryo3D />

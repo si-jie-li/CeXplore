@@ -37,6 +37,16 @@ export function EmbryoPanel({ onClose }: { onClose: () => void }) {
         />
         Color by embryo
       </label>
+      {settings.embryoViewMode === 'mean' && dataset.mapping.frameSampleCount === undefined && (
+        <label className="embryo-color-toggle mean-interpolation-toggle">
+          <input
+            type="checkbox"
+            checked={settings.interpolateMeanPositions}
+            onChange={(event) => setSettings({ interpolateMeanPositions: event.target.checked })}
+          />
+          Hold each embryo's last frame at missing times
+        </label>
+      )}
       <div className="embryo-selector-actions">
         <span>Select embryos</span>
         <button onClick={() => setActiveEmbryos(dataset.embryos.map((embryo) => embryo.id))}>All</button>
@@ -64,7 +74,9 @@ export function EmbryoPanel({ onClose }: { onClose: () => void }) {
             ? 'Calculating and caching all frames in the background…'
             : meanPositionCacheStatus === 'error'
               ? <>{meanPositionCacheError} <button type="button" onClick={prepareMeanPositions}>Retry</button></>
-              : 'All frames are cached. Each cell is averaged across selected embryos available at that time.'}
+              : settings.interpolateMeanPositions && dataset.mapping.frameSampleCount === undefined
+                ? 'All frames are cached. Missing embryo times hold their latest earlier frame before averaging.'
+                : 'All frames are cached. Each cell is averaged across selected embryos available at that exact time.'}
         </p>
       )}
     </aside>

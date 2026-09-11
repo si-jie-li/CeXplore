@@ -18,7 +18,10 @@ const dataset = buildDatasetFromRows([
   { embryoId: 'e2', cellId: 'AB', temporal: 1, x: 1, y: 0, z: 0 },
 ], { name: 'pair', mapping, embryos })
 
-beforeEach(() => useExplorerStore.getState().setDataset(dataset, resolveLineage(dataset.cells)))
+beforeEach(() => {
+  useExplorerStore.getState().setSettings({ interpolateMeanPositions: false, embryoViewMode: 'overlay' })
+  useExplorerStore.getState().setDataset(dataset, resolveLineage(dataset.cells))
+})
 
 describe('embryo display selector', () => {
   it('precomputes and refreshes the mean cache when displayed embryos change', async () => {
@@ -34,6 +37,11 @@ describe('embryo display selector', () => {
     expect(useExplorerStore.getState().meanPositionCacheStatus).toBe('loading')
     await waitFor(() => expect(useExplorerStore.getState().meanPositionCacheStatus).toBe('ready'))
     expect(useExplorerStore.getState().meanPositionCache?.frameIndex.get(1)?.[0].x).toBe(0)
+
+    const interpolation = screen.getByRole('checkbox', { name: /Hold each embryo's last frame/ })
+    fireEvent.click(interpolation)
+    expect(useExplorerStore.getState().settings.interpolateMeanPositions).toBe(true)
+    await waitFor(() => expect(useExplorerStore.getState().meanPositionCacheStatus).toBe('ready'))
 
     fireEvent.click(screen.getByRole('checkbox', { name: /embryo 2/ }))
     expect(useExplorerStore.getState().meanPositionCache).toBeUndefined()

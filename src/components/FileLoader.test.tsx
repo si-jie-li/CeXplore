@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useExplorerStore } from '../state/explorerStore'
 import { FileLoader } from './FileLoader'
@@ -65,5 +65,28 @@ AB,1,2,0,0,emb_2
 
     await waitFor(() => expect(useExplorerStore.getState().dataset).toBeDefined())
     expect(useExplorerStore.getState().dataset?.mapping.frameIntervalSeconds).toBe(75)
+  })
+
+  it('defaults to 185 sampled frames and allows keeping all frames', async () => {
+    const rows = ['cell_name,frame,AP,LR,VD', ...Array.from({ length: 200 }, (_, index) =>
+      `AB,${index + 1},${index},0,0`)].join('\n')
+    const firstView = render(<FileLoader />)
+    fireEvent.change(firstView.container.querySelector('input[type=file]') as HTMLInputElement, {
+      target: { files: [new File([rows], 'sample.csv', { type: 'text/csv' })] },
+    })
+    expect(await screen.findByRole('spinbutton', { name: 'Frames to display' })).toHaveValue(185)
+    fireEvent.click(screen.getByRole('button', { name: 'Load selected' }))
+    await waitFor(() => expect(useExplorerStore.getState().dataset?.frameValues).toHaveLength(185))
+
+    useExplorerStore.getState().clearDataset()
+    firstView.unmount()
+    const allView = render(<FileLoader />)
+    fireEvent.change(allView.container.querySelector('input[type=file]') as HTMLInputElement, {
+      target: { files: [new File([rows], 'all.csv', { type: 'text/csv' })] },
+    })
+    const mode = await screen.findByRole('radiogroup', { name: 'Frame sampling mode' })
+    fireEvent.click(within(mode).getByRole('button', { name: 'All' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Load selected' }))
+    await waitFor(() => expect(useExplorerStore.getState().dataset?.frameValues).toHaveLength(200))
   })
 })

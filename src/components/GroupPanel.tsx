@@ -20,11 +20,11 @@ const safeFilename = (name: string) => name.replace(/[^a-z0-9._-]+/gi, '_').repl
 export function GroupPanel() {
   const importInput = useRef<HTMLInputElement>(null)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
-  const [marked, setMarked] = useState<Record<string, string[]>>({})
   const [message, setMessage] = useState('')
   const dataset = useExplorerStore((state) => state.dataset)!
   const groups = useExplorerStore((state) => state.groups)
   const selection = useExplorerStore((state) => state.selection)
+  const toggleCell = useExplorerStore((state) => state.toggleCell)
   const updateGroup = useExplorerStore((state) => state.updateGroup)
   const setGroupColor = useExplorerStore((state) => state.setGroupColor)
   const addCellsToGroup = useExplorerStore((state) => state.addCellsToGroup)
@@ -39,13 +39,6 @@ export function GroupPanel() {
     if (next.has(groupId)) next.delete(groupId)
     else next.add(groupId)
     return next
-  })
-
-  const toggleMarked = (groupId: string, cellId: string) => setMarked((current) => {
-    const cells = new Set(current[groupId] ?? [])
-    if (cells.has(cellId)) cells.delete(cellId)
-    else cells.add(cellId)
-    return { ...current, [groupId]: [...cells] }
   })
 
   const exportGroups = () => {
@@ -93,7 +86,7 @@ export function GroupPanel() {
         <div className="group-list">
           {groups.map((group) => {
             const isExpanded = expanded.has(group.id)
-            const markedCells = marked[group.id] ?? []
+            const markedCells = group.cellIds.filter((cellId) => selection.has(cellId))
             const canAddSelection = selection.size > 0 && [...selection].some((cellId) => !group.cellIds.includes(cellId))
             return (
               <div key={group.id} className={`group-card ${group.visible ? '' : 'hidden-group'} ${isExpanded ? 'expanded' : ''}`}>
@@ -141,7 +134,6 @@ export function GroupPanel() {
                         disabled={!markedCells.length}
                         onClick={() => {
                           removeCellsFromGroup(group.id, markedCells)
-                          setMarked((current) => ({ ...current, [group.id]: [] }))
                         }}
                       >Remove selected{markedCells.length ? ` (${markedCells.length})` : ''}</button>
                     </div>
@@ -150,8 +142,8 @@ export function GroupPanel() {
                         <label key={cellId}>
                           <input
                             type="checkbox"
-                            checked={markedCells.includes(cellId)}
-                            onChange={() => toggleMarked(group.id, cellId)}
+                            checked={selection.has(cellId)}
+                            onChange={() => toggleCell(cellId)}
                           />
                           <span>{cellId}</span>
                         </label>

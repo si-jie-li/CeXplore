@@ -44,6 +44,22 @@ describe('multi-embryo views', () => {
     })
   })
 
+  it('optionally holds each embryo latest earlier frame without interpolating coordinates', () => {
+    const staggered = buildDatasetFromRows([
+      { embryoId: 'e1', cellId: 'AB', temporal: 1, x: 0, y: 0, z: 0 },
+      { embryoId: 'e1', cellId: 'AB', temporal: 3, x: 6, y: 0, z: 0 },
+      { embryoId: 'e2', cellId: 'AB', temporal: 2, x: 2, y: 0, z: 0 },
+    ], { name: 'staggered', mapping, embryos })
+    const held = hydrateMeanPositionCache('held', computeMeanPositions({
+      observations: staggered.observations,
+      activeEmbryoIds: ['e1', 'e2'],
+      frameValues: [1, 2, 3],
+      holdLastFrame: true,
+    }))
+    expect(held.frameIndex.get(2)?.[0]).toMatchObject({ x: 1, contributingEmbryoIds: ['e1', 'e2'] })
+    expect(held.frameIndex.get(3)?.[0]).toMatchObject({ x: 4, contributingEmbryoIds: ['e1', 'e2'] })
+  })
+
   it('returns separate overlay trails and one averaged trail', () => {
     expect(getCellTrajectories(dataset, 'AB', new Set(['e1', 'e2']), 'overlay', 1, 2)).toHaveLength(2)
     const mean = getCellTrajectories(dataset, 'AB', new Set(['e1', 'e2']), 'mean', 1, 2, meanCache)

@@ -148,9 +148,11 @@ button:disabled, input:disabled, select:disabled { opacity: .42; cursor: not-all
 .header-unresolved { color: #8d6633; font-size: 10px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 .session-message { position: absolute; right: 20px; top: 52px; z-index: 50; background: #263a34; color: white; border: 0; padding: 8px 10px; border-radius: 5px; font-size: 11px; display: flex; gap: 8px; align-items: center; cursor: pointer; }
 .warning-strip { position: absolute; top: 60px; z-index: 12; left: 50%; transform: translateX(-50%); background: #fff9e8; color: #705a2b; border: 1px solid #e6d6a8; border-top: 0; border-radius: 0 0 6px 6px; font-size: 10.5px; }
-.warning-strip summary { list-style: none; cursor: pointer; padding: 5px 9px; display: flex; align-items: center; gap: 5px; }
+.warning-strip summary { list-style: none; cursor: pointer; padding: 5px 29px 5px 9px; display: flex; align-items: center; gap: 5px; }
 .warning-strip summary::-webkit-details-marker { display: none; }
-.warning-strip div { padding: 0 9px 7px; display: flex; flex-direction: column; gap: 2px; }
+.warning-strip .warning-list { padding: 0 29px 7px 9px; display: flex; flex-direction: column; gap: 2px; }
+.warning-dismiss { position: absolute; top: 3px; right: 5px; width: 20px; height: 20px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 4px; background: transparent; color: #806833; cursor: pointer; }
+.warning-dismiss:hover { background: #f0e2bd; color: #4f401e; }
 
 .workspace {
   height: calc(100% - 60px);
@@ -418,16 +420,33 @@ button:disabled, input:disabled, select:disabled { opacity: .42; cursor: not-all
 .trail-projection-controls fieldset label > i { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; }
 .trail-projection-controls fieldset label > svg { width: 34px; height: 8px; flex: 0 0 auto; }
 .trail-projection-controls fieldset label > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projection-axis-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 10px; }
+.projection-axis-mode button { border: 1px solid #d8e1de; border-radius: 4px; padding: 5px 4px; background: white; color: #687670; font-size: 8px; cursor: pointer; }
+.projection-axis-mode button.active { border-color: #89b5a5; background: #e9f4f0; color: #285e4b; font-weight: 700; }
 .projection-picker-actions { position: absolute; right: 7px; top: -18px; display: flex; gap: 3px; }
 .projection-picker-actions button { border: 0; padding: 1px 3px; background: transparent; color: var(--accent); font-size: 7.5px; cursor: pointer; }
 .trail-projection-controls > small { display: block; margin-top: 10px; color: #7f8c88; font-size: 7.5px; line-height: 1.45; }
+.projection-individual-toggle { display: flex; align-items: center; gap: 6px; margin-top: 10px; color: #4d5c57; font-size: 8.5px; cursor: pointer; }
+.projection-individual-toggle input { width: 11px; height: 11px; margin: 0; accent-color: var(--accent); }
 .trail-projection-chart-wrap { min-width: 0; min-height: 360px; padding: 13px 10px 9px; overflow: hidden; }
-.trail-projection-chart-heading { display: flex; align-items: flex-start; justify-content: space-between; }
-.trail-projection-chart-heading > span { color: #7d8985; font-size: 8px; }
-.trail-projection-chart { display: block; width: 100%; height: 285px; margin-top: 6px; }
+.trail-projection-chart-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.projection-chart-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px; color: #7d8985; font-size: 8px; }
+.projection-chart-actions button { display: flex; align-items: center; gap: 3px; border: 1px solid #d9e2df; border-radius: 4px; padding: 3px 5px; background: #fff; color: #56645f; font-size: 7.5px; cursor: pointer; }
+.projection-chart-actions button:hover:not(:disabled) { border-color: #9ab9ae; color: #265d4a; }
+.trail-projection-chart { display: block; width: 100%; height: 285px; margin-top: 6px; touch-action: none; cursor: crosshair; user-select: none; }
+.trail-projection-chart.selecting { cursor: zoom-in; }
 .trail-projection-chart text { fill: #788580; font-size: 8px; }
 .projection-axis { stroke: #99a6a2; stroke-width: 1; vector-effect: non-scaling-stroke; }
 .projection-gridline { stroke: #e4eae8; stroke-width: .8; vector-effect: non-scaling-stroke; }
+.projection-zero-line { stroke: #7f8d88; stroke-width: 1.15; vector-effect: non-scaling-stroke; }
+.projection-series-line, .projection-division-connector { pointer-events: none; }
+.projection-hit-line { cursor: crosshair; }
+.projection-tooltip circle { fill: #fff; stroke: #263a34; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.projection-tooltip rect { fill: rgba(30,45,40,.94); stroke: rgba(255,255,255,.25); stroke-width: .7; }
+.projection-tooltip text { fill: #eaf1ee; font-size: 7.5px; }
+.projection-tooltip .projection-tooltip-title { fill: #fff; font-size: 8.5px; font-weight: 750; }
+.projection-zoom-selection { fill: rgba(41,119,91,.14); stroke: #29775b; stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+.projection-chart-help { margin: -1px 0 2px 48px; color: #899590; font-size: 7px; }
 .trail-projection-empty { height: calc(100% - 70px); min-height: 180px; display: grid; place-items: center; color: #899590; font-size: 9px; text-align: center; }
 .trail-projection-group-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 1px 0 0 48px; color: #5e6c67; font-size: 8px; }
 .trail-projection-group-legend span { display: flex; align-items: center; gap: 4px; }
@@ -549,6 +568,8 @@ button:disabled, input:disabled, select:disabled { opacity: .42; cursor: not-all
 .mapping-section-label:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
 .mapping-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 12px; }
 .mapping-grid.compact-top { margin-top: 9px; }
+.frame-sampling-control { display: grid; grid-template-columns: auto 150px minmax(0,1fr); align-items: end; gap: 10px; }
+.frame-sampling-control > p { margin: 0 0 2px; color: #7d8985; font-size: 8px; line-height: 1.4; }
 .mapping-field { display: flex; flex-direction: column; gap: 4px; }
 .mapping-field > span { font-size: 9.5px; color: #55635e; font-weight: 600; }
 .mapping-field em { font-style: normal; font-size: 7px; color: #8b9994; text-transform: uppercase; letter-spacing: .08em; margin-left: 3px; }

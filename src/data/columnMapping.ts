@@ -48,6 +48,9 @@ export function validateMapping(mapping: ColumnMapping): string[] {
   ) {
     errors.push('Enter a frame interval greater than 0 seconds.')
   }
+  if (mapping.frameSampleCount !== undefined && (
+    !Number.isInteger(mapping.frameSampleCount) || mapping.frameSampleCount < 1
+  )) errors.push('Enter a whole frame sample count of at least 1, or choose All.')
   const selectedEmbryos = mapping.embryoValues?.length
     ? mapping.embryoValues
     : mapping.embryoValue?.trim() ? [mapping.embryoValue.trim()] : []
