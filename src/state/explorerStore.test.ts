@@ -44,6 +44,23 @@ describe('shared explorer state', () => {
     expect(useExplorerStore.getState().groups).toHaveLength(0)
   })
 
+  it('resets manually added trail groups whenever the visible group set changes', () => {
+    const state = useExplorerStore.getState()
+    state.setSelection(['ABpl'])
+    state.applyColor('#3978c5', true)
+    state.setSelection(['ABpr'])
+    useExplorerStore.getState().applyColor('#df7844', true)
+    const [first, second] = useExplorerStore.getState().groups
+
+    useExplorerStore.getState().updateGroup(second.id, { visible: false })
+    useExplorerStore.getState().setSettings({ trailGroupIds: [second.id] })
+    useExplorerStore.getState().updateGroup(first.id, { name: 'Renamed' })
+    expect(useExplorerStore.getState().settings.trailGroupIds).toEqual([second.id])
+
+    useExplorerStore.getState().setGroupsVisible([first.id], false)
+    expect(useExplorerStore.getState().settings.trailGroupIds).toEqual([])
+  })
+
   it('only adds whole lineages without replacing or toggling the existing selection', () => {
     const state = useExplorerStore.getState()
     state.setSelection(['ABpl'])

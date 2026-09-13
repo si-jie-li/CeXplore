@@ -9,13 +9,16 @@ export function DisplayControls() {
   const groups = useExplorerStore((state) => state.groups)
   const dataset = useExplorerStore((state) => state.dataset)
   const selectedTrailGroups = resolveTrailGroups(groups, settings.trailGroupIds)
+  const visibleTrailGroupCount = selectedTrailGroups.filter((group) => group.visible).length
+  const extraTrailGroupCount = selectedTrailGroups.length - visibleTrailGroupCount
   const firstStep = dataset?.frameValues[0] ?? 0
   const lastStep = dataset?.frameValues.at(-1) ?? firstStep
   const stepName = dataset?.temporalMode === 'time' ? 'time' : 'frame'
 
   const toggleTrailGroup = (groupId: string) => {
+    if (groups.find((group) => group.id === groupId)?.visible) return
     const currentIds = settings.trailGroupIds === 'all'
-      ? groups.map((group) => group.id)
+      ? groups.filter((group) => !group.visible).map((group) => group.id)
       : settings.trailGroupIds
     setSettings({
       trailGroupIds: currentIds.includes(groupId)
@@ -131,21 +134,20 @@ export function DisplayControls() {
         {settings.showTrajectories && groups.length > 0 && (
           <details className="trail-group-picker">
             <summary>
-              {settings.trailGroupIds === 'all'
-                ? `All ${groups.length} groups`
-                : `${selectedTrailGroups.length}/${groups.length} groups`}
+              {`${visibleTrailGroupCount} visible${extraTrailGroupCount ? ` + ${extraTrailGroupCount} extra` : ''}`}
             </summary>
             <div className="trail-group-menu">
               <div>
-                <span>Trail groups</span>
-                <button type="button" onClick={() => setSettings({ trailGroupIds: 'all' })}>All</button>
-                <button type="button" onClick={() => setSettings({ trailGroupIds: [] })}>None</button>
+                <span>Visible + extras</span>
+                <button type="button" onClick={() => setSettings({ trailGroupIds: 'all' })}>All extras</button>
+                <button type="button" onClick={() => setSettings({ trailGroupIds: [] })}>Clear extras</button>
               </div>
               {groups.map((group) => (
-                <label key={group.id}>
+                <label key={group.id} title={group.visible ? 'Included because this group is visible' : 'Add this hidden group to Trails'}>
                   <input
                     type="checkbox"
-                    checked={settings.trailGroupIds === 'all' || settings.trailGroupIds.includes(group.id)}
+                    checked={group.visible || settings.trailGroupIds === 'all' || settings.trailGroupIds.includes(group.id)}
+                    disabled={group.visible}
                     onChange={() => toggleTrailGroup(group.id)}
                   />
                   <i style={{ background: group.color }} />

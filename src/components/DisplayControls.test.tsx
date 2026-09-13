@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { buildDatasetFromRows } from '../data/frameIndex'
 import type { ColumnMapping } from '../data/types'
@@ -23,7 +23,7 @@ beforeEach(() => {
     trailRangeStart: undefined,
     trailRangeEnd: undefined,
     trailPreviousFrames: 10,
-    trailGroupIds: 'all',
+    trailGroupIds: [],
     trailWidth: 1.1,
   })
   store.setSelection(['AB'])
@@ -32,7 +32,7 @@ beforeEach(() => {
 })
 
 describe('trail display controls', () => {
-  it('defaults to all previous frames and all groups without requiring a live selection', () => {
+  it('defaults to all previous frames and visible groups, then permits hidden extras', () => {
     render(<DisplayControls />)
     const trails = screen.getByRole('button', { name: /Trails/ })
     expect(trails).toBeEnabled()
@@ -40,7 +40,9 @@ describe('trail display controls', () => {
 
     fireEvent.click(trails)
     expect(useExplorerStore.getState().settings.showTrajectories).toBe(true)
-    expect(screen.getByText('All 1 groups')).toBeInTheDocument()
+    expect(screen.getByText('1 visible')).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'AB' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'AB' })).toBeDisabled()
 
     const width = screen.getByRole('slider', { name: 'Trail width' })
     expect(width).toBeEnabled()
@@ -70,7 +72,18 @@ describe('trail display controls', () => {
       trailRangeEnd: 2,
     })
 
-    fireEvent.click(screen.getByRole('checkbox', { name: 'AB' }))
+    const visibleGroup = useExplorerStore.getState().groups[0]
+    act(() => {
+      useExplorerStore.getState().setSelection(['ABa'])
+      useExplorerStore.getState().applyColor('#df7844', true)
+      const addedGroup = useExplorerStore.getState().groups[1]
+      useExplorerStore.getState().updateGroup(addedGroup.id, { visible: false })
+    })
+    const extraGroup = useExplorerStore.getState().groups[1]
+    fireEvent.click(screen.getByRole('checkbox', { name: 'ABa' }))
+    expect(useExplorerStore.getState().settings.trailGroupIds).toEqual([extraGroup.id])
+
+    act(() => useExplorerStore.getState().updateGroup(visibleGroup.id, { visible: false }))
     expect(useExplorerStore.getState().settings.trailGroupIds).toEqual([])
   })
 })

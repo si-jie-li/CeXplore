@@ -84,6 +84,7 @@ interface ExplorerState {
   setInspectedCell: (cellId?: string) => void
   setHoveredObservation: (observation?: Observation) => void
   updateGroup: (id: string, patch: Partial<Pick<CellGroup, 'name' | 'visible'>>) => void
+  setGroupsVisible: (ids: Iterable<string>, visible: boolean) => void
   setGroupColor: (id: string, color: string) => void
   addCellsToGroup: (id: string, cellIds: Iterable<string>) => void
   removeCellsFromGroup: (id: string, cellIds: Iterable<string>) => void
@@ -123,7 +124,7 @@ const defaultSettings: ExplorerSettings = {
   trailRangeStart: undefined,
   trailRangeEnd: undefined,
   trailPreviousFrames: 10,
-  trailGroupIds: 'all',
+  trailGroupIds: [],
   trailWidth: 1.1,
   embryoViewMode: 'overlay',
   colorByEmbryo: false,
@@ -163,6 +164,20 @@ const reconcileAffectedCellColors = (
 
 const normalizedColor = (color: string) => color.toLowerCase()
 
+const visibleGroupKey = (groups: CellGroup[]) => groups
+  .filter((group) => group.visible)
+  .map((group) => group.id)
+  .sort()
+  .join('\u0000')
+
+const resetTrailExtrasWhenVisibleGroupsChange = (
+  settings: ExplorerSettings,
+  previousGroups: CellGroup[],
+  groups: CellGroup[],
+) => visibleGroupKey(previousGroups) === visibleGroupKey(groups)
+  ? settings
+  : { ...settings, trailGroupIds: [] as string[] }
+
 const withoutTrailGroupIds = (
   settings: ExplorerSettings,
   removedIds: Set<string>,
@@ -200,6 +215,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       selectionMeta: { kind: 'manual' },
       cellColors: {},
       groups: [],
+      settings: { ...get().settings, trailGroupIds: [] },
       inspectedCellId: undefined,
       hoveredObservation: undefined,
       cameraCommand: { type: 'reset', nonce: get().cameraCommand.nonce + 1 },
@@ -217,6 +233,7 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       selection: new Set(),
       cellColors: {},
       groups: [],
+      settings: { ...get().settings, trailGroupIds: [] },
       inspectedCellId: undefined,
     })
   },
@@ -297,7 +314,11 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       set({
         groups,
         cellColors,
-        settings: withoutTrailGroupIds(state.settings, removedIds, target.id),
+        settings: resetTrailExtrasWhenVisibleGroupsChange(
+          withoutTrailGroupIds(state.settings, removedIds, target.id),
+          state.groups,
+          groups,
+        ),
       })
       return
     }
@@ -311,12 +332,33 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       rootCell: root,
       createdAt: Date.now(),
     }
-    set({ cellColors, groups: [...state.groups, group] })
+    const groups = [...state.groups, group]
+    set({
+      cellColors,
+      groups,
+      settings: resetTrailExtrasWhenVisibleGroupsChange(state.settings, state.groups, groups),
+    })
   },
   setInspectedCell: (inspectedCellId) => set({ inspectedCellId }),
   setHoveredObservation: (hoveredObservation) => set({ hoveredObservation }),
   updateGroup: (id, patch) =>
-    set((state) => ({ groups: state.groups.map((group) => (group.id === id ? { ...group, ...patch } : group)) })),
+    set((state) => {
+      const groups = state.groups.map((group) => (group.id === id ? { ...group, ...patch } : group))
+      return {
+        groups,
+        settings: resetTrailExtrasWhenVisibleGroupsChange(state.settings, state.groups, groups),
+      }
+    }),
+  setGroupsVisible: (ids, visible) =>
+    set((state) => {
+      const targets = new Set(ids)
+      if (!targets.size) return state
+      const groups = state.groups.map((group) => targets.has(group.id) ? { ...group, visible } : group)
+      return {
+        groups,
+        settings: resetTrailExtrasWhenVisibleGroupsChange(state.settings, state.groups, groups),
+      }
+    }),
   setGroupColor: (id, color) =>
     set((state) => {
       const target = state.groups.find((group) => group.id === id)
@@ -328,10 +370,11 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       const groups = state.groups
         .filter((group) => !removedIds.has(group.id))
         .map((group) => group.id === id ? { ...group, color, cellIds: mergedCellIds } : group)
+      const settings = withoutTrailGroupIds(state.settings, removedIds, id)
       return {
         groups,
         cellColors: reconcileAffectedCellColors(state.cellColors, groups, mergedCellIds),
-        settings: withoutTrailGroupIds(state.settings, removedIds, id),
+        settings: resetTrailExtrasWhenVisibleGroupsChange(settings, state.groups, groups),
       }
     }),
   addCellsToGroup: (id, cellIds) =>
@@ -359,22 +402,24 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
         : state.groups.map((group) => group.id === id
           ? { ...group, cellIds: remaining, source: 'manual' as const, rootCell: undefined }
           : group)
+      const settings = removeGroup
+        ? withoutTrailGroupIds(state.settings, new Set([id]))
+        : state.settings
       return {
         groups,
         cellColors: reconcileAffectedCellColors(state.cellColors, groups, target.cellIds),
-        settings: removeGroup
-          ? withoutTrailGroupIds(state.settings, new Set([id]))
-          : state.settings,
+        settings: resetTrailExtrasWhenVisibleGroupsChange(settings, state.groups, groups),
       }
     }),
   deleteGroup: (id) =>
     set((state) => {
       const target = state.groups.find((group) => group.id === id)
       const groups = state.groups.filter((group) => group.id !== id)
+      const settings = withoutTrailGroupIds(state.settings, new Set([id]))
       return {
         groups,
         cellColors: reconcileAffectedCellColors(state.cellColors, groups, target?.cellIds ?? []),
-        settings: withoutTrailGroupIds(state.settings, new Set([id])),
+        settings: resetTrailExtrasWhenVisibleGroupsChange(settings, state.groups, groups),
       }
     }),
   selectGroup: (id) => {
@@ -535,7 +580,11 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
           })
         }
       }
-      return { groups, cellColors: { ...state.cellColors, ...colorsFromGroups(groups) }, settings }
+      return {
+        groups,
+        cellColors: { ...state.cellColors, ...colorsFromGroups(groups) },
+        settings: resetTrailExtrasWhenVisibleGroupsChange(settings, state.groups, groups),
+      }
     })
     return warnings
   },

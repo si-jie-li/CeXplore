@@ -17,6 +17,7 @@ const TRAIL_MAX_NEW_LIGHTNESS = 0.48
 interface TrailGroupLike {
   id: string
   cellIds: string[]
+  visible: boolean
 }
 
 export function resolveTrailStepRange(
@@ -56,11 +57,11 @@ export function resolveTrailStepRange(
 
 export function resolveTrailGroups<T extends TrailGroupLike>(
   groups: T[],
-  selection: TrailGroupSelection,
+  extraSelection: TrailGroupSelection,
 ) {
-  if (selection === 'all') return groups
-  const selectedIds = new Set(selection)
-  return groups.filter((group) => selectedIds.has(group.id))
+  if (extraSelection === 'all') return groups
+  const selectedIds = new Set(extraSelection)
+  return groups.filter((group) => group.visible || selectedIds.has(group.id))
 }
 
 export function resolveTrailCellIds<T extends TrailGroupLike>(

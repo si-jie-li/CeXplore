@@ -11,20 +11,25 @@ import {
 } from './trails'
 
 const groups = [
-  { id: 'ab', cellIds: ['AB', 'ABa', 'ABp'] },
-  { id: 'ms', cellIds: ['MS', 'MSa', 'MSp'] },
+  { id: 'ab', cellIds: ['AB', 'ABa', 'ABp'], visible: true },
+  { id: 'ms', cellIds: ['MS', 'MSa', 'MSp'], visible: false },
 ]
 
 describe('trail group selection', () => {
-  it('uses every saved group by default and survives an empty cell selection', () => {
+  it('uses visible groups by default and survives an empty cell selection', () => {
+    expect(resolveTrailGroups(groups, [])).toEqual([groups[0]])
+    expect([...resolveTrailCellIds(groups, [], [])].sort())
+      .toEqual(['AB', 'ABa', 'ABp'].sort())
+
     expect(resolveTrailGroups(groups, 'all')).toEqual(groups)
     expect([...resolveTrailCellIds(groups, 'all', [])].sort())
       .toEqual(['AB', 'ABa', 'ABp', 'MS', 'MSa', 'MSp'].sort())
   })
 
-  it('uses explicit trail groups, with current selection only as a no-group fallback', () => {
-    expect(resolveTrailGroups(groups, ['ms'])).toEqual([groups[1]])
-    expect([...resolveTrailCellIds(groups, ['ms'], ['AB'])].sort()).toEqual(['MS', 'MSa', 'MSp'])
+  it('adds explicit hidden groups to the visible base, with current selection only as a no-group fallback', () => {
+    expect(resolveTrailGroups(groups, ['ms'])).toEqual(groups)
+    expect([...resolveTrailCellIds(groups, ['ms'], ['AB'])].sort())
+      .toEqual(['AB', 'ABa', 'ABp', 'MS', 'MSa', 'MSp'].sort())
     expect([...resolveTrailCellIds([], 'all', ['AB'])]).toEqual(['AB'])
   })
 

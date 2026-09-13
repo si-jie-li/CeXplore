@@ -287,11 +287,20 @@ button:disabled, input:disabled, select:disabled { opacity: .42; cursor: not-all
 .save-group-toggle input { width: 11px; height: 11px; margin: 0; accent-color: var(--accent); }
 
 .group-panel-component { height: 100%; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.group-panel-toolbars { min-width: 0; }
 .group-list-toolbar { min-width: 0; min-height: 36px; display: flex; align-items: center; gap: 5px; padding: 5px 7px; border-bottom: 1px solid #e8ecea; }
 .group-list-toolbar > span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #7a8783; font-size: 7.8px; }
 .group-list-toolbar > button { height: 25px; display: flex; align-items: center; gap: 3px; border: 1px solid #d6dfdc; border-radius: 4px; padding: 0 6px; background: white; color: #62716c; font-size: 8px; cursor: pointer; }
 .group-list-toolbar > button:hover:not(:disabled) { border-color: #a8bbb5; color: var(--accent); }
 .group-list-toolbar > button:disabled { opacity: .45; cursor: default; }
+.group-visibility-toolbar { min-width: 0; min-height: 34px; display: flex; align-items: center; gap: 5px; padding: 4px 7px; border-bottom: 1px solid #e8ecea; background: #fafcfb; }
+.group-visibility-toolbar input { min-width: 70px; flex: 1; height: 24px; border: 1px solid #d6dfdc; border-radius: 4px; padding: 0 7px; background: white; color: #46544f; font-size: 8.5px; }
+.group-visibility-toolbar input:focus { outline: 0; border-color: #91b6aa; box-shadow: 0 0 0 2px rgba(39,105,86,.08); }
+.group-visibility-toolbar span { flex: 0 0 auto; color: #7b8884; font-size: 7.8px; }
+.group-visibility-toolbar button { height: 23px; display: flex; align-items: center; gap: 3px; border: 1px solid #d6dfdc; border-radius: 4px; padding: 0 5px; background: white; color: #62716c; font-size: 8px; cursor: pointer; }
+.group-visibility-toolbar button:hover:not(:disabled) { border-color: #9bb8ae; color: var(--accent); }
+.group-visibility-toolbar button:disabled { opacity: .35; cursor: default; }
+.groups-filter-empty { background: #fafcfb; }
 .groups-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #65736e; padding: 20px; }
 .groups-empty strong { font-size: 11px; color: #34423e; }
 .groups-empty p { max-width: 260px; font-size: 9.5px; line-height: 1.45; margin: 5px 0 0; }
@@ -365,13 +374,14 @@ button:disabled, input:disabled, select:disabled { opacity: .42; cursor: not-all
 .trail-group-picker > summary { height: 24px; max-width: 100px; display: flex; align-items: center; padding: 0 7px; border: 1px solid #d8dfdd; border-radius: 4px; background: white; color: #5f6d68; font-size: 8.5px; cursor: pointer; list-style: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trail-group-picker > summary::-webkit-details-marker { display: none; }
 .trail-group-picker[open] > summary { border-color: #9fc0b9; color: var(--accent); background: #e7f1ef; }
-.trail-group-menu { position: absolute; z-index: 8; left: 0; bottom: calc(100% + 5px); width: 190px; max-height: 150px; overflow: auto; padding: 6px; border: 1px solid #ccd8d4; border-radius: 6px; background: white; box-shadow: 0 7px 22px rgba(32,48,43,.16); }
+.trail-group-menu { position: absolute; z-index: 8; left: 0; bottom: calc(100% + 5px); width: 230px; max-height: 150px; overflow: auto; padding: 6px; border: 1px solid #ccd8d4; border-radius: 6px; background: white; box-shadow: 0 7px 22px rgba(32,48,43,.16); }
 .trail-group-menu > div { display: flex; align-items: center; gap: 4px; padding: 1px 3px 5px; border-bottom: 1px solid #e7ecea; }
 .trail-group-menu > div span { margin-right: auto; color: #61706b; font-size: 8px; font-weight: 700; }
 .trail-group-menu > div button { padding: 2px 3px; border: 0; background: transparent; color: var(--accent); font-size: 7.5px; cursor: pointer; }
 .trail-group-menu label { min-width: 0; display: flex; align-items: center; gap: 5px; padding: 4px 3px; border-radius: 3px; color: #46544f; font-size: 8.5px; cursor: pointer; }
 .trail-group-menu label:hover { background: #eef3f1; }
 .trail-group-menu input { width: 11px; height: 11px; margin: 0; accent-color: var(--accent); }
+.trail-group-menu input:disabled { opacity: .75; cursor: default; }
 .trail-group-menu i { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; }
 .trail-group-menu label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .display-note { display: flex; align-items: center; gap: 4px; color: #8a9592; font-size: 8px; margin-left: auto; }

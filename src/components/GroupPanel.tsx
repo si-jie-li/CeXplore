@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   ChevronDown,
   ChevronRight,
@@ -21,11 +21,13 @@ export function GroupPanel() {
   const importInput = useRef<HTMLInputElement>(null)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [message, setMessage] = useState('')
+  const [groupQuery, setGroupQuery] = useState('')
   const dataset = useExplorerStore((state) => state.dataset)!
   const groups = useExplorerStore((state) => state.groups)
   const selection = useExplorerStore((state) => state.selection)
   const toggleCell = useExplorerStore((state) => state.toggleCell)
   const updateGroup = useExplorerStore((state) => state.updateGroup)
+  const setGroupsVisible = useExplorerStore((state) => state.setGroupsVisible)
   const setGroupColor = useExplorerStore((state) => state.setGroupColor)
   const addCellsToGroup = useExplorerStore((state) => state.addCellsToGroup)
   const removeCellsFromGroup = useExplorerStore((state) => state.removeCellsFromGroup)
@@ -33,6 +35,10 @@ export function GroupPanel() {
   const selectGroup = useExplorerStore((state) => state.selectGroup)
   const focusGroup = useExplorerStore((state) => state.focusGroup)
   const importGroupList = useExplorerStore((state) => state.importGroupList)
+  const normalizedQuery = groupQuery.trim().toLocaleLowerCase()
+  const filteredGroups = useMemo(() => normalizedQuery
+    ? groups.filter((group) => group.name.toLocaleLowerCase().includes(normalizedQuery))
+    : groups, [groups, normalizedQuery])
 
   const toggleExpanded = (groupId: string) => setExpanded((current) => {
     const next = new Set(current)
@@ -50,30 +56,56 @@ export function GroupPanel() {
 
   return (
     <div className="group-panel-component">
-      <div className="group-list-toolbar">
-        <span>{message || 'Groups with the same color are merged automatically.'}</span>
-        <button type="button" onClick={() => importInput.current?.click()} title="Import group list">
-          <Upload size={13} /> Import
-        </button>
-        <button type="button" onClick={exportGroups} disabled={!groups.length} title="Export readable group list">
-          <Download size={13} /> Export
-        </button>
-        <input
-          ref={importInput}
-          className="sr-only"
-          type="file"
-          accept=".json,application/json"
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-            if (file) void readGroupListFile(file)
-              .then((groupFile) => {
-                const warnings = importGroupList(groupFile.dataset, groupFile.groups)
-                setMessage(`Imported ${groupFile.groups.length} group entr${groupFile.groups.length === 1 ? 'y' : 'ies'}.${warnings.length ? ` ${warnings.join(' ')}` : ''}`)
-              })
-              .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Could not import group list.'))
-            event.target.value = ''
-          }}
-        />
+      <div className="group-panel-toolbars">
+        <div className="group-list-toolbar">
+          <span>{message || 'Groups with the same color are merged automatically.'}</span>
+          <button type="button" onClick={() => importInput.current?.click()} title="Import group list">
+            <Upload size={13} /> Import
+          </button>
+          <button type="button" onClick={exportGroups} disabled={!groups.length} title="Export readable group list">
+            <Download size={13} /> Export
+          </button>
+          <input
+            ref={importInput}
+            className="sr-only"
+            type="file"
+            accept=".json,application/json"
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) void readGroupListFile(file)
+                .then((groupFile) => {
+                  const warnings = importGroupList(groupFile.dataset, groupFile.groups)
+                  setMessage(`Imported ${groupFile.groups.length} group entr${groupFile.groups.length === 1 ? 'y' : 'ies'}.${warnings.length ? ` ${warnings.join(' ')}` : ''}`)
+                })
+                .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Could not import group list.'))
+              event.target.value = ''
+            }}
+          />
+        </div>
+        {groups.length > 0 && (
+          <div className="group-visibility-toolbar">
+            <input
+              type="search"
+              value={groupQuery}
+              onChange={(event) => setGroupQuery(event.target.value)}
+              placeholder="Filter group names…"
+              aria-label="Filter groups by name"
+            />
+            <span>{filteredGroups.length}/{groups.length} shown</span>
+            <button
+              type="button"
+              onClick={() => setGroupsVisible(filteredGroups.map((group) => group.id), true)}
+              disabled={!filteredGroups.some((group) => !group.visible)}
+              title="Make all displayed groups visible"
+            ><Eye size={12} /> All</button>
+            <button
+              type="button"
+              onClick={() => setGroupsVisible(filteredGroups.map((group) => group.id), false)}
+              disabled={!filteredGroups.some((group) => group.visible)}
+              title="Make all displayed groups invisible"
+            ><EyeOff size={12} /> None</button>
+          </div>
+        )}
       </div>
 
       {!groups.length ? (
@@ -82,9 +114,14 @@ export function GroupPanel() {
           <strong>No saved groups yet</strong>
           <p>Select cells or a lineage, then choose a color—or import a CeXplore group-list JSON.</p>
         </div>
+      ) : !filteredGroups.length ? (
+        <div className="groups-empty groups-filter-empty">
+          <strong>No matching groups</strong>
+          <p>Try another group-name keyword.</p>
+        </div>
       ) : (
         <div className="group-list">
-          {groups.map((group) => {
+          {filteredGroups.map((group) => {
             const isExpanded = expanded.has(group.id)
             const markedCells = group.cellIds.filter((cellId) => selection.has(cellId))
             const canAddSelection = selection.size > 0 && [...selection].some((cellId) => !group.cellIds.includes(cellId))

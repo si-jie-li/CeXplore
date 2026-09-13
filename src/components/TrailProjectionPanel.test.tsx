@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { buildDatasetFromRows } from '../data/frameIndex'
 import type { ColumnMapping } from '../data/types'
@@ -29,7 +29,7 @@ beforeEach(() => {
 })
 
 describe('projected group motion drawer', () => {
-  it('uses group colors, axis line styles, and independent group/axis filters', () => {
+  it('uses group colors, axis line styles, and independent group/axis filters', async () => {
     const { container } = render(<TrailProjectionPanel />)
     fireEvent.click(screen.getByRole('button', { name: /Projected motion/ }))
 
@@ -41,6 +41,11 @@ describe('projected group motion drawer', () => {
       null, '1 6', '14 7', null, '1 6', '14 7',
     ])
 
+    const orangeGroup = useExplorerStore.getState().groups[1]
+    act(() => useExplorerStore.getState().updateGroup(orangeGroup.id, { visible: false }))
+    await waitFor(() => expect(curves()).toHaveLength(3))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'P1' }))
+    expect(curves()).toHaveLength(6)
     fireEvent.click(screen.getByRole('checkbox', { name: 'P1' }))
     expect(curves()).toHaveLength(3)
     fireEvent.click(screen.getByRole('checkbox', { name: /LR · dotted/ }))
@@ -70,5 +75,22 @@ describe('projected group motion drawer', () => {
     expect(container.querySelectorAll('.projection-division-connector')).toHaveLength(6)
     fireEvent.mouseMove(container.querySelector('.projection-hit-line')!, { clientX: 300, clientY: 120 })
     expect(container.querySelector('.projection-tooltip')).toHaveTextContent(/AB/)
+  })
+
+  it('uses visible groups as the base and clears hidden extras after visibility changes', async () => {
+    const [blueGroup, orangeGroup] = useExplorerStore.getState().groups
+    useExplorerStore.getState().updateGroup(orangeGroup.id, { visible: false })
+    const { container } = render(<TrailProjectionPanel />)
+    const view = within(container)
+    fireEvent.click(view.getByRole('button', { name: /Projected motion/ }))
+
+    expect(container.querySelectorAll('.projection-series-line')).toHaveLength(3)
+    expect(view.getByRole('checkbox', { name: 'AB' })).toBeDisabled()
+    fireEvent.click(view.getByRole('checkbox', { name: 'P1' }))
+    expect(container.querySelectorAll('.projection-series-line')).toHaveLength(6)
+
+    act(() => useExplorerStore.getState().updateGroup(blueGroup.id, { visible: false }))
+    await waitFor(() => expect(view.getByRole('checkbox', { name: 'P1' })).not.toBeChecked())
+    expect(container.querySelectorAll('.projection-series-line')).toHaveLength(0)
   })
 })

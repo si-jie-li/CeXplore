@@ -9,7 +9,7 @@ import {
   type ProjectionAxis,
   type ProjectionPoint,
 } from '../state/trailProjection'
-import { resolveTrailStepRange } from '../state/trails'
+import { resolveTrailGroups, resolveTrailStepRange } from '../state/trails'
 
 const AXES: Array<{ axis: ProjectionAxis; dash?: string; styleName: string }> = [
   { axis: 'AP', styleName: 'solid' },
@@ -79,7 +79,7 @@ export function TrailProjectionPanel() {
   const [axisMode, setAxisMode] = useState<'multiple' | 'single'>('multiple')
   const [visibleAxes, setVisibleAxes] = useState<Set<ProjectionAxis>>(new Set(['AP', 'LR', 'VD']))
   const [singleAxis, setSingleAxis] = useState<ProjectionAxis>('AP')
-  const [groupSelection, setGroupSelection] = useState<'all' | string[]>('all')
+  const [extraGroupSelection, setExtraGroupSelection] = useState<'all' | string[]>([])
   const [showIndividualCells, setShowIndividualCells] = useState(false)
   const [zoom, setZoom] = useState<ChartDomain | null>(null)
   const [dragSelection, setDragSelection] = useState<DragSelection | null>(null)
@@ -97,9 +97,12 @@ export function TrailProjectionPanel() {
     dataset.frameValues, currentStep, settings.trailRangeMode,
     settings.trailRangeStart, settings.trailRangeEnd, settings.trailPreviousFrames,
   )
-  const selectedGroups = useMemo(() => groupSelection === 'all'
-    ? groups
-    : groups.filter((group) => groupSelection.includes(group.id)), [groupSelection, groups])
+  const selectedGroups = useMemo(
+    () => resolveTrailGroups(groups, extraGroupSelection),
+    [extraGroupSelection, groups],
+  )
+  const visibleGroupKey = groups.filter((group) => group.visible).map((group) => group.id).sort().join('|')
+  useEffect(() => setExtraGroupSelection([]), [visibleGroupKey])
   const frames = useMemo(() => range
     ? dataset.frameValues
         .filter((step) => step >= range.start && step <= range.end)
@@ -190,8 +193,11 @@ export function TrailProjectionPanel() {
     return `${index ? 'L' : 'M'} ${x.toFixed(2)} ${y.toFixed(2)}`
   }).join(' ')
   const toggleGroup = (groupId: string) => {
-    const ids = groupSelection === 'all' ? groups.map((group) => group.id) : groupSelection
-    setGroupSelection(ids.includes(groupId) ? ids.filter((id) => id !== groupId) : [...ids, groupId])
+    if (groups.find((group) => group.id === groupId)?.visible) return
+    const ids = extraGroupSelection === 'all'
+      ? groups.filter((group) => !group.visible).map((group) => group.id)
+      : extraGroupSelection
+    setExtraGroupSelection(ids.includes(groupId) ? ids.filter((id) => id !== groupId) : [...ids, groupId])
   }
   const showTooltip = (event: ReactMouseEvent<SVGPathElement>, item: PlottedSeries, axis: ProjectionAxis) => {
     if (dragSelection || !item.points.length) return
@@ -281,14 +287,19 @@ export function TrailProjectionPanel() {
               ? 'Each curve follows one cell, averaged across displayed embryos; lineage divisions are connected as forks.'
               : 'Each curve follows the mean position of all currently observed cells in one group.'}</p>
             <fieldset>
-              <legend>Groups</legend>
+              <legend>Groups · visible included automatically</legend>
               <div className="projection-picker-actions">
-                <button onClick={() => setGroupSelection('all')}>All</button>
-                <button onClick={() => setGroupSelection([])}>None</button>
+                <button onClick={() => setExtraGroupSelection('all')}>All extras</button>
+                <button onClick={() => setExtraGroupSelection([])}>Clear extras</button>
               </div>
               {groups.map((group) => (
-                <label key={group.id}>
-                  <input type="checkbox" checked={groupSelection === 'all' || groupSelection.includes(group.id)} onChange={() => toggleGroup(group.id)} />
+                <label key={group.id} title={group.visible ? 'Included because this group is visible' : 'Add this hidden group to Projected motion'}>
+                  <input
+                    type="checkbox"
+                    checked={group.visible || extraGroupSelection === 'all' || extraGroupSelection.includes(group.id)}
+                    disabled={group.visible}
+                    onChange={() => toggleGroup(group.id)}
+                  />
                   <i style={{ background: group.color }} />
                   <span>{group.name}</span>
                 </label>

@@ -266,7 +266,7 @@ Frame 模式中，`mapping.frameIntervalSeconds` 是大于 0 的用户输入，�
 
 Analysis 的 UI 状态是一个刻意的例外：drawer open、target、metrics、k、null sample、progress、result 和 stale fingerprint 都保存在 `AnalysisPanel` 本地 React state，不进入 Zustand，也不进入 Session。它只从 store 读取 dataset、lineage、groups、selection、active embryos 和 current frame，并用 `setCurrentFrameIndex` 把图表点击同步回全局时间轴。
 
-Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Session 导出：`trailGroupIds` 为 `'all' | string[]`，默认 `'all'`；`trailRangeMode` 为 `'all' | 'previous' | 'custom'`，默认 `'all'`，previous 数量在 `trailPreviousFrames`（默认 10），custom 数值在 `trailRangeStart/trailRangeEnd`。当存在 saved groups 时，trail targets 只来自 group filter，与 live `selection` 解耦；所有 saved groups 被删除后才回退到 live selection。
+Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Session 导出：`trailGroupIds` 为 `'all' | string[]`，但其语义是“在 visible groups 之外额外加入的 hidden group IDs”，默认 `[]`；`'all'` 表示加入所有 hidden groups。`trailRangeMode` 为 `'all' | 'previous' | 'custom'`，默认 `'all'`，previous 数量在 `trailPreviousFrames`（默认 10），custom 数值在 `trailRangeStart/trailRangeEnd`。当存在 saved groups 时，trail targets 是 `visible groups ∪ explicit extras`，与 live `selection` 解耦；所有 saved groups 被删除后才回退到 live selection。
 
 典型交互：
 
@@ -282,6 +282,8 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 `toggleCells` 的批量语义是：如果传入 IDs 已全部选中则全部移除，否则全部添加，它只用于 Cell 级选择。`selectLineage` 的语义不同：lineage branch、Shift-click 和 CellList 的 lineage 按钮始终把 represented descendants union 到已有 selection，从不清空或 toggle 旧选择。已有 selection 时 `selectionMeta` 转为 manual，避免后续保存时误把混合选择标成单一 lineage。
 
 `GroupPanel` 展开成员不再保存局部 marked state；每个 checkbox 直接读 `selection.has(cellId)` 并调用 `toggleCell`。因此树上选中的 lineage 会同时勾选 Cells list 和相应 group members，`Remove selected` 用 `group.cellIds ∩ selection` 删除，可从任何视图建立待删集合。
+
+`GroupPanel` 还以 case-insensitive substring 过滤 group name；搜索结果计数为 `matched/total`。All/None 只把当前过滤后展示的 group 批量设为 visible/hidden，未命中的 group 不变。`setGroupsVisible` 使这次批量更新成为单个 Zustand transaction。
 
 换帧不修改 `cameraCommand`。Reset/Focus/Angle 才递增 `nonce`。Angle 使用 `cameraOffsetFromAngles` 设置 azimuth/elevation，并由 `cameraUpFromAngles` 将 up-vector 绕当前视线旋转 roll：LR/Y 为基准 up，azimuth 0° 从 +VD 看、90° 从 +AP 看，elevation 限制为 ±89.9°；camera-target distance 保持，因此三个姿态角都不改变 zoom。±AP/±LR/±VD presets 使用 roll=0。
 
@@ -305,7 +307,7 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 - `Isolate`：有 group 时只显示 visible groups；只有整个 `groups` 为空时，selection 才可单独显示。
 - `Color by embryo` 只在 3D Overlay 中覆盖 cell/group 颜色；树和列表仍显示 cell/group 颜色，选中 nucleus 仍通过尺寸放大表达。
 
-同色是 group identity 的用户级规则：`applyColor` 给两次不同 selection 分配相同颜色时会 union 到已有组；`setGroupColor` 撞到已有颜色时也会合并，并把 `trailGroupIds` 中被移除的 group id 重定向到保留组。`addCellsToGroup` 提供显式加入；`removeCellsFromGroup` 删除成员，空组自动删除。lineage group 被手工删减后必须转成 manual/root undefined，否则 analysis 的动态 lineage membership 会把被删 descendants 再补回来。
+同色是 group identity 的用户级规则：`applyColor` 给两次不同 selection 分配相同颜色时会 union 到已有组；`setGroupColor` 撞到已有颜色时也会合并，并把 `trailGroupIds` 中被移除的 group id 重定向到保留组。`addCellsToGroup` 提供显式加入；`removeCellsFromGroup` 删除成员，空组自动删除。lineage group 被手工删减后必须转成 manual/root undefined，否则 analysis 的动态 lineage membership 会把被删 descendants 再补回来。任何 group mutation 如果改变了 visible group ID 集合，会将 Trails 的 extra IDs 重置为 `[]`；纯改名、改成员不会误触发重置。
 
 颜色回收使用 `reconcileAffectedCellColors`：只重算受 group 改色、删成员或删除影响的 cells，因此关闭 “Save colored selection as a group” 得到的无关 standalone colors 不再被整表覆盖。重叠异色 groups 仍按数组中最后一个 visible group 决定显示色。
 
@@ -328,9 +330,9 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 
 `src/state/trails.ts` 将轨迹目标规则和 React 分离：
 
-- 有 saved groups：默认合并所有 group 的 explicit `cellIds`；DisplayControls 可 All/None 或逐 group 勾选。清空 live selection、点 3D 空白区都不会使轨迹消失。
+- 有 saved groups：默认合并当前 visible groups 的 explicit `cellIds`；DisplayControls 可逐个勾选 hidden groups 作为 extras，也可 All extras/Clear extras。清空 live selection、点 3D 空白区都不会使轨迹消失。
 - 无 saved groups：为保留旧的即时探索路径，使用 live selection。
-- group 的 `visible` 只控制 cell/nucleus 可见性，trail group picker 是独立选择；因此 hidden group 仍可显式选为 trail target。
+- group 的 `visible` 同时是 Trails 和 Projected motion 的基础选择；因此 visible checkbox 在两个 picker 中为锁定勾选，hidden group 仍可手工加为 extra。Cell groups 中 visible ID 集合一变，两处 extras 都清空，用户需要基于新 visible 集合重新勾选。
 - 轨迹颜色取最后一个包含该 cell 的已选 trail group 颜色；Overlay + `Color by embryo` 时 embryo 颜色优先。
 - 每个轨迹点使用 RGBA vertex color：`trailProgressAtStep` 把当前 trail window 归一化为 0–1；`trailVertexColor` 让 alpha 从 0.04 非线性增加到 1，同时从高明度/低饱和过渡到较深/高饱和，因此时间方向比单独改变透明度更明显。Drei `Line` 在 GPU 内插值这些通道，不增加逐 segment React object。
 - `settings.trailWidth` 是持久化 display setting，DisplayControls 暴露 0.5–4 px slider，默认 1.1 px。宽度在每条 line 内保持一致；这是有意的性能取舍，避免在数百个 cells × 多 embryo 时为了逐段宽度变化成倍增加 draw calls。
@@ -340,7 +342,7 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 
 `TrailProjectionPanel` 和 Group analysis 是左侧中部上下排列的 36 px 纯图标入口（hover `title` 提示名称）。展开态都限定为 `grid-column: 1; grid-row: 1 / -1`，只覆盖 workspace 左列的 lineage/list 两行并在内部纵向滚动，不遮挡右侧 Spatial view。Projection z-index 15、Analysis z-index 14，都高于左侧基础 panel；关闭态不再占用左下颜色选择区域。
 
-`trailProjection.ts` 默认对每个 selected group/step 求该帧所有显式 group cell observations 的 raw AP/LR/VD centroid，并直接输出三个轴坐标，不再以首个位置归零，也不插入 range-start 人工零点。Individual checkbox 打开后，组件对每个 explicit cell ID 单独计算；如果当前 frame observations 来自多个 displayed embryos，则同名 cell 先跨 embryo 求 mean。组件从 lineage model 找组内 parent/child，把 parent series 末点直连每个 daughter series 首点，因此两个 daughters 显示为 fork。
+`trailProjection.ts` 默认对每个 selected group/step 求该帧所有显式 group cell observations 的 raw AP/LR/VD centroid，并直接输出三个轴坐标，不再以首个位置归零，也不插入 range-start 人工零点。Projection 的 group local state 只保存 hidden extras，实际 selected groups 复用 `resolveTrailGroups(groups, extras)` 得到 visible union extras；`visibleGroupKey` 变化的 effect 会清空局部 extras。Individual checkbox 打开后，组件对每个 explicit cell ID 单独计算；如果当前 frame observations 来自多个 displayed embryos，则同名 cell 先跨 embryo 求 mean。组件从 lineage model 找组内 parent/child，把 parent series 末点直连每个 daughter series 首点，因此两个 daughters 显示为 fork。
 
 Multiple axis mode 中，每个 group×cell×axis 一条 path：stroke 取 group color；AP 为 solid；LR 使用 `stroke-dasharray="1 6"` 加 round linecap 形成圆点；VD 使用 `14 7` long dash。Single mode 用 radio 选择 AP/LR/VD，所有 series 和 fork connectors 强制 solid。x 以 range start 为 0；Time 和带 interval 的 Frame 显示 minutes，无 interval 的 Frame 显示 frame。
 
@@ -499,13 +501,13 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 
 在 Node 22.14.0 / npm 10.9.2 下：
 
-- `npm test`：23 个 test files、64 个 tests 全部通过；
+- `npm test`：24 个 test files、67 个 tests 全部通过；
 - `npm run build`：TypeScript strict build 和 Vite production build 通过；
 - production build 包含独立 `meanPosition.worker`（约 1.4 KB）和 `analysis.worker`（约 6.8 KB）chunks；
 - canonical 表：1,341 unique IDs、1 root、0 missing parent refs、0 cycles；
 - build 唯一告警仍是主 JS 超过 Vite 默认 500 KB chunk 提示；XLSX、Mean worker 和 analysis worker 已分别拆分。
 
-新增测试覆盖：超过 10 万行的多 embryo 累积不再触发 spread argument/call-stack 溢出、可关闭 import warning、默认 185/All import、union-time frame sampling、hold-last、短暂 cell coverage、All-import Mean exact/hold 缓存、tree/list/group-member checkbox 双向同步、direct axis positions、无人工零点、single-axis solid、zoom、individual tooltip/forks 和 projection CSV，以及 lineage additive selection、同色 group 合并、显式成员增删、可读 group-list round trip/校验/导入、完整 camera azimuth/elevation/roll、previous-N trail range、lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、analysis CSV schema/escaping、trail 时间渐变、Overlay/Mean mother→daughter connections、unique-time 升序帧索引、frame interval minute 纵轴，以及 partial-stage 起点对齐。原有 mapping、analysis、3D 周边交互和 timeline 测试继续通过。
+新增测试覆盖：visible-base + hidden-extra Trail/Projection 解析、visible 变更清空 extras、group-name 过滤及对当前结果批量 All/None，超过 10 万行的多 embryo 累积不再触发 spread argument/call-stack 溢出、可关闭 import warning、默认 185/All import、union-time frame sampling、hold-last、短暂 cell coverage、All-import Mean exact/hold 缓存、tree/list/group-member checkbox 双向同步、direct axis positions、无人工零点、single-axis solid、zoom、individual tooltip/forks 和 projection CSV，以及 lineage additive selection、同色 group 合并、显式成员增删、可读 group-list round trip/校验/导入、完整 camera azimuth/elevation/roll、previous-N trail range、lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、analysis CSV schema/escaping、trail 时间渐变、Overlay/Mean mother→daughter connections、unique-time 升序帧索引、frame interval minute 纵轴，以及 partial-stage 起点对齐。原有 mapping、analysis、3D 周边交互和 timeline 测试继续通过。
 
 此前在引入 frame sampling 前，真实 326 MB `01_wt_truncated_axis_aligned.tsv` 曾以 Time/All 等价路径跑通：`ctr_emb1` 保留 20,926/20,926 个有效 observations，识别 185 个升序 time frames（range 1–185）、722 cells、0 warnings；lineage y 轴从第一个 observed value `1` 开始。当前默认 Sample 185 路径已有 synthetic integration test，但尚未对这份 326 MB 文件重新做真实浏览器性能验收。
 
@@ -535,7 +537,7 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 | 新 overlay/consensus 规则 | `src/data/embryoView.ts` | trails、CellInfo、与 analysis 独立性 |
 | 谱系解析/自定义 parent | `src/lineage/lineageResolver.ts` | cycle/conflict、dynamic membership |
 | 树的时间和布局 | `src/lineage/lineageTree.ts` | active embryo vs global timing |
-| 新 selection/group 行为 | `src/state/explorerStore.ts` | `state/trails.ts`、Analysis target source/root 语义 |
+| 新 selection/group 行为 | `src/state/explorerStore.ts` | `GroupPanel.tsx`、`state/trails.ts`、Trail/Projection extras reset、Analysis target source/root 语义 |
 | 新显示模式 | `cellAppearance.ts` | 3D opacity 分桶、tree/list CSS |
 | 3D geometry/interaction | `src/components/Embryo3D.tsx` | `embryoView.ts` division connectors、InstancedMesh、Mean Worker cache |
 | Overlay 层级/drawer 占位 | `src/styles.css` | Drei `Html.zIndexRange`、stacking context、modal |
@@ -561,6 +563,6 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 10. dataset/group/embryo/parameter 改变时，旧结果应清除、标 stale 还是可复用？
 11. Worker 是否可取消，payload/结果是否值得 cache 或使用 transferable/增量索引？
 12. 是否会破坏 group overlap、hidden group、standalone color 或播放相机稳定性？
-13. Trails 应跟 saved group filter 还是 live selection？是否需要跨 division cell ID？目前有 groups 时固定为前者，且只连接 target 内的 mother/child。
+13. Trails 的 visible-groups + hidden-extras 规则是否还需要其他 preset？是否需要跨 division cell ID？目前有 groups 时不读 live selection，且只连接 target 内的 mother/child。
 14. 新增 cell 是否只在短时间存在？修改 sampling 后必须验证 requested frame target 之外的 coverage frame 规则。
 15. 至少运行 `npm test` 和 `npm run build`；涉及 WebGL、Worker 或 drawer 布局时再做真实浏览器验收。
