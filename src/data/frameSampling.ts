@@ -88,7 +88,7 @@ export function sampleRowsByFrame(rows: RawMappedRow[], requestedCount: number):
       }
       const source = frames.get(targetStep) ?? (previousIndex >= 0 ? frames.get(embryoSteps[previousIndex]) : undefined)
       if (!source) continue
-      sampled.push(...source.map((row) => ({ ...row, temporal: targetStep })))
+      for (const row of source) sampled.push({ ...row, temporal: targetStep })
     }
   }
   return {

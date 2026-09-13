@@ -143,6 +143,10 @@ main.tsx
 
 多文件强制 `playback` 类型一致，即都为 Time 或都为 Frame；Frame 还强制 `frameIntervalSeconds` 一致。代码不验证列名、Time 单位、采样协议或数值范围是否真的可比较。
 
+同一文件多选 embryo 时，保留行会用显式循环追加并写入 namespaced embryo ID，不能使用 `target.push(...rows)`。后者会把每行变成一个函数参数，在约 10–12 万行时便可触发浏览器 `Maximum call stack size exceeded`；给定数据每胚胎约 20,926 行，所以旧实现恰好表现为约 5 个胚胎能加载、6 个开始失败。现实现没有这个人为行数上限；解析数组的重复引用会在合并后立即释放，Sample 输入的原始累积行也会在生成 sampled rows 后、构建 dataset 前释放。两个长同步阶段前先让浏览器绘制 progress label。
+
+导入 modal 内会直接显示 loader 异常。若当前文件已累积后才在抽样/建索引阶段失败，整个未完成 import 会被清除，避免再点 Load 时把同一 source 重复追加。这只移除了 spread/call-stack 硬上限，总数据量仍受浏览器可用 RAM 和 WebGL 资源限制。
+
 ### 4.2 CSV/TSV 与 XLSX 路径不同
 
 - Delimited 文件：Papa Parse `worker: true` + `step`，逐行扫描；不匹配的 embryo 立即丢弃。但所有保留行仍会累积在内存中，随后再统一建 dataset。
@@ -495,13 +499,13 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 
 在 Node 22.14.0 / npm 10.9.2 下：
 
-- `npm test`：23 个 test files、63 个 tests 全部通过；
+- `npm test`：23 个 test files、64 个 tests 全部通过；
 - `npm run build`：TypeScript strict build 和 Vite production build 通过；
 - production build 包含独立 `meanPosition.worker`（约 1.4 KB）和 `analysis.worker`（约 6.8 KB）chunks；
 - canonical 表：1,341 unique IDs、1 root、0 missing parent refs、0 cycles；
 - build 唯一告警仍是主 JS 超过 Vite 默认 500 KB chunk 提示；XLSX、Mean worker 和 analysis worker 已分别拆分。
 
-新增测试覆盖：可关闭 import warning、默认 185/All import、union-time frame sampling、hold-last、短暂 cell coverage、All-import Mean exact/hold 缓存、tree/list/group-member checkbox 双向同步、direct axis positions、无人工零点、single-axis solid、zoom、individual tooltip/forks 和 projection CSV，以及 lineage additive selection、同色 group 合并、显式成员增删、可读 group-list round trip/校验/导入、完整 camera azimuth/elevation/roll、previous-N trail range、lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、analysis CSV schema/escaping、trail 时间渐变、Overlay/Mean mother→daughter connections、unique-time 升序帧索引、frame interval minute 纵轴，以及 partial-stage 起点对齐。原有 mapping、analysis、3D 周边交互和 timeline 测试继续通过。
+新增测试覆盖：超过 10 万行的多 embryo 累积不再触发 spread argument/call-stack 溢出、可关闭 import warning、默认 185/All import、union-time frame sampling、hold-last、短暂 cell coverage、All-import Mean exact/hold 缓存、tree/list/group-member checkbox 双向同步、direct axis positions、无人工零点、single-axis solid、zoom、individual tooltip/forks 和 projection CSV，以及 lineage additive selection、同色 group 合并、显式成员增删、可读 group-list round trip/校验/导入、完整 camera azimuth/elevation/roll、previous-N trail range、lineage-aware dynamic membership、synthetic purity/LCC/normalized-Rg/shape、per-embryo frame isolation、deterministic null、analysis CSV schema/escaping、trail 时间渐变、Overlay/Mean mother→daughter connections、unique-time 升序帧索引、frame interval minute 纵轴，以及 partial-stage 起点对齐。原有 mapping、analysis、3D 周边交互和 timeline 测试继续通过。
 
 此前在引入 frame sampling 前，真实 326 MB `01_wt_truncated_axis_aligned.tsv` 曾以 Time/All 等价路径跑通：`ctr_emb1` 保留 20,926/20,926 个有效 observations，识别 185 个升序 time frames（range 1–185）、722 cells、0 warnings；lineage y 轴从第一个 observed value `1` 开始。当前默认 Sample 185 路径已有 synthetic integration test，但尚未对这份 326 MB 文件重新做真实浏览器性能验收。
 

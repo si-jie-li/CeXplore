@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useExplorerStore } from '../state/explorerStore'
-import { FileLoader } from './FileLoader'
+import { appendNamespacedRows, FileLoader } from './FileLoader'
 
 const first = `cell_name,frame,AP,LR,VD
 AB,1,0,0,0
@@ -13,6 +13,18 @@ AB,1,2,0,0
 beforeEach(() => useExplorerStore.getState().clearDataset())
 
 describe('multi-file import flow', () => {
+  it('accumulates more than the browser spread-argument limit without overflowing the call stack', () => {
+    const rows = Array.from({ length: 120_000 }, (): Parameters<typeof appendNamespacedRows>[1][number] => ({
+      cellId: 'AB', embryoId: 'emb_1', temporal: 1, x: 0, y: 0, z: 0,
+    }))
+    const accumulated: typeof rows = []
+    expect(() => appendNamespacedRows(
+      accumulated, rows, new Map([['emb_1', 'source-1::emb_1']]), 'emb_1',
+    )).not.toThrow()
+    expect(accumulated).toHaveLength(120_000)
+    expect(accumulated[119_999].embryoId).toBe('source-1::emb_1')
+  })
+
   it('maps files sequentially and imports each no-ID file as a separate embryo', async () => {
     const { container } = render(<FileLoader />)
     const input = container.querySelector('input[type=file]') as HTMLInputElement

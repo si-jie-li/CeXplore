@@ -20,6 +20,21 @@ interface FileLoaderProps {
 }
 
 const fileEmbryoName = (file: File) => file.name.replace(/\.[^.]+$/, '') || file.name
+const yieldToBrowser = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
+
+export function appendNamespacedRows(
+  target: RawMappedRow[],
+  rows: RawMappedRow[],
+  idsBySourceValue: Map<string, string>,
+  defaultSourceEmbryoId: string,
+) {
+  // Do not use target.push(...rows): each spread item becomes a function
+  // argument, and browsers throw above roughly 100k selected observations.
+  for (const row of rows) {
+    row.embryoId = idsBySourceValue.get(row.embryoId || defaultSourceEmbryoId)
+    target.push(row)
+  }
+}
 
 export function FileLoader({ compact = false }: FileLoaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -94,6 +109,7 @@ export function FileLoader({ compact = false }: FileLoaderProps) {
 
   const confirm = async (mapping: ColumnMapping) => {
     if (!file || !inspection) return
+    const sourceCountBeforeAttempt = accumulatedSources.current.length
     setBusy(true)
     setError('')
     setProgress(`Reading ${file.name}…`)
@@ -131,10 +147,10 @@ export function FileLoader({ compact = false }: FileLoaderProps) {
       }))
       const idsBySourceValue = new Map(descriptors.map((descriptor) => [descriptor.sourceEmbryoId, descriptor.id]))
       const defaultSourceEmbryoId = sourceEmbryoIds[0]
-      accumulatedRows.current.push(...rows.map((row) => ({
-        ...row,
-        embryoId: idsBySourceValue.get(row.embryoId || defaultSourceEmbryoId),
-      })))
+      appendNamespacedRows(accumulatedRows.current, rows, idsBySourceValue, defaultSourceEmbryoId)
+      // The parser array is no longer needed; releasing its references before
+      // sampling avoids retaining a second large list of the same row objects.
+      rows.length = 0
       accumulatedEmbryos.current.push(...descriptors)
       accumulatedSources.current.push({
         id: sourceId,
@@ -161,10 +177,16 @@ export function FileLoader({ compact = false }: FileLoaderProps) {
 
       const sources = accumulatedSources.current
       const embryos = accumulatedEmbryos.current
+      setProgress('Preparing shared playback frames…')
+      await yieldToBrowser()
       const sampling = sources[0].mapping.frameSampleCount === undefined
         ? undefined
         : sampleRowsByFrame(accumulatedRows.current, sources[0].mapping.frameSampleCount)
-      const dataset = buildDatasetFromRows(sampling?.rows ?? accumulatedRows.current, {
+      const rowsForDataset = sampling?.rows ?? accumulatedRows.current
+      if (sampling) accumulatedRows.current = []
+      setProgress('Building spatial and trajectory indexes…')
+      await yieldToBrowser()
+      const dataset = buildDatasetFromRows(rowsForDataset, {
         name: files.length === 1 ? file.name : `${files.length} files`,
         sourceSize: files.reduce((sum, item) => sum + item.size, 0),
         mapping: sources[0].mapping,
@@ -180,6 +202,10 @@ export function FileLoader({ compact = false }: FileLoaderProps) {
       setDataset(dataset, resolveLineage(dataset.cells, dataset.parentOverrides))
       resetImport()
     } catch (reason) {
+      // Once this file has been appended, a later sampling/indexing failure
+      // leaves the accumulated import unsuitable for a second Load click.
+      // Clear it instead of silently duplicating the same source on retry.
+      if (accumulatedSources.current.length > sourceCountBeforeAttempt) resetImport()
       setError(reason instanceof Error ? reason.message : 'The dataset could not be loaded.')
     } finally {
       setBusy(false)
@@ -226,6 +252,7 @@ export function FileLoader({ compact = false }: FileLoaderProps) {
           initialFrameSampleCount={accumulatedSources.current.length
             ? accumulatedSources.current[0].mapping.frameSampleCount ?? 'all'
             : DEFAULT_FRAME_SAMPLE_COUNT}
+          errorMessage={error}
           onDiscoverEmbryos={discoverEmbryos}
           onCancel={() => { resetImport(); setError('') }}
           onConfirm={(mapping) => void confirm(mapping)}

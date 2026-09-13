@@ -8,6 +8,7 @@ interface ColumnMapperProps {
   inspection: SourceInspection
   busy: boolean
   progressLabel?: string
+  errorMessage?: string
   onCancel: () => void
   onConfirm: (mapping: ColumnMapping) => void
   onDiscoverEmbryos: (column: string, sheet: string | undefined, onProgress: (rows: number) => void) => Promise<string[]>
@@ -71,6 +72,7 @@ export function ColumnMapper({
   inspection,
   busy,
   progressLabel,
+  errorMessage,
   onCancel,
   onConfirm,
   onDiscoverEmbryos,
@@ -266,6 +268,7 @@ export function ColumnMapper({
           <p className="mapping-note">
             <AlertCircle size={15} /> Large files are streamed; only checked embryos are retained in memory.
           </p>
+          {errorMessage && <div className="form-errors" role="alert"><div>{errorMessage}</div></div>}
           {submitted && errors.length > 0 && <div className="form-errors">{errors.map((error) => <div key={error}>{error}</div>)}</div>}
         </div>
 
