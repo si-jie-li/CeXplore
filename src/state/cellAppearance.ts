@@ -7,6 +7,7 @@ export interface CellAppearanceInput {
   cellId: string
   selection: Set<string>
   cellColors: Record<string, string>
+  cellVisibility?: Record<string, boolean>
   groups: CellGroup[]
   displayMode: DisplayMode
   unselectedOpacity: number
@@ -29,14 +30,22 @@ export function getCellAppearance(input: CellAppearanceInput): CellAppearance {
   const latestGroup = visibleMemberships.at(-1)
   const hasAssignedColor = Boolean(input.cellColors[input.cellId])
   const color = latestGroup?.color ?? input.cellColors[input.cellId] ?? (selected ? SELECTION_COLOR : DEFAULT_CELL_COLOR)
+  const explicitVisibility = input.cellVisibility?.[input.cellId]
+  const highlighted = inVisibleGroup || selected || hasAssignedColor
 
-  if (hiddenByGroup) return { color, opacity: 0, visible: false, selected, inVisibleGroup }
+  if (explicitVisibility === false) return { color, opacity: 0, visible: false, selected, inVisibleGroup }
+  if (explicitVisibility !== true && hiddenByGroup) return { color, opacity: 0, visible: false, selected, inVisibleGroup }
   if (input.displayMode === 'isolate') {
-    const visible = inVisibleGroup || (input.groups.length === 0 && selected)
-    return { color, opacity: visible ? 1 : 0, visible, selected, inVisibleGroup }
+    const visible = explicitVisibility === true || inVisibleGroup || (input.groups.length === 0 && selected)
+    return {
+      color,
+      opacity: visible ? (highlighted ? 1 : input.unselectedOpacity) : 0,
+      visible,
+      selected,
+      inVisibleGroup,
+    }
   }
   if (input.displayMode === 'highlight') {
-    const highlighted = inVisibleGroup || selected || hasAssignedColor
     return {
       color,
       opacity: highlighted ? 1 : input.unselectedOpacity,
@@ -45,5 +54,11 @@ export function getCellAppearance(input: CellAppearanceInput): CellAppearance {
       inVisibleGroup,
     }
   }
-  return { color, opacity: selected || inVisibleGroup || Boolean(input.cellColors[input.cellId]) ? 1 : 0.62, visible: true, selected, inVisibleGroup }
+  return {
+    color,
+    opacity: highlighted ? 1 : input.unselectedOpacity,
+    visible: true,
+    selected,
+    inVisibleGroup,
+  }
 }

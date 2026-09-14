@@ -95,13 +95,13 @@ export function GroupPanel() {
             <button
               type="button"
               onClick={() => setGroupsVisible(filteredGroups.map((group) => group.id), true)}
-              disabled={!filteredGroups.some((group) => !group.visible)}
+              disabled={!filteredGroups.length}
               title="Make all displayed groups visible"
             ><Eye size={12} /> All</button>
             <button
               type="button"
               onClick={() => setGroupsVisible(filteredGroups.map((group) => group.id), false)}
-              disabled={!filteredGroups.some((group) => group.visible)}
+              disabled={!filteredGroups.length}
               title="Make all displayed groups invisible"
             ><EyeOff size={12} /> None</button>
           </div>

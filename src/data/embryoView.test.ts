@@ -96,5 +96,11 @@ describe('multi-embryo views', () => {
     expect(mean).toHaveLength(2)
     expect(mean[0].points.map((point) => point.x)).toEqual([1, 2])
     expect(mean.map((connection) => connection.childCellId)).toEqual(['ABa', 'ABp'])
+
+    const daughterOnly = getDivisionConnections(
+      divisionDataset, new Set(['ABa']), parents, new Set(['e1', 'e2']), 'overlay', -Infinity, 2,
+    )
+    expect(daughterOnly.map((connection) => `${connection.embryoId}:${connection.parentCellId}>${connection.childCellId}`))
+      .toEqual(['e1:AB>ABa', 'e2:AB>ABa'])
   })
 })

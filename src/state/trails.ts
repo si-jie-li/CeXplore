@@ -68,9 +68,16 @@ export function resolveTrailCellIds<T extends TrailGroupLike>(
   groups: T[],
   groupSelection: TrailGroupSelection,
   fallbackSelection: Iterable<string>,
+  cellTrailVisibility: Record<string, boolean> = {},
 ) {
-  if (!groups.length) return new Set(fallbackSelection)
-  return new Set(resolveTrailGroups(groups, groupSelection).flatMap((group) => group.cellIds))
+  const cellIds = new Set(groups.length
+    ? resolveTrailGroups(groups, groupSelection).flatMap((group) => group.cellIds)
+    : fallbackSelection)
+  for (const [cellId, visible] of Object.entries(cellTrailVisibility)) {
+    if (visible) cellIds.add(cellId)
+    else cellIds.delete(cellId)
+  }
+  return cellIds
 }
 
 export function trailOpacityAtStep(step: number, earliestStep: number, currentStep: number) {

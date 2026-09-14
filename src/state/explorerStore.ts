@@ -60,6 +60,8 @@ interface ExplorerState {
   selection: Set<string>
   selectionMeta: SelectionMeta
   cellColors: Record<string, string>
+  cellVisibility: Record<string, boolean>
+  cellTrailVisibility: Record<string, boolean>
   groups: CellGroup[]
   inspectedCellId?: string
   hoveredObservation?: Observation
@@ -83,6 +85,10 @@ interface ExplorerState {
   applyColor: (color: string, saveAsGroup?: boolean) => void
   setInspectedCell: (cellId?: string) => void
   setHoveredObservation: (observation?: Observation) => void
+  setCellVisible: (cellId: string, visible: boolean) => void
+  setAllCellsVisible: (visible: boolean) => void
+  setCellTrailVisible: (cellId: string, visible: boolean) => void
+  setAllCellTrailsVisible: (visible: boolean) => void
   updateGroup: (id: string, patch: Partial<Pick<CellGroup, 'name' | 'visible'>>) => void
   setGroupsVisible: (ids: Iterable<string>, visible: boolean) => void
   setGroupColor: (id: string, color: string) => void
@@ -108,6 +114,8 @@ export interface SessionConfiguration {
   datasetName: string
   mapping: EmbryoDataset['mapping']
   cellColors: Record<string, string>
+  cellVisibility?: Record<string, boolean>
+  cellTrailVisibility?: Record<string, boolean>
   groups: CellGroup[]
   settings: ExplorerSettings
   activeEmbryoIds?: string[]
@@ -164,6 +172,16 @@ const reconcileAffectedCellColors = (
 
 const normalizedColor = (color: string) => color.toLowerCase()
 
+const visibilityForCells = (
+  previous: Record<string, boolean>,
+  cellIds: Iterable<string>,
+  visible: boolean,
+) => {
+  const visibility = { ...previous }
+  for (const cellId of cellIds) visibility[cellId] = visible
+  return visibility
+}
+
 const visibleGroupKey = (groups: CellGroup[]) => groups
   .filter((group) => group.visible)
   .map((group) => group.id)
@@ -198,6 +216,8 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   selection: new Set(),
   selectionMeta: { kind: 'manual' },
   cellColors: {},
+  cellVisibility: {},
+  cellTrailVisibility: {},
   groups: [],
   settings: defaultSettings,
   meanPositionCacheStatus: 'idle',
@@ -214,6 +234,8 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       selection: new Set(),
       selectionMeta: { kind: 'manual' },
       cellColors: {},
+      cellVisibility: {},
+      cellTrailVisibility: {},
       groups: [],
       settings: { ...get().settings, trailGroupIds: [] },
       inspectedCellId: undefined,
@@ -232,6 +254,8 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       activeEmbryoIds: new Set(),
       selection: new Set(),
       cellColors: {},
+      cellVisibility: {},
+      cellTrailVisibility: {},
       groups: [],
       settings: { ...get().settings, trailGroupIds: [] },
       inspectedCellId: undefined,
@@ -341,11 +365,39 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   },
   setInspectedCell: (inspectedCellId) => set({ inspectedCellId }),
   setHoveredObservation: (hoveredObservation) => set({ hoveredObservation }),
+  setCellVisible: (cellId, visible) =>
+    set((state) => state.dataset?.cells.has(cellId)
+      ? { cellVisibility: visibilityForCells(state.cellVisibility, [cellId], visible) }
+      : state),
+  setAllCellsVisible: (visible) =>
+    set((state) => ({
+      cellVisibility: visibilityForCells({}, state.dataset?.cellIds ?? [], visible),
+    })),
+  setCellTrailVisible: (cellId, visible) =>
+    set((state) => state.dataset?.cells.has(cellId)
+      ? {
+          cellTrailVisibility: visibilityForCells(state.cellTrailVisibility, [cellId], visible),
+          settings: visible ? { ...state.settings, showTrajectories: true } : state.settings,
+        }
+      : state),
+  setAllCellTrailsVisible: (visible) =>
+    set((state) => ({
+      cellTrailVisibility: visibilityForCells({}, state.dataset?.cellIds ?? [], visible),
+      settings: visible ? { ...state.settings, showTrajectories: true } : state.settings,
+    })),
   updateGroup: (id, patch) =>
     set((state) => {
+      const target = state.groups.find((group) => group.id === id)
       const groups = state.groups.map((group) => (group.id === id ? { ...group, ...patch } : group))
+      const appliesVisibility = target && patch.visible !== undefined && patch.visible !== target.visible
       return {
         groups,
+        cellVisibility: appliesVisibility
+          ? visibilityForCells(state.cellVisibility, target.cellIds, patch.visible!)
+          : state.cellVisibility,
+        cellTrailVisibility: appliesVisibility
+          ? visibilityForCells(state.cellTrailVisibility, target.cellIds, patch.visible!)
+          : state.cellTrailVisibility,
         settings: resetTrailExtrasWhenVisibleGroupsChange(state.settings, state.groups, groups),
       }
     }),
@@ -354,8 +406,13 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       const targets = new Set(ids)
       if (!targets.size) return state
       const groups = state.groups.map((group) => targets.has(group.id) ? { ...group, visible } : group)
+      const affectedCells = state.groups
+        .filter((group) => targets.has(group.id))
+        .flatMap((group) => group.cellIds)
       return {
         groups,
+        cellVisibility: visibilityForCells(state.cellVisibility, affectedCells, visible),
+        cellTrailVisibility: visibilityForCells(state.cellTrailVisibility, affectedCells, visible),
         settings: resetTrailExtrasWhenVisibleGroupsChange(state.settings, state.groups, groups),
       }
     }),
@@ -601,6 +658,9 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     const cellColors = Object.fromEntries(
       Object.entries(config.cellColors ?? {}).filter(([id]) => validIds.has(id)),
     )
+    const validVisibility = (values: Record<string, boolean> | undefined) => Object.fromEntries(
+      Object.entries(values ?? {}).filter(([id, visible]) => validIds.has(id) && typeof visible === 'boolean'),
+    )
     const activeEmbryoIds = new Set(
       (config.activeEmbryoIds ?? dataset.embryos.map((embryo) => embryo.id))
         .filter((id) => dataset.embryos.some((embryo) => embryo.id === id)),
@@ -609,6 +669,8 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     set({
       groups,
       cellColors,
+      cellVisibility: validVisibility(config.cellVisibility),
+      cellTrailVisibility: validVisibility(config.cellTrailVisibility),
       settings: { ...defaultSettings, ...config.settings },
       activeEmbryoIds: activeEmbryoIds.size ? activeEmbryoIds : new Set(dataset.embryos.map((embryo) => embryo.id)),
     })
@@ -624,6 +686,8 @@ export function createSessionConfiguration(state: ExplorerState): SessionConfigu
     datasetName: state.dataset.name,
     mapping: state.dataset.mapping,
     cellColors: state.cellColors,
+    cellVisibility: state.cellVisibility,
+    cellTrailVisibility: state.cellTrailVisibility,
     groups: state.groups,
     settings: state.settings,
     activeEmbryoIds: [...state.activeEmbryoIds],

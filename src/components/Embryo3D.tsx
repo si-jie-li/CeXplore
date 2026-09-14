@@ -97,6 +97,7 @@ function Trajectories({ currentStep }: { currentStep: number }) {
   const selection = useExplorerStore((state) => state.selection)
   const groups = useExplorerStore((state) => state.groups)
   const cellColors = useExplorerStore((state) => state.cellColors)
+  const cellTrailVisibility = useExplorerStore((state) => state.cellTrailVisibility)
   const settings = useExplorerStore((state) => state.settings)
   const activeEmbryoIds = useExplorerStore((state) => state.activeEmbryoIds)
   const meanPositionCache = useExplorerStore((state) => state.meanPositionCache)
@@ -106,8 +107,8 @@ function Trajectories({ currentStep }: { currentStep: number }) {
     [groups, settings.trailGroupIds],
   )
   const trailCellIds = useMemo(
-    () => resolveTrailCellIds(groups, settings.trailGroupIds, selection),
-    [groups, selection, settings.trailGroupIds],
+    () => resolveTrailCellIds(groups, settings.trailGroupIds, selection, cellTrailVisibility),
+    [cellTrailVisibility, groups, selection, settings.trailGroupIds],
   )
   const parentByCell = useMemo(
     () => new Map([...lineage.nodes].map(([cellId, node]) => [cellId, node.parentId])),
@@ -337,6 +338,7 @@ function Scene({ observations }: { observations: Observation[] }) {
   const dataset = useExplorerStore((state) => state.dataset)!
   const selection = useExplorerStore((state) => state.selection)
   const cellColors = useExplorerStore((state) => state.cellColors)
+  const cellVisibility = useExplorerStore((state) => state.cellVisibility)
   const groups = useExplorerStore((state) => state.groups)
   const settings = useExplorerStore((state) => state.settings)
   const setSelection = useExplorerStore((state) => state.setSelection)
@@ -353,6 +355,7 @@ function Scene({ observations }: { observations: Observation[] }) {
         cellId: observation.cellId,
         selection,
         cellColors,
+        cellVisibility,
         groups,
         displayMode: settings.displayMode,
         unselectedOpacity: settings.unselectedOpacity,
@@ -366,7 +369,7 @@ function Scene({ observations }: { observations: Observation[] }) {
       else subdued.push(item)
     }
     return { opaque, subdued }
-  }, [cellColors, embryoColors, groups, observations, selection, settings.colorByEmbryo, settings.displayMode, settings.embryoViewMode, settings.unselectedOpacity])
+  }, [cellColors, cellVisibility, embryoColors, groups, observations, selection, settings.colorByEmbryo, settings.displayMode, settings.embryoViewMode, settings.unselectedOpacity])
 
   return (
     <>
@@ -374,7 +377,7 @@ function Scene({ observations }: { observations: Observation[] }) {
       <ambientLight intensity={1.45} />
       <directionalLight position={[8, 12, 10]} intensity={1.8} />
       <directionalLight position={[-8, -5, -8]} intensity={0.55} />
-      <InstancedNuclei items={classified.subdued} capacity={dataset.maxObservationsPerFrame} size={settings.nucleusSize} opacity={settings.displayMode === 'color' ? 0.62 : settings.unselectedOpacity} />
+      <InstancedNuclei items={classified.subdued} capacity={dataset.maxObservationsPerFrame} size={settings.nucleusSize} opacity={settings.unselectedOpacity} />
       <InstancedNuclei items={classified.opaque} capacity={dataset.maxObservationsPerFrame} size={settings.nucleusSize} opacity={1} />
       <Trajectories currentStep={dataset.frameValues[useExplorerStore.getState().currentFrameIndex] ?? 0} />
       <CellLabels observations={[...classified.opaque, ...classified.subdued].map((item) => item.observation)} />

@@ -79,7 +79,7 @@ export function getDivisionConnections(
 ): DivisionConnection[] {
   const children = [...trailCellIds].flatMap((childCellId) => {
     const parentCellId = parentByCell.get(childCellId)
-    return parentCellId && trailCellIds.has(parentCellId)
+    return parentCellId
       ? [{ parentCellId, childCellId }]
       : []
   })

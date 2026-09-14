@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { buildDatasetFromRows } from '../data/frameIndex'
 import type { ColumnMapping } from '../data/types'
 import { resolveLineage } from '../lineage/lineageResolver'
@@ -14,6 +14,8 @@ const dataset = buildDatasetFromRows([
   { cellId: 'ABpl', temporal: 1, x: 1, y: 0, z: 0 },
   { cellId: 'ABpr', temporal: 1, x: -1, y: 0, z: 0 },
 ], { name: 'groups.csv', mapping })
+
+afterEach(cleanup)
 
 beforeEach(() => {
   const store = useExplorerStore.getState()
@@ -48,5 +50,15 @@ describe('cell-group visibility controls', () => {
 
     fireEvent.click(screen.getByTitle('Make all displayed groups visible'))
     expect(useExplorerStore.getState().groups.every((group) => group.visible)).toBe(true)
+  })
+
+  it('can reapply a group command to override a newer cell-level command', () => {
+    render(<GroupPanel />)
+    useExplorerStore.getState().setCellVisible('ABpl', false)
+    useExplorerStore.getState().setCellTrailVisible('ABpl', false)
+
+    fireEvent.click(screen.getByTitle('Make all displayed groups visible'))
+    expect(useExplorerStore.getState().cellVisibility.ABpl).toBe(true)
+    expect(useExplorerStore.getState().cellTrailVisibility.ABpl).toBe(true)
   })
 })

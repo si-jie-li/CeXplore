@@ -3,7 +3,7 @@ import { buildDatasetFromRows } from '../data/frameIndex'
 import type { ColumnMapping } from '../data/types'
 import { resolveLineage } from '../lineage/lineageResolver'
 import { getCellAppearance } from './cellAppearance'
-import { useExplorerStore } from './explorerStore'
+import { createSessionConfiguration, useExplorerStore } from './explorerStore'
 
 const mapping: ColumnMapping = { cellId: 'cell', x: 'x', y: 'y', z: 'z', frame: 'frame', playback: 'frame' }
 const dataset = buildDatasetFromRows([
@@ -59,6 +59,90 @@ describe('shared explorer state', () => {
 
     useExplorerStore.getState().setGroupsVisible([first.id], false)
     expect(useExplorerStore.getState().settings.trailGroupIds).toEqual([])
+  })
+
+  it('applies cell and group visibility strictly in command order', () => {
+    const state = useExplorerStore.getState()
+    state.setSelection(['ABpl', 'ABpr'])
+    state.applyColor('#3978c5', true)
+    const group = useExplorerStore.getState().groups[0]
+
+    useExplorerStore.getState().setCellVisible('ABpl', false)
+    useExplorerStore.getState().setCellTrailVisible('ABpl', false)
+    expect(useExplorerStore.getState()).toMatchObject({
+      cellVisibility: { ABpl: false },
+      cellTrailVisibility: { ABpl: false },
+    })
+
+    useExplorerStore.getState().setGroupsVisible([group.id], true)
+    expect(useExplorerStore.getState()).toMatchObject({
+      cellVisibility: { ABpl: true, ABpr: true },
+      cellTrailVisibility: { ABpl: true, ABpr: true },
+    })
+
+    useExplorerStore.getState().setCellVisible('ABpl', false)
+    useExplorerStore.getState().setCellTrailVisible('ABpl', false)
+    useExplorerStore.getState().updateGroup(group.id, { visible: false })
+    expect(useExplorerStore.getState()).toMatchObject({
+      cellVisibility: { ABpl: false, ABpr: false },
+      cellTrailVisibility: { ABpl: false, ABpr: false },
+    })
+
+    useExplorerStore.getState().setCellVisible('ABpl', true)
+    useExplorerStore.getState().setCellTrailVisible('ABpl', true)
+    const latest = useExplorerStore.getState()
+    expect(latest).toMatchObject({
+      cellVisibility: { ABpl: true, ABpr: false },
+      cellTrailVisibility: { ABpl: true, ABpr: false },
+      settings: { showTrajectories: true },
+    })
+    expect(getCellAppearance({
+      cellId: 'ABpl', selection: latest.selection, cellColors: latest.cellColors,
+      cellVisibility: latest.cellVisibility, groups: latest.groups,
+      displayMode: 'highlight', unselectedOpacity: .1,
+    }).visible).toBe(true)
+    expect(getCellAppearance({
+      cellId: 'ABpr', selection: latest.selection, cellColors: latest.cellColors,
+      cellVisibility: latest.cellVisibility, groups: latest.groups,
+      displayMode: 'highlight', unselectedOpacity: .1,
+    }).visible).toBe(false)
+
+    useExplorerStore.getState().clearSelection()
+    useExplorerStore.getState().setCellVisible('ABp', true)
+    const background = useExplorerStore.getState()
+    expect(getCellAppearance({
+      cellId: 'ABp', selection: background.selection, cellColors: background.cellColors,
+      cellVisibility: background.cellVisibility, groups: background.groups,
+      displayMode: 'highlight', unselectedOpacity: .1,
+    })).toMatchObject({ visible: true, opacity: .1 })
+  })
+
+  it('shows or hides all cells and trails in one operation', () => {
+    const state = useExplorerStore.getState()
+    state.setAllCellsVisible(false)
+    state.setAllCellTrailsVisible(false)
+    expect(Object.values(useExplorerStore.getState().cellVisibility).every((visible) => !visible)).toBe(true)
+    expect(Object.values(useExplorerStore.getState().cellTrailVisibility).every((visible) => !visible)).toBe(true)
+
+    useExplorerStore.getState().setAllCellsVisible(true)
+    useExplorerStore.getState().setAllCellTrailsVisible(true)
+    expect(Object.keys(useExplorerStore.getState().cellVisibility)).toHaveLength(dataset.cellIds.length)
+    expect(Object.values(useExplorerStore.getState().cellVisibility).every(Boolean)).toBe(true)
+    expect(Object.values(useExplorerStore.getState().cellTrailVisibility).every(Boolean)).toBe(true)
+    expect(useExplorerStore.getState().settings.showTrajectories).toBe(true)
+  })
+
+  it('round-trips cell and trail visibility through the session configuration', () => {
+    const state = useExplorerStore.getState()
+    state.setCellVisible('ABpl', false)
+    state.setCellTrailVisible('ABpr', true)
+    const config = createSessionConfiguration(useExplorerStore.getState())!
+
+    useExplorerStore.getState().setAllCellsVisible(true)
+    useExplorerStore.getState().setAllCellTrailsVisible(false)
+    useExplorerStore.getState().importConfiguration(config)
+    expect(useExplorerStore.getState().cellVisibility).toEqual({ ABpl: false })
+    expect(useExplorerStore.getState().cellTrailVisibility).toEqual({ ABpr: true })
   })
 
   it('only adds whole lineages without replacing or toggling the existing selection', () => {

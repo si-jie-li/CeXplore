@@ -394,6 +394,16 @@ button:disabled, input:disabled, select:disabled { opacity: .42; cursor: not-all
 .cell-info dl div { min-width: 0; }.cell-info dt { color: #8a9692; font-size: 7.5px; text-transform: uppercase; letter-spacing: .06em; }.cell-info dd { margin: 1px 0 0; color: #384640; font-size: 9px; overflow: hidden; text-overflow: ellipsis; }
 .ancestor-line { margin-top: 9px; padding-top: 7px; border-top: 1px solid #e4e9e7; color: #75817d; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 4px; align-items: center; }
 .empty-state-small { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 7px; color: #85918d; font-size: 9.5px; text-align: center; }
+.cell-info-empty { min-height: 38px; }
+.cell-visibility-controls { margin-top: 8px; padding-top: 7px; border-top: 1px solid #e4e9e7; }
+.cell-visibility-row { display: grid; grid-template-columns: 38px repeat(2, minmax(0, 1fr)); align-items: center; gap: 4px; margin-top: 4px; }
+.cell-visibility-row:first-child { margin-top: 0; }
+.cell-visibility-row > span { color: #7b8883; font-size: 7px; font-weight: 750; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+.cell-visibility-pair { min-width: 0; display: grid; grid-template-columns: minmax(17px, 1fr) 19px 19px; align-items: center; gap: 2px; }
+.cell-visibility-pair em { min-width: 0; overflow: hidden; color: #71807b; font-size: 7px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.cell-visibility-row button { width: 19px; height: 20px; padding: 0; display: grid; place-items: center; border: 1px solid #d8dfdd; border-radius: 4px; background: white; color: #66736f; cursor: pointer; }
+.cell-visibility-row button:hover, .cell-visibility-row button.active { border-color: #9fc0b9; color: var(--accent); background: #e7f1ef; }
+.cell-visibility-controls > p { margin: 5px 0 0 38px; color: #8a9592; font-size: 7px; }
 
 .trail-projection-drawer {
   grid-column: 1; grid-row: 1 / -1; align-self: center; justify-self: start;

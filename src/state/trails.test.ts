@@ -33,6 +33,11 @@ describe('trail group selection', () => {
     expect([...resolveTrailCellIds([], 'all', ['AB'])]).toEqual(['AB'])
   })
 
+  it('lets newer per-cell trail commands override group-derived targets', () => {
+    expect([...resolveTrailCellIds(groups, [], [], { AB: false, MS: true })].sort())
+      .toEqual(['ABa', 'ABp', 'MS'].sort())
+  })
+
   it('resolves all-previous or explicit playback ranges without exposing future frames', () => {
     const frames = [10, 20, 30, 40]
     expect(resolveTrailStepRange(frames, 30, 'all')).toEqual({ start: 10, end: 30 })
