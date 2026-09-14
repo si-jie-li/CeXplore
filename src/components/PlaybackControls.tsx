@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useSurfaceStore } from '../surfaces/surfaceStore'
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import { useExplorerStore } from '../state/explorerStore'
 import { formatNumber } from '../utils/format'
@@ -16,12 +17,21 @@ export function PlaybackControls() {
   const stepFrame = useExplorerStore((state) => state.stepFrame)
   const singleFrameDataset = dataset.frameValues.length <= 1
   const current = dataset.frameValues[index] ?? 0
+  const surfacesEnabled = useSurfaceStore((s) => s.settings.enabled)
+  const prepareSurface = useSurfaceStore((s) => s.prepareFrame)
 
   useEffect(() => {
     if (!playing || singleFrameDataset) return
-    const timer = window.setTimeout(() => stepFrame(1), 360 / speed)
-    return () => window.clearTimeout(timer)
-  }, [index, playing, speed, singleFrameDataset, stepFrame])
+    let cancelled = false
+    if (surfacesEnabled && !prepareSurface) return
+    const timer = window.setTimeout(async () => {
+      const ready = !surfacesEnabled || await prepareSurface!((index + 1) % dataset.frameValues.length)
+      if (cancelled) return
+      if (ready) stepFrame(1)
+      else setPlaying(false)
+    }, 360 / speed)
+    return () => { cancelled = true; window.clearTimeout(timer) }
+  }, [index, playing, speed, singleFrameDataset, stepFrame, surfacesEnabled, prepareSurface, dataset, setPlaying])
 
   useEffect(() => {
     if (singleFrameDataset && playing) setPlaying(false)

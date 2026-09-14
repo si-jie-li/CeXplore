@@ -4,6 +4,19 @@
 
 ## 1. 项目本质与边界
 
+### 2026-09-14 补充：Group surfaces 实现地图
+
+- 入口：`LoadedWorkspace → GroupSurfaceControls`，作为左侧中部第三个图标 tab，与 Projected motion、Group analysis 纵向排列；展开后覆盖左侧谱系树两行区域、内部独立滚动，不遮挡右侧 Spatial view。三个 drawer 的 `.open` 状态统一提升到 `z-index: 30`，确保当前打开的抽屉覆盖另外两个折叠图标。功能默认关闭，控制 shape、opacity、smoothing、groups、current/history/specified 模式和 center trajectory；不再挂在左下角 `GroupPanel` 内。
+- `src/surfaces/types.ts`：独立 `GroupSurfaceSettings`、参数规范化、严格指定帧输入解析、历史均匀快照选择。所有输入帧是加载并抽样后的 **1-based playback ordinal**。History 不取未来且始终加当前；specified 最多 8 帧，可含未来，不额外加当前。
+- `geometry.ts`：等权 Gaussian density，sigma 为代表帧（最多 16 帧）各 embryo 内非零最近邻距离中位数 ×0.6；dataset WeakMap 固定基础 sigma，用户倍率 0.5–2。固定 world grid，spacing=sigma/2，24³ tile 带法线 halo，3sigma 截断，iso=.5；Three MarchingCubes 输出 position/normal。凸包用 Three ConvexGeometry，少量/共线/共面回退 smooth。包络不是细胞膜、真实组织体积或统计置信区间。
+- `surface.worker.ts`：半径估计和网格生成在 module Worker，坐标输入和几何输出使用 transferable。`runtime.ts`：一个几何配置一个 Worker，96 MiB LRU position/normal 数组缓存，保护当前 bundle；请求帧优先，随后预取下两帧。History 超预算逐步减少旧快照；仍超预算或 specified 超预算明确报错，不静默删指定帧。单个 smooth mesh 另有 tile/三角形上限。预算不是整个浏览器/GPU内存的上限。
+- 数据规则：显式 group.cellIds × 当前帧实际 observations；`cellVisibility[id] === false` 完全剔除。Overlay 每 group×embryo 分别生成；Mean 读取已有 mean cache，每 cell 一个均值位置；不把不同 embryo 的点混成一层。隐藏操作同样作用于历史，未记录历史 hide/show 命令。
+- 中心为参与 cell 坐标算术平均，不是包络体积中心；无成员帧断开。current/history 使用独立于 Trails 的 surface range；specified 使用首末指定帧之间完整已加载帧范围。中心轨迹有浅→深渐变。
+- `GroupSurfaces.tsx`：几何依赖 dataset、group成员/选择、hidden mask、embryos、mean cache、method/smoothing；group rename/color 和 opacity 不重算几何。时间设置变化保留 runtime mesh cache。序列号丢弃迟到结果，当前帧不匹配不绘制旧 bundle。网格 raycast 关闭、透明 depthWrite=false，卸载 dispose GPU geometry。关闭/换 dataset dispose Worker/cache。
+- `PlaybackControls`：启用表面时等待 `surfaceStore.prepareFrame(nextIndex)` 再推进细胞帧；暂停、手动跳帧或替换 controller 后旧回调不推进；失败暂停播放。无法维持目标 fps 时降低实际帧率，不显示错位的上一帧表面。
+- `explorerStore` subscription：dataset 切换 reset surface store；visible group ID 集合变化重新选 visible groups。Session 可选 `surfaceSettings`，旧配置默认 off，导入越界指定帧重置为 1 并提示；不序列化网格。
+- 测试：`surfaces/surfaces.test.ts` 检查几何/时间语义、hidden/overlay/mean、缓存生命周期、会话；`GroupSurfaceControls.test.tsx` 检查输入验证、播放等待、手动 scrub 后旧响应、失败暂停。真实 WebGL 透明排序和复杂多胚胎性能仍需浏览器人工验收。
+
 CeXplore 是一个纯浏览器端的 *C. elegans* 胚胎细胞谱系、3D 核位置和群体空间指标探索器。它把多个来源文件标准化为一个内存数据集，让谱系树、3D 胚胎、细胞列表、分组、颜色和时间轴共享同一个 Zustand 状态；Mean position 与分析任务分别使用独立 Worker，前者预计算显示缓存，后者按需计算群体指标。
 
 当前产品边界很明确：

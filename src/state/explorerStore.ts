@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useSurfaceStore } from '../surfaces/surfaceStore'
 import type { EmbryoDataset, Observation } from '../data/types'
 import { hydrateMeanPositionCache, type EmbryoViewMode, type MeanPositionCache } from '../data/embryoView'
 import { startMeanPositionPrecomputation, type MeanPositionJob } from '../data/meanPositionService'
@@ -110,6 +111,7 @@ interface ExplorerState {
 }
 
 export interface SessionConfiguration {
+  surfaceSettings?: import('../surfaces/types').GroupSurfaceSettings
   version: 1
   datasetName: string
   mapping: EmbryoDataset['mapping']
@@ -674,15 +676,29 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
       settings: { ...defaultSettings, ...config.settings },
       activeEmbryoIds: activeEmbryoIds.size ? activeEmbryoIds : new Set(dataset.embryos.map((embryo) => embryo.id)),
     })
+    useSurfaceStore.getState().reset(config.surfaceSettings)
+    const surface = useSurfaceStore.getState().settings
+    if (surface.specifiedFrames.some((frame) => frame > dataset.frameValues.length)) {
+      useSurfaceStore.getState().setSettings({ specifiedFrames: [1] })
+      warnings.push('Surface frame selection exceeds this dataset; reset to playback frame 1.')
+    }
     if (get().settings.embryoViewMode === 'mean') get().prepareMeanPositions()
     return warnings
   },
 }))
 
+useExplorerStore.subscribe((state, previous) => {
+  if (state.dataset !== previous.dataset) useSurfaceStore.getState().reset()
+  else if (JSON.stringify(state.groups.filter((g) => g.visible).map((g) => g.id)) !== JSON.stringify(previous.groups.filter((g) => g.visible).map((g) => g.id))) {
+    useSurfaceStore.getState().setSettings({ groupIds: state.groups.filter((g) => g.visible).map((g) => g.id) })
+  }
+})
+
 export function createSessionConfiguration(state: ExplorerState): SessionConfiguration | undefined {
   if (!state.dataset) return undefined
   return {
     version: 1,
+    surfaceSettings: useSurfaceStore.getState().settings,
     datasetName: state.dataset.name,
     mapping: state.dataset.mapping,
     cellColors: state.cellColors,

@@ -7,6 +7,7 @@ import { ListPanel } from './components/ListPanel'
 import { ControlDeck } from './components/ControlDeck'
 import { AnalysisPanel } from './components/AnalysisPanel'
 import { TrailProjectionPanel } from './components/TrailProjectionPanel'
+import { GroupSurfaceControls } from './components/GroupSurfaceControls'
 import { ImportWarnings } from './components/ImportWarnings'
 import { createSessionConfiguration, useExplorerStore } from './state/explorerStore'
 import { formatBytes } from './utils/format'
@@ -93,6 +94,7 @@ function LoadedWorkspace() {
         <ControlDeck />
         <AnalysisPanel />
         <TrailProjectionPanel />
+        <GroupSurfaceControls />
       </main>
     </div>
   )

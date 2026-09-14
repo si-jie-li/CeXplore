@@ -10,6 +10,8 @@ A lightweight local browser application for exploring *C. elegans* embryonic cel
 
 ## Install and run
 
+The left-side Group surfaces tab adds translucent smooth envelopes or convex hulls, independently selected history/specified playback frames, and optional group-center trajectories. Its full-height, scrollable drawer stays within the lineage-tree column. Hidden cells are excluded; overlay embryos remain separate. Geometry runs in a Worker with a bounded cache and playback waits for the next surface. Session files retain settings, not meshes.
+
 Node.js 20.19+ or 22.12+ is recommended.
 
 ```bash

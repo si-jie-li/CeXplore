@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { GroupSurfaces } from './GroupSurfaces'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Html, Line, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
@@ -379,6 +380,7 @@ function Scene({ observations }: { observations: Observation[] }) {
       <directionalLight position={[-8, -5, -8]} intensity={0.55} />
       <InstancedNuclei items={classified.subdued} capacity={dataset.maxObservationsPerFrame} size={settings.nucleusSize} opacity={settings.unselectedOpacity} />
       <InstancedNuclei items={classified.opaque} capacity={dataset.maxObservationsPerFrame} size={settings.nucleusSize} opacity={1} />
+      <GroupSurfaces />
       <Trajectories currentStep={dataset.frameValues[useExplorerStore.getState().currentFrameIndex] ?? 0} />
       <CellLabels observations={[...classified.opaque, ...classified.subdued].map((item) => item.observation)} />
       {settings.showAxes && <AxisGuide />}
