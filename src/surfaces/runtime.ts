@@ -237,7 +237,7 @@ export class SurfaceRuntime {
           }
           pieces.push({ key, groupId: group.groupId, embryoId: group.embryoId, frame, geometry })
         }
-        return { index, frames, pieces, paths: this.centroidPaths(index, settings), sigma, note: count < settings.historyCount ? `History reduced to ${count} snapshots to stay within the memory budget.` : pieces.some((p) => p.geometry.fallback) ? 'Some groups have too few non-coplanar points; smooth envelopes are used instead of convex hulls.' : '' }
+        return { index, frames, pieces, paths: this.centroidPaths(index, settings), sigma, note: count < settings.historyCount ? `History reduced to ${count} snapshots to stay within the memory budget.` : pieces.some((p) => p.geometry.lowerDimensional) ? 'Some convex-hull frames are lower-dimensional and are shown as points, lines, or triangulated planes.' : '' }
       } catch (error) {
         if (!(error instanceof BudgetError) || settings.mode !== 'history' || count === 0 || prefetch) throw error
       }

@@ -14,7 +14,7 @@ import { resolveTrailGroups, resolveTrailStepRange } from '../state/trails'
 const AXES: Array<{ axis: ProjectionAxis; dash?: string; styleName: string }> = [
   { axis: 'AP', styleName: 'solid' },
   { axis: 'LR', dash: '1 6', styleName: 'dotted' },
-  { axis: 'VD', dash: '14 7', styleName: 'long dash' },
+  { axis: 'DV', dash: '14 7', styleName: 'long dash' },
 ]
 
 interface PlottedSeries {
@@ -77,7 +77,7 @@ function downloadProjectionCsv(csv: string, datasetName: string) {
 export function TrailProjectionPanel() {
   const [open, setOpen] = useState(false)
   const [axisMode, setAxisMode] = useState<'multiple' | 'single'>('multiple')
-  const [visibleAxes, setVisibleAxes] = useState<Set<ProjectionAxis>>(new Set(['AP', 'LR', 'VD']))
+  const [visibleAxes, setVisibleAxes] = useState<Set<ProjectionAxis>>(new Set(['AP', 'LR', 'DV']))
   const [singleAxis, setSingleAxis] = useState<ProjectionAxis>('AP')
   const [extraGroupSelection, setExtraGroupSelection] = useState<'all' | string[]>([])
   const [showIndividualCells, setShowIndividualCells] = useState(false)
@@ -336,7 +336,7 @@ export function TrailProjectionPanel() {
               <input type="checkbox" checked={showIndividualCells} onChange={(event) => setShowIndividualCells(event.target.checked)} />
               Show individual cell projections
             </label>
-            <small>Uses the current Trails range and displayed embryos. x=0 is the range start; y is the direct AP/LR/VD coordinate in source pixels.</small>
+            <small>Uses the current Trails range and displayed embryos. x=0 is the range start; y is the direct AP/LR/DV coordinate in source pixels.</small>
           </aside>
           <main className="trail-projection-chart-wrap">
             <div className="trail-projection-chart-heading">

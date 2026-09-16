@@ -7,9 +7,9 @@ export interface CameraAngle {
 export const clampElevation = (degrees: number) => Math.max(-89.9, Math.min(89.9, degrees))
 
 /**
- * OrbitControls uses LR/Y as the up axis. Azimuth 0° looks from +VD/Z;
+ * OrbitControls uses LR/Y as the up axis. Azimuth 0° looks from +DV/Z;
  * positive azimuth rotates toward +AP/X. Elevation is measured above the
- * AP–VD plane. The returned vector is an offset from the current orbit target.
+ * AP–DV plane. The returned vector is an offset from the current orbit target.
  */
 export function cameraOffsetFromAngles(
   azimuthDegrees: number,

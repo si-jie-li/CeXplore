@@ -150,7 +150,7 @@ export function CellInfo() {
         <div><dt>Parent</dt><dd>{parent ?? '—'}</dd></div>
         <div><dt>AP</dt><dd>{currentObservation ? formatNumber(currentObservation.x, 3) : 'not present'}</dd></div>
         <div><dt>LR</dt><dd>{currentObservation ? formatNumber(currentObservation.y, 3) : 'not present'}</dd></div>
-        <div><dt>VD</dt><dd>{currentObservation ? formatNumber(currentObservation.z, 3) : 'not present'}</dd></div>
+        <div><dt>DV</dt><dd>{currentObservation ? formatNumber(currentObservation.z, 3) : 'not present'}</dd></div>
         <div><dt>Descendants</dt><dd>{descendants}</dd></div>
       </dl>
       {ancestors.length > 0 && <div className="ancestor-line"><GitBranch size={13} /> {ancestors.slice().reverse().join(' › ')} › <b>{cellId}</b></div>}

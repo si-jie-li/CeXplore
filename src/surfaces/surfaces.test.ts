@@ -27,14 +27,20 @@ describe('surface geometry', () => {
     expect(Math.min(...xs(b.positions)) - Math.min(...xs(a.positions))).toBeCloseTo(10.5, 4)
     expect(Math.max(...xs(b.positions)) - Math.max(...xs(a.positions))).toBeCloseTo(10.5, 4)
   })
-  it('handles missing, singleton, collinear and coplanar cells', () => {
+  it('keeps convex mode strict by rendering degenerate cells as points, lines, or triangulated planes', () => {
     expect(buildSurfaceGeometry(new Float32Array(), 1, 'smooth').positions.length).toBe(0)
-    for (const values of [[0, 0, 0], [0, 0, 0, 1, 0, 0, 2, 0, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0]]) {
-      const geometry = buildSurfaceGeometry(new Float32Array(values), 0.5, 'convex')
-      expect(geometry.fallback).toBe(true)
-      expect(geometry.positions.length).toBeGreaterThan(0)
-    }
-    expect(buildSurfaceGeometry(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]), 0.5, 'convex').fallback).toBe(false)
+    const point = buildSurfaceGeometry(new Float32Array([0, 0, 0]), 0.5, 'convex')
+    expect(point).toMatchObject({ kind: 'point', lowerDimensional: true })
+    expect(point.positions).toEqual(new Float32Array([0, 0, 0]))
+    const line = buildSurfaceGeometry(new Float32Array([1, 0, 0, 0, 0, 0, 2, 0, 0]), 0.5, 'convex')
+    expect(line).toMatchObject({ kind: 'line', lowerDimensional: true })
+    expect([...line.positions].sort()).toEqual([0, 0, 0, 0, 0, 2])
+    const plane = buildSurfaceGeometry(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, .5, .5, 0]), 0.5, 'convex')
+    expect(plane).toMatchObject({ kind: 'mesh', lowerDimensional: true })
+    expect(plane.positions.length).toBe(18)
+    expect([...plane.positions].filter((_, index) => index % 3 === 2).every((z) => z === 0)).toBe(true)
+    const volume = buildSurfaceGeometry(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]), 0.5, 'convex')
+    expect(volume).toMatchObject({ kind: 'mesh', lowerDimensional: false })
   })
 })
 

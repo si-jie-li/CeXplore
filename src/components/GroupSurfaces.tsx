@@ -10,10 +10,17 @@ function SurfaceMesh({ piece, color, opacity }: { piece: SurfacePiece; color: st
   const geometry = useMemo(() => {
     const result = new BufferGeometry()
     result.setAttribute('position', new BufferAttribute(piece.geometry.positions, 3))
-    result.setAttribute('normal', new BufferAttribute(piece.geometry.normals, 3))
+    if (piece.geometry.normals.length) result.setAttribute('normal', new BufferAttribute(piece.geometry.normals, 3))
     return result
   }, [piece.geometry])
   useEffect(() => () => geometry.dispose(), [geometry])
+  if (piece.geometry.kind === 'point') return <points geometry={geometry} raycast={noRaycast}>
+    <pointsMaterial color={color} transparent opacity={opacity} depthWrite={false} size={5} sizeAttenuation={false} />
+  </points>
+  if (piece.geometry.kind === 'line') return <Line
+    points={Array.from({ length: piece.geometry.positions.length / 3 }, (_, index) => [piece.geometry.positions[index * 3], piece.geometry.positions[index * 3 + 1], piece.geometry.positions[index * 3 + 2]] as [number, number, number])}
+    color={color} transparent opacity={opacity} lineWidth={2} raycast={noRaycast}
+  />
   return <mesh geometry={geometry} raycast={noRaycast}>
     <meshStandardMaterial color={color} transparent opacity={opacity} depthWrite={false} side={DoubleSide} roughness={0.8} forceSinglePass />
   </mesh>

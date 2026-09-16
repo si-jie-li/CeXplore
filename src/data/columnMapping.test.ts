@@ -16,7 +16,16 @@ describe('column mapping', () => {
     expect(validateMapping({ ...mapping, embryoValues: ['ctr_emb1'] })).toEqual([])
   })
 
-  it('recognizes biologically named AP, LR, and VD columns', () => {
+  it('recognizes the DV display convention and legacy VD source columns', () => {
+    const dvMapping = suggestMapping({
+      kind: 'delimited',
+      name: 'dv-axes.csv',
+      headers: ['cell_name', 'frame', 'AP', 'LR', 'DV'],
+      samples: [{ cell_name: 'AB' }],
+    })
+    expect(dvMapping).toMatchObject({ x: 'AP', y: 'LR', z: 'DV' })
+    expect(validateMapping(dvMapping)).toEqual([])
+
     const mapping = suggestMapping({
       kind: 'delimited',
       name: 'biological-axes.csv',

@@ -19,34 +19,59 @@ export function estimateSurfaceSigma(frames: Float32Array[]): number {
   return distances.length ? Math.max(.005, .6 * distances[Math.floor(distances.length / 2)]) : .3
 }
 
-function hasVolume(points: Vector3[]) {
-  if (points.length < 4) return false
-  const origin = points[0]
-  const edge = points.find((p) => p.distanceToSquared(origin) > 1e-12)?.clone().sub(origin)
-  if (!edge) return false
-  const normal = new Vector3()
-  for (const p of points) {
-    normal.crossVectors(edge, p.clone().sub(origin))
-    if (normal.lengthSq() > 1e-12) break
+function uniquePoints(values: Float32Array) {
+  const points: Vector3[] = []
+  for (let i = 0; i < values.length; i += 3) {
+    const point = new Vector3(values[i], values[i + 1], values[i + 2])
+    if (!points.some((other) => other.distanceToSquared(point) <= 1e-12)) points.push(point)
   }
-  if (normal.lengthSq() <= 1e-12) return false
-  normal.normalize()
-  return points.some((p) => Math.abs(normal.dot(p.clone().sub(origin))) > 1e-6)
+  return points
+}
+
+function convexDegenerate(points: Vector3[]): SurfaceGeometryData | undefined {
+  if (points.length === 1) return { positions: new Float32Array(points[0].toArray()), normals: new Float32Array(), kind: 'point', lowerDimensional: true }
+  let first = points[0], second = points[1], farthest = first.distanceToSquared(second)
+  for (let i = 0; i < points.length; i++) for (let j = i + 1; j < points.length; j++) {
+    const distance = points[i].distanceToSquared(points[j])
+    if (distance > farthest) { first = points[i]; second = points[j]; farthest = distance }
+  }
+  const tolerance = Math.max(1e-7, Math.sqrt(farthest) * 1e-6)
+  const direction = second.clone().sub(first).normalize()
+  const planePoint = points.find((point) => direction.clone().cross(point.clone().sub(first)).length() > tolerance)
+  if (!planePoint) return { positions: new Float32Array([...first.toArray(), ...second.toArray()]), normals: new Float32Array(), kind: 'line', lowerDimensional: true }
+
+  const normal = direction.clone().cross(planePoint.clone().sub(first)).normalize()
+  if (points.some((point) => Math.abs(normal.dot(point.clone().sub(first))) > tolerance)) return undefined
+  const across = normal.clone().cross(direction).normalize()
+  const projected = points.map((point) => ({ point, x: direction.dot(point.clone().sub(first)), y: across.dot(point.clone().sub(first)) }))
+    .sort((a, b) => a.x - b.x || a.y - b.y)
+  const cross = (a: typeof projected[number], b: typeof projected[number], c: typeof projected[number]) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
+  const lower: typeof projected = [], upper: typeof projected = []
+  for (const point of projected) { while (lower.length >= 2 && cross(lower.at(-2)!, lower.at(-1)!, point) <= 0) lower.pop(); lower.push(point) }
+  for (const point of [...projected].reverse()) { while (upper.length >= 2 && cross(upper.at(-2)!, upper.at(-1)!, point) <= 0) upper.pop(); upper.push(point) }
+  const hull = [...lower.slice(0, -1), ...upper.slice(0, -1)]
+  if (hull.length < 3) return { positions: new Float32Array([...first.toArray(), ...second.toArray()]), normals: new Float32Array(), kind: 'line', lowerDimensional: true }
+  const triangles: number[] = [], normals: number[] = []
+  for (let i = 1; i < hull.length - 1; i++) {
+    triangles.push(...hull[0].point.toArray(), ...hull[i].point.toArray(), ...hull[i + 1].point.toArray())
+    for (let vertex = 0; vertex < 3; vertex++) normals.push(...normal.toArray())
+  }
+  return { positions: new Float32Array(triangles), normals: new Float32Array(normals), kind: 'mesh', lowerDimensional: true }
 }
 
 /** Fixed, world-anchored voxels; independent tiles include a normal-sampling halo. */
 export function buildSurfaceGeometry(points: Float32Array, sigma: number, method: 'smooth' | 'convex'): SurfaceGeometryData {
-  const empty = { positions: new Float32Array(), normals: new Float32Array(), fallback: false }
+  const empty: SurfaceGeometryData = { positions: new Float32Array(), normals: new Float32Array(), kind: 'mesh', lowerDimensional: false }
   if (!points.length) return empty
   if (!(sigma > 0) || !Number.isFinite(sigma) || points.length % 3 || points.some((n) => !Number.isFinite(n))) throw new Error('Invalid surface coordinates or radius.')
   if (method === 'convex') {
-    const vectors = Array.from({ length: points.length / 3 }, (_, i) => new Vector3(points[i * 3], points[i * 3 + 1], points[i * 3 + 2]))
-    if (hasVolume(vectors)) {
-      const geometry = new ConvexGeometry(vectors)
-      const result = { positions: new Float32Array(geometry.getAttribute('position').array), normals: new Float32Array(geometry.getAttribute('normal').array), fallback: false }
-      geometry.dispose()
-      return result
-    }
+    const vectors = uniquePoints(points)
+    const degenerate = convexDegenerate(vectors)
+    if (degenerate) return degenerate
+    const geometry = new ConvexGeometry(vectors)
+    const result: SurfaceGeometryData = { positions: new Float32Array(geometry.getAttribute('position').array), normals: new Float32Array(geometry.getAttribute('normal').array), kind: 'mesh', lowerDimensional: false }
+    geometry.dispose()
+    return result
   }
   const resolution = 24
   const cells = resolution - 3
@@ -100,5 +125,5 @@ export function buildSurfaceGeometry(points: Float32Array, sigma: number, method
   const normals = new Float32Array(floats)
   let offset = 0
   chunks.forEach((chunk, i) => { positions.set(chunk, offset); normals.set(normalChunks[i], offset); offset += chunk.length })
-  return { positions, normals, fallback: method === 'convex' }
+  return { positions, normals, kind: 'mesh', lowerDimensional: false }
 }

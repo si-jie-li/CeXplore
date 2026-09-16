@@ -17,8 +17,8 @@ describe('trail projection chart data', () => {
       { step: 10, observations: [firstA, firstB] },
       { step: 20, observations: [secondA, secondB] },
     ], ['A', 'B'])
-    expect(result[0]).toMatchObject({ step: 10, AP: 5, LR: 3, VD: 5, sampleCount: 2 })
-    expect(result[1]).toMatchObject({ step: 20, AP: 8, LR: 1, VD: 8, sampleCount: 2 })
+    expect(result[0]).toMatchObject({ step: 10, AP: 5, LR: 3, DV: 5, sampleCount: 2 })
+    expect(result[1]).toMatchObject({ step: 20, AP: 8, LR: 1, DV: 8, sampleCount: 2 })
   })
 
   it('expresses Time and interval-scaled Frame input in minutes', () => {
@@ -33,17 +33,22 @@ describe('trail projection chart data', () => {
       { step: 30, observations: [point(30, 5, 3, 4)] },
     ], ['AB'])
     expect(result).toEqual([
-      { step: 20, AP: 2, LR: 3, VD: 4, sampleCount: 1 },
-      { step: 30, AP: 5, LR: 3, VD: 4, sampleCount: 1 },
+      { step: 20, AP: 2, LR: 3, DV: 4, sampleCount: 1 },
+      { step: 30, AP: 5, LR: 3, DV: 4, sampleCount: 1 },
     ])
   })
 
   it('exports the currently selected axis-position series as readable CSV', () => {
     const csv = projectionSeriesToCsv([{
       groupId: 'g1', groupName: 'AB, family', groupColor: '#123456', cellId: 'AB',
-      points: [{ step: 5, AP: -2, LR: 1, VD: 0, sampleCount: 3 }],
+      points: [{ step: 5, AP: -2, LR: 1, DV: 0, sampleCount: 3 }],
     }], ['AP'], 2, 'frame', 60)
     expect(csv).toContain('axis_position_px')
     expect(csv).toContain('g1,"AB, family",#123456,AB,AP,5,3,min,-2,3')
+    const dvCsv = projectionSeriesToCsv([{
+      groupId: 'g1', groupName: 'group', groupColor: '#123456',
+      points: [{ step: 5, AP: -2, LR: 1, DV: 7, sampleCount: 3 }],
+    }], ['DV'], 2, 'frame', 60)
+    expect(dvCsv).toContain('g1,group,#123456,,DV,5,3,min,7,3')
   })
 })

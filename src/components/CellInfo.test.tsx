@@ -26,6 +26,7 @@ beforeEach(() => {
 describe('cell visibility actions', () => {
   it('keeps the inspected cell available while hiding and restoring its nucleus or trail', () => {
     render(<CellInfo />)
+    expect(screen.getByText('DV')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Hide cell ABa' }))
     expect(useExplorerStore.getState().cellVisibility.ABa).toBe(false)

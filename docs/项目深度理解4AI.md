@@ -8,7 +8,7 @@
 
 - 入口：`LoadedWorkspace → GroupSurfaceControls`，作为左侧中部第三个图标 tab，与 Projected motion、Group analysis 纵向排列；展开后覆盖左侧谱系树两行区域、内部独立滚动，不遮挡右侧 Spatial view。三个 drawer 的 `.open` 状态统一提升到 `z-index: 30`，确保当前打开的抽屉覆盖另外两个折叠图标。功能默认关闭，控制 shape、opacity、smoothing、groups、current/history/specified 模式和 center trajectory；不再挂在左下角 `GroupPanel` 内。
 - `src/surfaces/types.ts`：独立 `GroupSurfaceSettings`、参数规范化、严格指定帧输入解析、历史均匀快照选择。所有输入帧是加载并抽样后的 **1-based playback ordinal**。History 不取未来且始终加当前；specified 最多 8 帧，可含未来，不额外加当前。
-- `geometry.ts`：等权 Gaussian density，sigma 为代表帧（最多 16 帧）各 embryo 内非零最近邻距离中位数 ×0.6；dataset WeakMap 固定基础 sigma，用户倍率 0.5–2。固定 world grid，spacing=sigma/2，24³ tile 带法线 halo，3sigma 截断，iso=.5；Three MarchingCubes 输出 position/normal。凸包用 Three ConvexGeometry，少量/共线/共面回退 smooth。包络不是细胞膜、真实组织体积或统计置信区间。
+- `geometry.ts`：等权 Gaussian density，sigma 为代表帧（最多 16 帧）各 embryo 内非零最近邻距离中位数 ×0.6；dataset WeakMap 固定基础 sigma，用户倍率 0.5–2。固定 world grid，spacing=sigma/2，24³ tile 带法线 halo，3sigma 截断，iso=.5；Three MarchingCubes 输出 position/normal。凸包用 Three ConvexGeometry，且严格保持用户所选模式：1 个唯一位置输出 point，共线位置输出最远端 line，共面位置投影到二维后求 convex polygon 并作 fan triangulation，只有至少 4 个非共面位置输出三维 hull；不会回退为 smooth envelope。包络不是细胞膜、真实组织体积或统计置信区间。
 - `surface.worker.ts`：半径估计和网格生成在 module Worker，坐标输入和几何输出使用 transferable。`runtime.ts`：一个几何配置一个 Worker，96 MiB LRU position/normal 数组缓存，保护当前 bundle；请求帧优先，随后预取下两帧。History 超预算逐步减少旧快照；仍超预算或 specified 超预算明确报错，不静默删指定帧。单个 smooth mesh 另有 tile/三角形上限。预算不是整个浏览器/GPU内存的上限。
 - 数据规则：显式 group.cellIds × 当前帧实际 observations；`cellVisibility[id] === false` 完全剔除。Overlay 每 group×embryo 分别生成；Mean 读取已有 mean cache，每 cell 一个均值位置；不把不同 embryo 的点混成一层。隐藏操作同样作用于历史，未记录历史 hide/show 命令。
 - 中心为参与 cell 坐标算术平均，不是包络体积中心；无成员帧断开。current/history 使用独立于 Trails 的 surface range；specified 使用首末指定帧之间完整已加载帧范围。中心轨迹有浅→深渐变。
@@ -59,7 +59,7 @@ main.tsx
 
 用户点击 Run analysis
   → 当前 selection/saved group + activeEmbryoIds + 参数
-  → 从 embryoIndex 复制选中 embryo 的 cellId/step/AP/LR/VD
+  → 从 embryoIndex 复制选中 embryo 的 cellId/step/AP/LR/DV
   → Web Worker：dynamic membership → per-embryo/time kNN → metrics + null
   → GroupAnalysisResult：趋势图、当前汇总、胚胎表、CSV
 
@@ -82,7 +82,7 @@ main.tsx
 
 ### 3.1 `ColumnMapping`
 
-保存用户为某个 source 选择的列：cell、AP/LR/VD、Time 或 Frame、parent、embryo 和 worksheet。Frame 模式还保存 `frameIntervalSeconds`。`frameSampleCount` 为正整数时启用共享帧抽样（`DEFAULT_FRAME_SAMPLE_COUNT` 与 UI 默认均为 185），为 `undefined` 时表示 All。`embryoValues` 是当前多选字段；单值 `embryoValue` 只为读取 v0.1 session 保留。
+保存用户为某个 source 选择的列：cell、AP/LR/DV、Time 或 Frame、parent、embryo 和 worksheet。DV 是显示名称（D 为正方向），内部第三维仍为 `z`；自动映射同时接受新列名 `DV/DV_pos` 与旧列名 `VD/VD_pos`，所以旧数据和 Session 中保存的实际 source header 不需要迁移。Frame 模式还保存 `frameIntervalSeconds`。`frameSampleCount` 为正整数时启用共享帧抽样（`DEFAULT_FRAME_SAMPLE_COUNT` 与 UI 默认均为 185），为 `undefined` 时表示 All。`embryoValues` 是当前多选字段；单值 `embryoValue` 只为读取 v0.1 session 保留。
 
 多文件数据集同时保留：
 
@@ -98,7 +98,7 @@ main.tsx
   cellId,
   embryoId,          // 内部 namespaced ID，不是原始 label
   step,              // 原始数值 time 或 frame
-  x, y, z,           // 原始 AP/LR/VD，供信息面板和分析使用
+  x, y, z,           // 原始 AP/LR/DV，供信息面板和分析使用
   renderX/Y/Z,       // 全局中心化和统一缩放后的渲染坐标
   parentId?,
   contributingEmbryoIds? // 只用于 mean observation
@@ -171,7 +171,7 @@ main.tsx
 `buildDatasetFromRows` 的有效行条件是：
 
 - 非空 `cellId`；
-- AP/LR/VD 都可转换为有限数；
+- AP/LR/DV 都可转换为有限数；
 - Time/Frame step 可转换为有限数。
 
 重复键为 `(internal embryoId, numeric step, cellId)`，最后一个有效值覆盖之前值并计入 duplicate warning。相同 step 但不同 cell 不是重复，而是同一播放帧的正常成员。
@@ -183,10 +183,10 @@ main.tsx
 原始 `x/y/z` 永远保留。渲染坐标使用所有 observation 的全局中心，并用最大轴跨度计算一个统一比例，使最长轴长度为 16：
 
 ```text
-renderAxis = (originalAxis - globalCenterAxis) * 16 / max(AP span, LR span, VD span)
+renderAxis = (originalAxis - globalCenterAxis) * 16 / max(AP span, LR span, DV span)
 ```
 
-三个轴没有分别拉伸，所以输入的各向异性被保留。多个 embryo 必须预先位于共同 AP/LR/VD 坐标系；应用不做 registration、旋转、翻转或符号推断。
+三个轴没有分别拉伸，所以输入的各向异性被保留。多个 embryo 必须预先位于共同 AP/LR/DV 坐标系；应用不做 registration、旋转、翻转或符号推断。
 
 ## 5. 时间语义
 
@@ -298,7 +298,7 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 
 `GroupPanel` 还以 case-insensitive substring 过滤 group name；搜索结果计数为 `matched/total`。All/None 只把当前过滤后展示的 group 批量设为 visible/hidden，未命中的 group 不变。`setGroupsVisible` 使这次批量更新成为单个 Zustand transaction；即使所有匹配 group 的 `visible` flag 已经是目标值，按钮仍可重新执行，用新的 group 命令覆盖更晚发生的单细胞命令。
 
-换帧不修改 `cameraCommand`。Reset/Focus/Angle 才递增 `nonce`。Angle 使用 `cameraOffsetFromAngles` 设置 azimuth/elevation，并由 `cameraUpFromAngles` 将 up-vector 绕当前视线旋转 roll：LR/Y 为基准 up，azimuth 0° 从 +VD 看、90° 从 +AP 看，elevation 限制为 ±89.9°；camera-target distance 保持，因此三个姿态角都不改变 zoom。±AP/±LR/±VD presets 使用 roll=0。
+换帧不修改 `cameraCommand`。Reset/Focus/Angle 才递增 `nonce`。Angle 使用 `cameraOffsetFromAngles` 设置 azimuth/elevation，并由 `cameraUpFromAngles` 将 up-vector 绕当前视线旋转 roll：LR/Y 为基准 up，azimuth 0° 从 +DV 看、90° 从 +AP 看，elevation 限制为 ±89.9°；camera-target distance 保持，因此三个姿态角都不改变 zoom。±AP/±LR/±DV presets 使用 roll=0。
 
 ## 9. 颜色、分组和 last-write-wins 可见性
 
@@ -338,7 +338,7 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 - 当前帧按 opacity 分成 opaque/subdued 两个 `InstancedMesh`；
 - 每帧更新 instance matrix 和 instance color，不为每个 nucleus 建独立 mesh；
 - mesh capacity 使用整个 dataset 的 `maxObservationsPerFrame`，足够容纳 overlay 的最大帧；
-- AP/LR/VD 映射到 Three.js X/Y/Z；
+- AP/LR/DV 映射到 Three.js X/Y/Z；
 - OrbitControls 管旋转、平移、缩放和 damping；
 - 标签通过 Drei `Html` 渲染；超过 160 个可见 observation 时只标 selection；
 - 点击 instance 依靠 `instanceId` 反查 observation。
@@ -360,9 +360,9 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 
 `TrailProjectionPanel` 和 Group analysis 是左侧中部上下排列的 36 px 纯图标入口（hover `title` 提示名称）。展开态都限定为 `grid-column: 1; grid-row: 1 / -1`，只覆盖 workspace 左列的 lineage/list 两行并在内部纵向滚动，不遮挡右侧 Spatial view。Projection z-index 15、Analysis z-index 14，都高于左侧基础 panel；关闭态不再占用左下颜色选择区域。
 
-`trailProjection.ts` 默认对每个 selected group/step 求该帧所有显式 group cell observations 的 raw AP/LR/VD centroid，并直接输出三个轴坐标，不再以首个位置归零，也不插入 range-start 人工零点。Projection 的 group local state 只保存 hidden extras，实际 selected groups 复用 `resolveTrailGroups(groups, extras)` 得到 visible union extras；`visibleGroupKey` 变化的 effect 会清空局部 extras。Individual checkbox 打开后，组件对每个 explicit cell ID 单独计算；如果当前 frame observations 来自多个 displayed embryos，则同名 cell 先跨 embryo 求 mean。组件从 lineage model 找组内 parent/child，把 parent series 末点直连每个 daughter series 首点，因此两个 daughters 显示为 fork。
+`trailProjection.ts` 默认对每个 selected group/step 求该帧所有显式 group cell observations 的 raw AP/LR/DV centroid，并直接输出三个轴坐标，不再以首个位置归零，也不插入 range-start 人工零点。Projection 的 group local state 只保存 hidden extras，实际 selected groups 复用 `resolveTrailGroups(groups, extras)` 得到 visible union extras；`visibleGroupKey` 变化的 effect 会清空局部 extras。Individual checkbox 打开后，组件对每个 explicit cell ID 单独计算；如果当前 frame observations 来自多个 displayed embryos，则同名 cell 先跨 embryo 求 mean。组件从 lineage model 找组内 parent/child，把 parent series 末点直连每个 daughter series 首点，因此两个 daughters 显示为 fork。
 
-Multiple axis mode 中，每个 group×cell×axis 一条 path：stroke 取 group color；AP 为 solid；LR 使用 `stroke-dasharray="1 6"` 加 round linecap 形成圆点；VD 使用 `14 7` long dash。Single mode 用 radio 选择 AP/LR/VD，所有 series 和 fork connectors 强制 solid。x 以 range start 为 0；Time 和带 interval 的 Frame 显示 minutes，无 interval 的 Frame 显示 frame。
+Multiple axis mode 中，每个 group×cell×axis 一条 path：stroke 取 group color；AP 为 solid；LR 使用 `stroke-dasharray="1 6"` 加 round linecap 形成圆点；DV 使用 `14 7` long dash。Single mode 用 radio 选择 AP/LR/DV，所有 series 和 fork connectors 强制 solid。x 以 range start 为 0；Time 和带 interval 的 Frame 显示 minutes，无 interval 的 Frame 显示 frame。
 
 交互仍留在 `TrailProjectionPanel` local state，不进入 Zustand/Session：透明宽 hit paths 在 hover 时寻找该 series 最近 observation，显示 individual cell/group、axis、elapsed x 和 exact coordinate；pointer rectangle 与 wheel修改 x/coordinate display domain，clipPath 裁剪并可 Reset。`projectionSeriesToCsv` 导出当前选择的完整 Trails-range series（zoom 只改变视窗）以及 group/cell/axis/step/elapsed/unit/axis position/sample count。
 
@@ -435,7 +435,7 @@ target snapshot + active embryo IDs + metrics/k/null
   → GroupAnalysisResult → chart/table/CSV
 ```
 
-Analysis 从不使用 `renderX/Y/Z`、mean observation 或 overlay 后的数组。所有 metric 基于每个 embryo 原始 AP/LR/VD。不同 embryo 的 metric 只在计算结束后做 median/IQR 等汇总。
+Analysis 从不使用 `renderX/Y/Z`、mean observation 或 overlay 后的数组。所有 metric 基于每个 embryo 原始 AP/LR/DV。不同 embryo 的 metric 只在计算结束后做 median/IQR 等汇总。
 
 `groupFrames` 会为选中 embryo 中每个有任意 observation 的 step 建 row；即使 group size 为 0 也保留。进度每完成 4 个 frame 或最后一个 frame报告一次。
 
@@ -572,7 +572,7 @@ Result fingerprint 包含 target ID/cells/source/root、active embryos、metric 
 ## 16. 修改前的快速检查清单
 
 1. 功能语义是 entire dataset、active embryos、单 embryo、overlay，还是 mean？Analysis 当前固定为 active embryos 各自独立。
-2. 使用原始 AP/LR/VD 还是 render 坐标？现有 metric 全部使用原始坐标。
+2. 使用原始 AP/LR/DV 还是 render 坐标？现有 metric 全部使用原始坐标。
 3. `frame` 指 array index 还是 authoritative step value？store 使用 index，dataset/service/analysis row 使用原 step value，只有 lineage frame axis 使用 `step × intervalSeconds`。
 4. 时间来自 All exact grid 还是 Sample grid？Sample 已把上一完整 embryo frame 固化为目标 step；All 的 analysis 仍 exact-only，只有 Mean 可选 hold-last。两者都不做坐标线性插值或 nearest-time pooling。
 5. Group 是 explicit 还是 lineage-dynamic？只有 `source === 'lineage'` 自动补后代。

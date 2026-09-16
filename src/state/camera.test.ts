@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { cameraOffsetFromAngles, cameraUpFromAngles, clampElevation } from './camera'
 
 describe('numeric camera angles', () => {
-  it('maps cardinal azimuths onto the AP/VD axes while preserving distance', () => {
+  it('maps cardinal azimuths onto the AP/DV axes while preserving distance', () => {
     expect(cameraOffsetFromAngles(0, 0, 10)).toEqual([0, 0, 10])
     const positiveAp = cameraOffsetFromAngles(90, 0, 10)
     expect(positiveAp[0]).toBeCloseTo(10)

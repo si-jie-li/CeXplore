@@ -23,7 +23,8 @@ export const defaultSurfaceSettings: GroupSurfaceSettings = {
 export interface SurfaceGeometryData {
   positions: Float32Array
   normals: Float32Array
-  fallback: boolean
+  kind: 'mesh' | 'point' | 'line'
+  lowerDimensional: boolean
 }
 
 export type SurfaceWorkerRequest =

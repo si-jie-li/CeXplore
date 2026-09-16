@@ -161,7 +161,7 @@ export function ColumnMapper({
             <FieldSelect label="Cell ID / name" value={mapping.cellId} headers={headers} required onChange={(v) => update('cellId', v)} />
             <FieldSelect label="AP coordinate" value={mapping.x} headers={headers} required onChange={(v) => update('x', v)} />
             <FieldSelect label="LR coordinate" value={mapping.y} headers={headers} required onChange={(v) => update('y', v)} />
-            <FieldSelect label="VD coordinate" value={mapping.z} headers={headers} required onChange={(v) => update('z', v)} />
+            <FieldSelect label="DV coordinate" value={mapping.z} headers={headers} required onChange={(v) => update('z', v)} />
           </div>
 
           <div className="mapping-section-label">Developmental coordinate</div>

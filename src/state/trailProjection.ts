@@ -1,12 +1,12 @@
 import type { Observation } from '../data/types'
 
-export type ProjectionAxis = 'AP' | 'LR' | 'VD'
+export type ProjectionAxis = 'AP' | 'LR' | 'DV'
 
 export interface ProjectionPoint {
   step: number
   AP: number
   LR: number
-  VD: number
+  DV: number
   sampleCount: number
 }
 
@@ -48,7 +48,7 @@ export function calculateGroupProjectedPosition(
     step: centroid.step,
     AP: centroid.x,
     LR: centroid.y,
-    VD: centroid.z,
+    DV: centroid.z,
     sampleCount: centroid.sampleCount,
   }))
 }

@@ -191,7 +191,7 @@ function AxisGuide() {
       <axesHelper args={[5]} />
       <Html position={[5.5, 0, 0]} center zIndexRange={[3, 0]} className="axis-label">AP</Html>
       <Html position={[0, 5.5, 0]} center zIndexRange={[3, 0]} className="axis-label">LR</Html>
-      <Html position={[0, 0, 5.5]} center zIndexRange={[3, 0]} className="axis-label">VD</Html>
+      <Html position={[0, 0, 5.5]} center zIndexRange={[3, 0]} className="axis-label">DV</Html>
     </group>
   )
 }
@@ -226,8 +226,8 @@ const VIEW_PRESETS: Array<{ label: string; title: string; angle: CameraAngle }> 
   { label: '−AP', title: 'Look from negative AP', angle: { azimuthDegrees: -90, elevationDegrees: 0, rollDegrees: 0 } },
   { label: '+LR', title: 'Look from positive LR', angle: { azimuthDegrees: 0, elevationDegrees: 89.9, rollDegrees: 0 } },
   { label: '−LR', title: 'Look from negative LR', angle: { azimuthDegrees: 0, elevationDegrees: -89.9, rollDegrees: 0 } },
-  { label: '+VD', title: 'Look from positive VD', angle: { azimuthDegrees: 0, elevationDegrees: 0, rollDegrees: 0 } },
-  { label: '−VD', title: 'Look from negative VD', angle: { azimuthDegrees: 180, elevationDegrees: 0, rollDegrees: 0 } },
+  { label: '+DV', title: 'Look from positive DV', angle: { azimuthDegrees: 0, elevationDegrees: 0, rollDegrees: 0 } },
+  { label: '−DV', title: 'Look from negative DV', angle: { azimuthDegrees: 180, elevationDegrees: 0, rollDegrees: 0 } },
 ]
 
 function ViewAnglePanel({ onClose }: { onClose: () => void }) {
@@ -281,7 +281,7 @@ function ViewAnglePanel({ onClose }: { onClose: () => void }) {
           </button>
         ))}
       </div>
-      <p>Azimuth rotates around LR; elevation tilts above the AP–VD plane; roll rotates the image around the viewing direction.</p>
+      <p>Azimuth rotates around LR; elevation tilts above the AP–DV plane; roll rotates the image around the viewing direction.</p>
     </aside>
   )
 }

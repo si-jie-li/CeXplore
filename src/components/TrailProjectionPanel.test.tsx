@@ -34,6 +34,7 @@ describe('projected group motion drawer', () => {
     fireEvent.click(screen.getByRole('button', { name: /Projected motion/ }))
 
     expect(screen.getByRole('img', { name: 'Projected group motion chart' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: /DV · long dash/ })).toBeChecked()
     const curves = () => [...container.querySelectorAll('.projection-series-line')]
     expect(curves()).toHaveLength(6)
     expect(curves().filter((path) => path.getAttribute('stroke') === '#3978c5')).toHaveLength(3)
