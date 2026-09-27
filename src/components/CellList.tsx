@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { GitBranch, Search, X } from 'lucide-react'
+import { CheckCheck, GitBranch, Search, X } from 'lucide-react'
 import { getCellAppearance } from '../state/cellAppearance'
 import { useExplorerStore } from '../state/explorerStore'
 import { CELL_PALETTE } from '../utils/palette'
 
 export function CellList() {
   const [query, setQuery] = useState('')
+  const [dismissedWarning, setDismissedWarning] = useState('')
   const [saveGroup, setSaveGroup] = useState(true)
   const dataset = useExplorerStore((state) => state.dataset)!
   const lineage = useExplorerStore((state) => state.lineage)!
@@ -14,26 +15,55 @@ export function CellList() {
   const cellColors = useExplorerStore((state) => state.cellColors)
   const settings = useExplorerStore((state) => state.settings)
   const toggleCell = useExplorerStore((state) => state.toggleCell)
+  const setSelection = useExplorerStore((state) => state.setSelection)
   const selectLineage = useExplorerStore((state) => state.selectLineage)
   const clearSelection = useExplorerStore((state) => state.clearSelection)
   const applyColor = useExplorerStore((state) => state.applyColor)
-  const filtered = useMemo(() => {
-    const normalized = query.trim().toLowerCase()
-    return normalized ? dataset.cellIds.filter((id) => id.toLowerCase().includes(normalized)) : dataset.cellIds
+  const search = useMemo(() => {
+    const requested = query.split(/[,，]/).map((value) => value.trim()).filter(Boolean)
+    if (!requested.length) return { active: false, matches: dataset.cellIds, missing: [] as string[] }
+    const actualByName = new Map(dataset.cellIds.map((id) => [id.toLocaleLowerCase(), id]))
+    const seen = new Set<string>()
+    const matches: string[] = [], missing: string[] = []
+    for (const requestedId of requested) {
+      const normalized = requestedId.toLocaleLowerCase()
+      if (seen.has(normalized)) continue
+      seen.add(normalized)
+      const actual = actualByName.get(normalized)
+      if (actual) matches.push(actual)
+      else missing.push(requestedId)
+    }
+    return { active: true, matches, missing }
   }, [dataset.cellIds, query])
+  const warningKey = search.missing.map((id) => id.toLocaleLowerCase()).join('\u0000')
+  const showWarning = warningKey && warningKey !== dismissedWarning
 
   return (
     <div className="cell-list-component">
-      <div className="list-toolbar">
-        <label className="search-field">
-          <Search size={15} />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search cells" aria-label="Search cells" />
-          {query && <button onClick={() => setQuery('')} aria-label="Clear search"><X size={13} /></button>}
-        </label>
-        <span>{filtered.length}</span>
+      <div className="cell-search-area">
+        <div className="list-toolbar">
+          <label className="search-field">
+            <Search size={15} />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Exact names, comma-separated" aria-label="Search cells" />
+            {query && <button onClick={() => setQuery('')} aria-label="Clear search"><X size={13} /></button>}
+          </label>
+          {search.active && <button
+            type="button"
+            className="select-search-results"
+            disabled={!search.matches.length}
+            onClick={() => setSelection(search.matches, { kind: 'manual' })}
+            title="Select every exact search result"
+          ><CheckCheck size={13} /> Select all</button>}
+          <span>{search.matches.length}</span>
+        </div>
+        {showWarning && <div className="cell-search-warning" role="alert">
+          <span><strong>Not found:</strong> {search.missing.join(', ')}</span>
+          <button type="button" onClick={() => setDismissedWarning(warningKey)} aria-label="Dismiss missing-cell warning"><X size={12} /></button>
+        </div>}
       </div>
       <div className="cell-rows" role="listbox" aria-label="Cells" aria-multiselectable="true">
-        {filtered.map((cellId) => {
+        {search.active && !search.matches.length && <div className="cell-search-empty">No exact cell matches.</div>}
+        {search.matches.map((cellId) => {
           const selected = selection.has(cellId)
           const appearance = getCellAppearance({
             cellId,

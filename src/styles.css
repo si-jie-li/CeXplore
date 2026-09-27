@@ -254,12 +254,21 @@ button:disabled, input:disabled, select:disabled { opacity: .42; cursor: not-all
 .tab-bar button.active { color: var(--ink); border-color: var(--accent); }
 .tab-bar span { font-size: 8.5px; font-weight: 700; color: #83908c; background: #edf1f0; border-radius: 9px; padding: 2px 5px; margin-left: 3px; }
 .tab-content { flex: 1; min-height: 0; }
-.cell-list-component { height: 100%; display: grid; grid-template-rows: 39px minmax(0, 1fr) auto; }
+.cell-list-component { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.cell-search-area { min-width: 0; border-bottom: 1px solid #e8ecea; }
 .list-toolbar { display: flex; gap: 8px; align-items: center; padding: 5px 9px; border-bottom: 1px solid #e8ecea; }
+.cell-search-area .list-toolbar { border-bottom: 0; }
 .list-toolbar > span { font-size: 9px; color: #84918d; }
 .search-field { height: 28px; flex: 1; display: flex; align-items: center; gap: 6px; border: 1px solid #d8dfdc; border-radius: 5px; background: white; padding: 0 7px; color: #7b8984; }
 .search-field input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; font-size: 10.5px; color: var(--ink); }
 .search-field button { border: 0; background: transparent; padding: 2px; display: grid; place-items: center; cursor: pointer; color: #71807b; }
+.select-search-results { height: 25px; flex: 0 0 auto; display: flex; align-items: center; gap: 3px; padding: 0 5px; border: 1px solid #d5dfdc; border-radius: 4px; background: white; color: #52635d; font-size: 8px; cursor: pointer; }
+.select-search-results:hover:not(:disabled) { border-color: #91b6aa; color: var(--accent); }
+.cell-search-warning { min-width: 0; display: flex; align-items: flex-start; gap: 6px; padding: 5px 8px 6px 10px; border-top: 1px solid #ead8a9; background: #fff9e8; color: #765f2d; font-size: 8.5px; line-height: 1.4; }
+.cell-search-warning span { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.cell-search-warning button { width: 18px; height: 18px; flex: 0 0 auto; display: grid; place-items: center; padding: 0; border: 0; border-radius: 3px; background: transparent; color: #806833; cursor: pointer; }
+.cell-search-warning button:hover { background: #f1e4bd; }
+.cell-search-empty { min-height: 70px; display: grid; place-items: center; color: #84918d; font-size: 9px; }
 .cell-rows { overflow: auto; padding: 3px 5px 5px; }
 .cell-row { height: 28px; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; padding: 0 4px 0 6px; font-size: 10.5px; }
 .cell-row:hover { background: #f0f4f2; }

@@ -294,6 +294,8 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 
 `toggleCells` 的批量语义是：如果传入 IDs 已全部选中则全部移除，否则全部添加，它只用于 Cell 级选择。`selectLineage` 的语义不同：lineage branch、Shift-click 和 CellList 的 lineage 按钮始终把 represented descendants union 到已有 selection，从不清空或 toggle 旧选择。已有 selection 时 `selectionMeta` 转为 manual，避免后续保存时误把混合选择标成单一 lineage。
 
+`CellList` 搜索不是 substring filter：query 按英文/中文逗号拆分、trim、以 `toLocaleLowerCase()` 去重并对 `dataset.cellIds` 做 case-insensitive exact lookup，匹配结果采用实际 cell ID 拼写并保持 query 顺序。未知名称进入可关闭的 local warning，但不删除已命中结果；`Select all` 调用 `setSelection(matches, { kind: 'manual' })`，用全部搜索结果替换当前 selection。空 query 才展示整个 `dataset.cellIds`。
+
 `GroupPanel` 展开成员不再保存局部 marked state；每个 checkbox 直接读 `selection.has(cellId)` 并调用 `toggleCell`。因此树上选中的 lineage 会同时勾选 Cells list 和相应 group members，`Remove selected` 用 `group.cellIds ∩ selection` 删除，可从任何视图建立待删集合。
 
 `GroupPanel` 还以 case-insensitive substring 过滤 group name；搜索结果计数为 `matched/total`。All/None 只把当前过滤后展示的 group 批量设为 visible/hidden，未命中的 group 不变。`setGroupsVisible` 使这次批量更新成为单个 Zustand transaction；即使所有匹配 group 的 `visible` flag 已经是目标值，按钮仍可重新执行，用新的 group 命令覆盖更晚发生的单细胞命令。
