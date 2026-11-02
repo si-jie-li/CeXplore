@@ -318,7 +318,7 @@ Trails 的目标选择与范围是全局 `settings` 的一部分，会跟 Sessio
 - 一个 cell 属于多个 visible groups 时，数组中最后一个 group 的颜色胜出。
 - 尚无 cell/group 显式可见性命令时，一个 cell 属于至少一个 group、且它所属的所有 groups 都 hidden，则在所有 display modes 中隐藏。
 - `cellVisibility[cellId]` 是 nucleus 的最后一次显式命令；`cellTrailVisibility[cellId]` 是 Trail 的最后一次显式命令。nucleus 的 `false` 完全跳过 3D 渲染，`true` 只保证保留、并不自动前景化：未着色且未选择的 cell 仍以 `unselectedOpacity` 进入 background mesh。缺少 key 才完整回退到原有 group/display-mode 可见性规则。
-- Cell info 的单细胞命令只写一个 key；Show all/Hide all 为当前 dataset 每个 cell 批量写 key。Show trail/Show all trails 还会开启全局 Trails 开关。
+- Cell info 的单细胞命令只写一个 key；当 `selection.size > 1` 时操作目标切换为完整 selection，`setCellsVisible` / `setCellTrailsVisible` 过滤未知 ID 后在一次 store update 中批量写 keys，行标题显示 `Selected (N)`，selection 本身不变。Show all/Hide all 为当前 dataset 每个 cell 批量写 key。Show trail/Show selected trails/Show all trails 还会开启全局 Trails 开关。
 - group Show/Hide 会把该 group 全部成员同时写入两个 map；之后的 cell 命令可覆盖其中一个成员，之后的 group 命令也会再次批量覆盖。系统不存单独的层级优先级，最终 map 就是操作时间顺序的结果。
 - 因此重叠 group 的“最后一次可见性命令”与“最后一个 visible group 决定颜色”是两条不同规则；隐藏任一重叠 group 的新命令可以隐藏共享 cell，直到更晚的 cell 或 group Show 命令恢复。
 - `Highlight`：visible group、selection 或有 assigned color 的 cell 不透明，其他为 `unselectedOpacity`。

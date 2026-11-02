@@ -13,65 +13,63 @@ function VisibilityActions({ cellId }: { cellId?: string }) {
   const cellVisibility = useExplorerStore((state) => state.cellVisibility)
   const cellTrailVisibility = useExplorerStore((state) => state.cellTrailVisibility)
   const settings = useExplorerStore((state) => state.settings)
-  const setCellVisible = useExplorerStore((state) => state.setCellVisible)
+  const setCellsVisible = useExplorerStore((state) => state.setCellsVisible)
   const setAllCellsVisible = useExplorerStore((state) => state.setAllCellsVisible)
-  const setCellTrailVisible = useExplorerStore((state) => state.setCellTrailVisible)
+  const setCellTrailsVisible = useExplorerStore((state) => state.setCellTrailsVisible)
   const setAllCellTrailsVisible = useExplorerStore((state) => state.setAllCellTrailsVisible)
-  const cellIsVisible = cellId ? getCellAppearance({
-    cellId,
-    selection,
-    cellColors,
-    cellVisibility,
-    groups,
-    displayMode: settings.displayMode,
-    unselectedOpacity: settings.unselectedOpacity,
-  }).visible : false
-  const trailIsVisible = cellId
-    ? settings.showTrajectories && resolveTrailCellIds(
-      groups,
-      settings.trailGroupIds,
-      selection,
-      cellTrailVisibility,
-    ).has(cellId)
-    : false
+  const selectedTargets = selection.size > 1 ? [...selection] : []
+  const targets = selectedTargets.length ? selectedTargets : cellId ? [cellId] : []
+  const multiple = targets.length > 1
+  const cellStates = targets.map((target) => getCellAppearance({
+    cellId: target, selection, cellColors, cellVisibility, groups,
+    displayMode: settings.displayMode, unselectedOpacity: settings.unselectedOpacity,
+  }).visible)
+  const trailTargets = resolveTrailCellIds(groups, settings.trailGroupIds, selection, cellTrailVisibility)
+  const trailStates = targets.map((target) => settings.showTrajectories && trailTargets.has(target))
+  const allCellsVisible = targets.length > 0 && cellStates.every(Boolean)
+  const allCellsHidden = targets.length > 0 && cellStates.every((visible) => !visible)
+  const allTrailsVisible = targets.length > 0 && trailStates.every(Boolean)
+  const allTrailsHidden = targets.length > 0 && trailStates.every((visible) => !visible)
+  const cellSubject = multiple ? `${targets.length} selected cells` : `cell ${targets[0]}`
+  const trailSubject = multiple ? `trails for ${targets.length} selected cells` : `trail for ${targets[0]}`
 
   return (
     <div className="cell-visibility-controls">
-      {cellId && (
+      {targets.length > 0 && (
         <div className="cell-visibility-row current-cell-actions">
-          <span>Current</span>
+          <span title={multiple ? `${targets.length} selected cells` : 'Current cell'}>{multiple ? `Selected (${targets.length})` : 'Current'}</span>
           <div className="cell-visibility-pair">
-            <em>Cell</em>
+            <em>{multiple ? 'Cells' : 'Cell'}</em>
             <button
               type="button"
-              className={cellIsVisible ? 'active' : ''}
-              onClick={() => setCellVisible(cellId, true)}
-              aria-label={`Show cell ${cellId}`}
-              title={`Show cell ${cellId}`}
+              className={allCellsVisible ? 'active' : ''}
+              onClick={() => setCellsVisible(targets, true)}
+              aria-label={`Show ${cellSubject}`}
+              title={`Show ${cellSubject}`}
             ><Eye size={11} /></button>
             <button
               type="button"
-              className={!cellIsVisible ? 'active' : ''}
-              onClick={() => setCellVisible(cellId, false)}
-              aria-label={`Hide cell ${cellId}`}
-              title={`Hide cell ${cellId}`}
+              className={allCellsHidden ? 'active' : ''}
+              onClick={() => setCellsVisible(targets, false)}
+              aria-label={`Hide ${cellSubject}`}
+              title={`Hide ${cellSubject}`}
             ><EyeOff size={11} /></button>
           </div>
           <div className="cell-visibility-pair">
-            <em>Trail</em>
+            <em>{multiple ? 'Trails' : 'Trail'}</em>
             <button
               type="button"
-              className={trailIsVisible ? 'active' : ''}
-              onClick={() => setCellTrailVisible(cellId, true)}
-              aria-label={`Show trail for ${cellId}`}
-              title={`Show trail for ${cellId}; includes its incoming segment from the mother`}
+              className={allTrailsVisible ? 'active' : ''}
+              onClick={() => setCellTrailsVisible(targets, true)}
+              aria-label={`Show ${trailSubject}`}
+              title={`Show ${trailSubject}; each includes its incoming segment from the mother`}
             ><Route size={11} /></button>
             <button
               type="button"
-              className={!trailIsVisible ? 'active' : ''}
-              onClick={() => setCellTrailVisible(cellId, false)}
-              aria-label={`Hide trail for ${cellId}`}
-              title={`Hide trail for ${cellId}`}
+              className={allTrailsHidden ? 'active' : ''}
+              onClick={() => setCellTrailsVisible(targets, false)}
+              aria-label={`Hide ${trailSubject}`}
+              title={`Hide ${trailSubject}`}
             ><EyeOff size={11} /></button>
           </div>
         </div>
@@ -100,6 +98,7 @@ export function CellInfo() {
   const frameIndex = useExplorerStore((state) => state.currentFrameIndex)
   const inspected = useExplorerStore((state) => state.inspectedCellId)
   const hovered = useExplorerStore((state) => state.hoveredObservation)
+  const selection = useExplorerStore((state) => state.selection)
   const activeEmbryoIds = useExplorerStore((state) => state.activeEmbryoIds)
   const settings = useExplorerStore((state) => state.settings)
   const meanPositionCache = useExplorerStore((state) => state.meanPositionCache)
@@ -128,7 +127,7 @@ export function CellInfo() {
       <div className="cell-info">
         <div className="empty-state-small cell-info-empty">
           <Info size={17} />
-          <span>Hover a nucleus or select a cell to inspect it.</span>
+          <span>{selection.size > 1 ? `${selection.size} cells selected. Use Selected below for batch visibility.` : 'Hover a nucleus or select a cell to inspect it.'}</span>
         </div>
         <VisibilityActions />
       </div>

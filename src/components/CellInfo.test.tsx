@@ -55,4 +55,23 @@ describe('cell visibility actions', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Show all cell trails' }))
     expect(Object.values(useExplorerStore.getState().cellTrailVisibility).every(Boolean)).toBe(true)
   })
+
+  it('batch hides and restores every selected cell or trail', () => {
+    useExplorerStore.getState().setSelection(['AB', 'ABa'], { kind: 'lineage', rootCell: 'AB' })
+    render(<CellInfo />)
+
+    expect(screen.getByText('2 cells selected. Use Selected below for batch visibility.')).toBeInTheDocument()
+    expect(screen.getByText('Selected (2)')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Hide 2 selected cells' }))
+    expect(useExplorerStore.getState().cellVisibility).toMatchObject({ AB: false, ABa: false })
+    expect(useExplorerStore.getState().selection).toEqual(new Set(['AB', 'ABa']))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show 2 selected cells' }))
+    expect(useExplorerStore.getState().cellVisibility).toMatchObject({ AB: true, ABa: true })
+    fireEvent.click(screen.getByRole('button', { name: 'Hide trails for 2 selected cells' }))
+    expect(useExplorerStore.getState().cellTrailVisibility).toMatchObject({ AB: false, ABa: false })
+    fireEvent.click(screen.getByRole('button', { name: 'Show trails for 2 selected cells' }))
+    expect(useExplorerStore.getState().cellTrailVisibility).toMatchObject({ AB: true, ABa: true })
+    expect(useExplorerStore.getState().settings.showTrajectories).toBe(true)
+  })
 })

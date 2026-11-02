@@ -87,8 +87,10 @@ interface ExplorerState {
   setInspectedCell: (cellId?: string) => void
   setHoveredObservation: (observation?: Observation) => void
   setCellVisible: (cellId: string, visible: boolean) => void
+  setCellsVisible: (cellIds: Iterable<string>, visible: boolean) => void
   setAllCellsVisible: (visible: boolean) => void
   setCellTrailVisible: (cellId: string, visible: boolean) => void
+  setCellTrailsVisible: (cellIds: Iterable<string>, visible: boolean) => void
   setAllCellTrailsVisible: (visible: boolean) => void
   updateGroup: (id: string, patch: Partial<Pick<CellGroup, 'name' | 'visible'>>) => void
   setGroupsVisible: (ids: Iterable<string>, visible: boolean) => void
@@ -371,6 +373,13 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     set((state) => state.dataset?.cells.has(cellId)
       ? { cellVisibility: visibilityForCells(state.cellVisibility, [cellId], visible) }
       : state),
+  setCellsVisible: (cellIds, visible) =>
+    set((state) => {
+      const valid = [...cellIds].filter((cellId) => state.dataset?.cells.has(cellId))
+      return valid.length
+        ? { cellVisibility: visibilityForCells(state.cellVisibility, valid, visible) }
+        : state
+    }),
   setAllCellsVisible: (visible) =>
     set((state) => ({
       cellVisibility: visibilityForCells({}, state.dataset?.cellIds ?? [], visible),
@@ -382,6 +391,16 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
           settings: visible ? { ...state.settings, showTrajectories: true } : state.settings,
         }
       : state),
+  setCellTrailsVisible: (cellIds, visible) =>
+    set((state) => {
+      const valid = [...cellIds].filter((cellId) => state.dataset?.cells.has(cellId))
+      return valid.length
+        ? {
+            cellTrailVisibility: visibilityForCells(state.cellTrailVisibility, valid, visible),
+            settings: visible ? { ...state.settings, showTrajectories: true } : state.settings,
+          }
+        : state
+    }),
   setAllCellTrailsVisible: (visible) =>
     set((state) => ({
       cellTrailVisibility: visibilityForCells({}, state.dataset?.cellIds ?? [], visible),

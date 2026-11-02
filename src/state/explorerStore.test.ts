@@ -117,6 +117,15 @@ describe('shared explorer state', () => {
     })).toMatchObject({ visible: true, opacity: .1 })
   })
 
+  it('updates selected cell visibility in one batch while ignoring unknown IDs', () => {
+    const state = useExplorerStore.getState()
+    state.setCellsVisible(['ABpl', 'ABpr', 'unknown'], false)
+    expect(useExplorerStore.getState().cellVisibility).toEqual({ ABpl: false, ABpr: false })
+    state.setCellTrailsVisible(['ABpl', 'ABpr', 'unknown'], true)
+    expect(useExplorerStore.getState().cellTrailVisibility).toEqual({ ABpl: true, ABpr: true })
+    expect(useExplorerStore.getState().settings.showTrajectories).toBe(true)
+  })
+
   it('shows or hides all cells and trails in one operation', () => {
     const state = useExplorerStore.getState()
     state.setAllCellsVisible(false)
